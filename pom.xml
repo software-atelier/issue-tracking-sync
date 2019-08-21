@@ -16,6 +16,8 @@
 	<properties>
         <maven.compiler.target>1.10</maven.compiler.target>
         <maven.compiler.source>1.10</maven.compiler.source>
+        <rtc.connector.version>6.0.3</rtc.connector.version>
+        <jira.connector.version>5.1.0</jira.connector.version>
     </properties>
 	
 	<dependencies>
@@ -23,6 +25,44 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-activemq</artifactId>
+		</dependency>
+		<!-- issue tracking connectors -->
+        <dependency>
+            <groupId>com.ibm.team.rtc</groupId>
+            <artifactId>plain-java-client</artifactId>
+            <version>${rtc.connector.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.jira</groupId>
+            <artifactId>jira-rest-java-client-core</artifactId>
+            <version>${jira.connector.version}</version>
+        </dependency>
+        <!-- Required by jira rest client -->
+        <dependency>
+            <groupId>io.atlassian.fugue</groupId>
+            <artifactId>fugue</artifactId>
+            <version>4.7.2</version>
+        </dependency>
+        <dependency>
+		    <groupId>javax.annotation</groupId>
+		    <artifactId>javax.annotation-api</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpclient</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>		
 	</dependencies>
 
 </project>
