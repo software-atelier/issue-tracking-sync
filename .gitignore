@@ -1,5 +1,9 @@
 .metadata
+.idea
+.gradle
 bin/
+build/
+target/
 tmp/
 *.tmp
 *.bak
@@ -12,8 +16,13 @@ local.properties
 .project
 .classpath
 
+!gradle-wrapper.jar
+
 # External tool builders
 .externalToolBuilders/
+*.iws
+*.iml
+.idea_modules/
 
 # Locally stored "Eclipse launch configurations"
 *.launch

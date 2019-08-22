@@ -12,12 +12,16 @@ The application will look for a file named application.properties or application
 Place a file in either of the two locations, and define the path to your settings JSON:
 
 ```
+spring:
+  security:
+    user:
+      password: a-better-admin-password
+
 sync:
   settingsLocation: /opt/issue-tracking-sync/config/settings.json
 ```
 
-Then, define the settings.json. An example file can be found
-
-
+Then, define the settings.json. An example file can be found [here](https://github.com/loewenfels/issue-tracking-sync/blob/master/src/test/resources/settings.json)
 
 ## For contributors
+

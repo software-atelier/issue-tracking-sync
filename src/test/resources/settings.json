@@ -1,1 +1,18 @@
-{}
+{
+  "trackingApplications": [
+    {
+      "name": "JIRA",
+      "className": "ch.loewenfels.issuetrackingsync.client.jira.JiraClient",
+      "username": "foobar",
+      "password": "{xor}asasdds",
+      "endpoint": "http://localhost:8080/jira"
+    },
+    {
+      "name": "RTC",
+      "className": "ch.loewenfels.issuetrackingsync.client.rtc.RtcClient",
+      "username": "foobar",
+      "password": "{xor}asasdds",
+      "endpoint": "http://localhost:8080/rtc"
+    }
+  ]
+}
