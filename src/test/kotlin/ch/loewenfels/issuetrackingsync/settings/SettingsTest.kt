@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class SettingsTest : AbstractSpringTest() {
+internal class SettingsTest : AbstractSpringTest() {
     @Autowired
     lateinit var objectMapper: ObjectMapper;
 

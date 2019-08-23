@@ -9,6 +9,7 @@ plugins {
 
 group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
+val springProfile = "test"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 // Atlassian JIRA and IBM RTC JARs are not available on maven central
 // you'll need to set this property in your $HOME/.gradle/gradle.properties file to point to a maven repo holding these
@@ -25,6 +26,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")

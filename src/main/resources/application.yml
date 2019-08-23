@@ -4,5 +4,10 @@ spring:
       name: admin
       password: admin
 
+  activemq:
+    packages:
+      trusted: ch.loewenfels.issuetrackingsync.dto, java.time, java.lang
+
 sync:
-  settingsLocation: settings.json
+  settingsLocation: build/resources/test/settings.json
+  pollingCron: 0 0 0 1 * ?

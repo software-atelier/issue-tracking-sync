@@ -33,3 +33,4 @@ local.properties
 # Code Recommenders
 .recommenders/
 
+/appstate.json

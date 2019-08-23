@@ -9,7 +9,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-class StatisticsControllerTest : AbstractSpringTest() {
+internal class StatisticsControllerTest : AbstractSpringTest() {
     @Autowired
     lateinit var mockMvc: MockMvc
 
