@@ -9,11 +9,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-            crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
             crossorigin="anonymous"></script>
 </head>
 <body>
@@ -25,7 +25,31 @@
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">Statistics</h5>
-        <p class="card-text sync-statistics"></p>
+        <div class="card-text sync-statistics"></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Trigger sync manually</h5>
+        <div class="card-text manual-sync">
+            <form id="manual-sync-form">
+                <div class="form-group">
+                    <label for="trackingsystem">Source application</label>
+                    <select class="form-control" id="trackingsystem" name="trackingsystem">
+                        <option value="JIRA" selected="selected">JIRA</option>
+                        <option value="RTC">RTC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="issuekey">Issue key</label>
+                    <input type="text" class="form-control" id="issuekey" name="issuekey" placeholder="DEV-123456">
+                    <small id="issuekeyHelp" class="form-text text-muted">JIRA issue key (eg. DEV-123456) or RTC ID (eg.
+                        610098).</small>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="sync.runManual();">Submit</button>
+                <div id="manual-sync-status"></div>
+            </form>
+        </div>
     </div>
 </div>
 <script src="assets/sync.js"></script>

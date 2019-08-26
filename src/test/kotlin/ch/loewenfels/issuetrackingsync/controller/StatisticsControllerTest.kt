@@ -15,7 +15,7 @@ internal class StatisticsControllerTest : AbstractSpringTest() {
 
     @Test
     @WithMockUser(roles = ["USER"])
-    fun whenCalled_shouldReturnHello() {
+    fun statistics_defaultGet_shouldHaveStatusOk() {
         mockMvc.perform(
             get("/statistics")
                 .accept(MediaType.APPLICATION_JSON)

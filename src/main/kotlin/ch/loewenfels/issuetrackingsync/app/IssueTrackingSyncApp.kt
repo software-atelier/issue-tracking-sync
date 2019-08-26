@@ -12,6 +12,8 @@ import org.springframework.boot.system.ApplicationHome
 import org.springframework.context.annotation.Bean
 import org.springframework.integration.config.EnableIntegrationManagement
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 
 @SpringBootApplication(
     scanBasePackages = ["ch.loewenfels.issuetrackingsync.controller",//
@@ -25,7 +27,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     defaultCountsEnabled = "true",
     defaultStatsEnabled = "true"
 )
-open class IssueTrackingSyncApp {
+open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     @Value("\${sync.settingsLocation}")
     lateinit var settingsLocation: String;
 
@@ -43,6 +45,14 @@ open class IssueTrackingSyncApp {
     @Bean
     open fun clientFactory(): ClientFactory {
         return DefaultClientFactory
+    }
+
+    /**
+     * Disable CSRF as this app will be run as an internal app only. Should security ever be a concern,
+     * enable CSRF, and adapt index.html accordingly
+     */
+    override fun configure(http: HttpSecurity) {
+        http.csrf().disable()
     }
 }
 

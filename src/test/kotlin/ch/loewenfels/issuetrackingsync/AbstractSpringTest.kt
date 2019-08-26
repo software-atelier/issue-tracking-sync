@@ -25,14 +25,6 @@ abstract class AbstractSpringTest {
 
     @BeforeEach
     fun trainClientFactory() {
-//        doAnswer {
-//            val setting = it.arguments[0] as IssueTrackingApplication
-//            when {
-//                setting.className.endsWith("JiraClient") -> MockJiraClient(setting)
-//                setting.className.endsWith("RtcClient") -> MockRtcClient(setting)
-//                else -> throw IllegalArgumentException("Unknown client: " + setting.className)
-//            }
-//        }.`when`(clientFactory).getClient(any(IssueTrackingApplication::class.java))
         `when`(clientFactory.getClient(any(IssueTrackingApplication::class.java))).thenAnswer {
             val setting = it.arguments[0] as IssueTrackingApplication
             when {

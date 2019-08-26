@@ -3,6 +3,16 @@ spring:
     user:
       name: admin
       password: admin
+      roles: USER
+
+  jms:
+    listener:
+      acknowledge-mode: auto
+      auto-startup: true
+      concurrency: 1
+      max-concurrency: 1
+    cache:
+      enabled: false
 
   activemq:
     packages:
