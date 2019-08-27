@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.client.ClientFactory
 import ch.loewenfels.issuetrackingsync.client.DefaultClientFactory
 import ch.loewenfels.issuetrackingsync.settings.Settings
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.ibm.team.repository.client.TeamPlatform
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -14,6 +15,8 @@ import org.springframework.integration.config.EnableIntegrationManagement
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
 
 @SpringBootApplication(
     scanBasePackages = ["ch.loewenfels.issuetrackingsync.controller",//
@@ -45,6 +48,16 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     @Bean
     open fun clientFactory(): ClientFactory {
         return DefaultClientFactory
+    }
+
+    @PostConstruct
+    fun onStartup() {
+        TeamPlatform.startup()
+    }
+
+    @PreDestroy
+    fun onShutdown() {
+        TeamPlatform.shutdown()
     }
 
     /**

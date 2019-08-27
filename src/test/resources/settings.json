@@ -3,17 +3,26 @@
     {
       "name": "JIRA",
       "className": "ch.loewenfels.issuetrackingsync.client.jira.JiraClient",
+      "role": "SLAVE",
       "username": "foobar",
       "password": "{xor}asasdds",
-      "endpoint": "http://localhost:8080/jira"
+      "endpoint": "http://localhost:8080/jira",
+      "fieldsHoldingPartnerApplicationKey": {
+        "RTC": "custom_field_1004"
+      }
     },
     {
       "name": "RTC",
       "className": "ch.loewenfels.issuetrackingsync.client.rtc.RtcClient",
+      "role": "MASTER",
       "username": "foobar",
       "password": "{xor}asasdds",
       "endpoint": "http://localhost:8080/rtc",
-      "polling": true
+      "polling": true,
+      "fieldsHoldingPartnerApplicationKey": {
+        "JIRA": "ch.loewenfels.team.workitem.attribute.external_refid"
+      },
+      "rtcProjectArea": ""
     }
   ]
 }

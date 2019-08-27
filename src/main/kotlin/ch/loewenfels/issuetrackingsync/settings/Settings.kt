@@ -14,7 +14,7 @@ data class Settings(var trackingApplications: MutableList<IssueTrackingApplicati
                 if (!settingsFile.exists()) {
                     throw IOException("Settings file " + settingsFile.absolutePath + " not found.")
                 }
-                logger().info("Loading settings from {}", settingsFile)
+                logger().info("Loading settings from {}", settingsFile.absolutePath)
                 return objectMapper.readValue(settingsFile, Settings::class.java)
             } catch (ex: IOException) {
                 throw IllegalStateException("Failed to load settings", ex)
