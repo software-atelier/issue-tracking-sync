@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.app.AppState
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
+import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowFactory
 import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
@@ -21,7 +22,8 @@ class IssuePoller @Autowired constructor(
     private val syncApplicationProperties: SyncApplicationProperties,
     private val objectMapper: ObjectMapper,
     private val syncRequestProducer: SyncRequestProducer,
-    private val clientFactory: ClientFactory
+    private val clientFactory: ClientFactory,
+    private val synchronizationFlowFactory: SynchronizationFlowFactory
 ) : Logging {
     @PostConstruct
     fun afterPropertiesSet() {
@@ -30,11 +32,15 @@ class IssuePoller @Autowired constructor(
 
     @Scheduled(cron = "\${sync.pollingCron:}")
     fun checkForUpdatedIssues() {
-        settings.trackingApplications.filter { it.polling }.forEach {
-            logger().info("Checking for issues for {}", it.name)
-            val issueTrackingClient = clientFactory.getClient(it)
+        settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
+            logger().info("Checking for issues for {}", trackingApp.name)
+            val issueTrackingClient = clientFactory.getClient(trackingApp)
             issueTrackingClient.changedIssuesSince(appState.lastPollingTimestamp ?: LocalDateTime.now())
-                .forEach { scheduleSync(it) }
+                .forEach { ticket ->
+                    if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, ticket) != null) {
+                        scheduleSync(ticket)
+                    }
+                }
         }
         appState.lastPollingTimestamp = LocalDateTime.now()
         appState.persist(objectMapper)

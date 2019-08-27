@@ -7,7 +7,7 @@ spring:
 
   jms:
     listener:
-      acknowledge-mode: auto
+      acknowledge-mode: client
       auto-startup: true
       concurrency: 1
       max-concurrency: 1
@@ -16,7 +16,7 @@ spring:
 
   activemq:
     packages:
-      trusted: ch.loewenfels.issuetrackingsync.dto, java.time, java.lang
+      trusted: ch.loewenfels.issuetrackingsync.scheduling, java.time, java.lang
 
 sync:
   settingsLocation: build/resources/test/settings.json

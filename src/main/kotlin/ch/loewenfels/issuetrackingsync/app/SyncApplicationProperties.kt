@@ -17,7 +17,7 @@ open class SyncApplicationProperties {
         notificationChannelProperties.map {
             try {
                 val channelClass = Class.forName(it.classname) as Class<NotificationChannel>
-                channelClass.getConstructor(NotificationChannelProperties::class.java).newInstance(this)
+                channelClass.getConstructor(NotificationChannelProperties::class.java).newInstance(it)
             } catch (e: Exception) {
                 throw IllegalArgumentException("Failed to load ${it} as notification channel class", e)
             }

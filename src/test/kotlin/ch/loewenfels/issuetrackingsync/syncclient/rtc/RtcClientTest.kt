@@ -1,7 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
@@ -39,13 +38,11 @@ internal class RtcClientTest : AbstractSpringTest() {
     private fun buildSetup(): IssueTrackingApplication {
         return IssueTrackingApplication(
             "ch.loewenfels.issuetrackingsync.client.rtc.RtcClient",
-            ApplicationRole.MASTER,
             "RTC",
             "myusername",
             "mysecret",
             "https://rtc.foobar.com/rtc",
             false,
-            mapOf("JIRA" to "ch.loewenfels.team.workitem.attribute.external_refid"),
             "Playground Löwenfels (RTC)"
         )
     }

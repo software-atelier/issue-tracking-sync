@@ -43,7 +43,7 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
 
     @Bean
     open fun appState(@Autowired objectMapper: ObjectMapper): AppState {
-        val home: ApplicationHome = ApplicationHome(javaClass)
+        val home = ApplicationHome(javaClass)
         return AppState.loadFromFile(home.dir, objectMapper)
     }
 

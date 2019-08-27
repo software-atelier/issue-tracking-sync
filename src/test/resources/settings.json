@@ -3,26 +3,33 @@
     {
       "name": "JIRA",
       "className": "ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient",
-      "role": "SLAVE",
       "username": "foobar",
-      "password": "{xor}asasdds",
-      "endpoint": "http://localhost:8080/jira",
-      "fieldsHoldingPartnerApplicationKey": {
-        "RTC": "custom_field_1004"
-      }
+      "password": "asasdds",
+      "endpoint": "http://localhost:8080/jira"
     },
     {
       "name": "RTC",
       "className": "ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient",
-      "role": "MASTER",
       "username": "foobar",
-      "password": "{xor}asasdds",
+      "password": "asasdds",
       "endpoint": "http://localhost:8080/rtc",
       "polling": true,
-      "fieldsHoldingPartnerApplicationKey": {
-        "JIRA": "ch.loewenfels.team.workitem.attribute.external_refid"
-      },
-      "rtcProjectArea": ""
+      "project": "Development"
+    }
+  ],
+  "syncFlowDefinitions": [
+    {
+      "name": "Sync changes from RTC to JIRA",
+      "source": "RTC",
+      "target": "JIRA",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
+      "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SyncChangesAction",
+      "fieldMappings": [
+        {
+          "sourceName": "title",
+          "targetName": "title"
+        }
+      ]
     }
   ]
 }

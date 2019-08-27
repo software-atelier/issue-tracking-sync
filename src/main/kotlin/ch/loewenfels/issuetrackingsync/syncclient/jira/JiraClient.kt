@@ -2,7 +2,6 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
@@ -19,24 +18,23 @@ class JiraClient(private val setup: IssueTrackingApplication) : IssueTrackingCli
         setup.password
     )
 
+    override fun getPropietaryIssue(issue: Issue): Object {
+        return getJiraIssue(issue.key) as Object
+    }
+
     override fun getIssue(key: String): Issue? {
-        return jiraRestClient.issueClient.getIssue(key).claim()
+        return getJiraIssue(key)
             .let { mapJiraIssue(it) }
+    }
+
+    private fun getJiraIssue(key: String): com.atlassian.jira.rest.client.api.domain.Issue {
+        return jiraRestClient.issueClient.getIssue(key).claim()
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
         val lastPollingTimestampAsString = lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-        val hasPartnerApplicationLink =
-            setup.fieldsHoldingPartnerApplicationKey.map { "cf[${it.value}] IS NOT EMPTY" }.joinToString(" OR ")
-        val createdCutoff = lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-        var jql = "(updated >= '$lastPollingTimestampAsString'"
-        if (hasPartnerApplicationLink.isNotEmpty()) {
-            jql += " AND ($hasPartnerApplicationLink)"
-        }
-        jql += ")"
-        if (setup.role != ApplicationRole.SLAVE) {
-            jql += " OR (created >= '$lastPollingTimestampAsString')"
-        }
+        var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
+        setup.project.let { jql += " AND project = '$it'" }
         return jiraRestClient.searchClient
             .searchJql("$jql ORDER BY key")
             .claim()

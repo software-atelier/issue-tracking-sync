@@ -2,13 +2,11 @@ package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.ibm.team.process.client.IProcessClientService
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
-import com.ibm.team.repository.common.TeamRepositoryException
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.expression.AttributeExpression
@@ -39,11 +37,17 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     }
 
     override fun getIssue(key: String): Issue? {
-        val workItem: IWorkItem? =
-            workItemClient.findWorkItemById(Integer.parseInt(key), IWorkItem.SMALL_PROFILE, progressMonitor)
-        return workItem?.let {
+        return getRtcIssue(key)?.let {
             toSyncIssue(it)
         }
+    }
+
+    override fun getPropietaryIssue(issue: Issue): Object {
+        return getRtcIssue(issue.key) as Object
+    }
+
+    private fun getRtcIssue(key: String): IWorkItem? {
+        return workItemClient.findWorkItemById(Integer.parseInt(key), IWorkItem.SMALL_PROFILE, progressMonitor)
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
@@ -56,25 +60,30 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     }
 
     private fun buildSearchTermForChangedIssues(lastPollingTimestamp: LocalDateTime, projectArea: IProjectArea): Term {
+        val modifiedRecently =
+            AttributeExpression(
+                getQueryableAttribute(IWorkItem.MODIFIED_PROPERTY, projectArea),
+                AttributeOperation.GREATER_OR_EQUALS,
+                Timestamp.valueOf(lastPollingTimestamp)
+            )
+        val createdRecently =
+            AttributeExpression(
+                getQueryableAttribute(IWorkItem.CREATION_DATE_PROPERTY, projectArea),
+                AttributeOperation.GREATER_OR_EQUALS,
+                Timestamp.valueOf(lastPollingTimestamp)
+            )
         val projectAreaExpression = AttributeExpression(
             getQueryableAttribute(IWorkItem.PROJECT_AREA_PROPERTY, projectArea),
             AttributeOperation.EQUALS,
             projectArea
         )
         val relevantIssuesTerm = Term(Term.Operator.OR)
-        relevantIssuesTerm.add(modifiedIssuesWithApplicationLink(lastPollingTimestamp, projectArea))
-        if (setup.role != ApplicationRole.SLAVE) {
-            val createdRecently =
-                AttributeExpression(
-                    getQueryableAttribute(IWorkItem.CREATION_DATE_PROPERTY, projectArea),
-                    AttributeOperation.GREATER_OR_EQUALS,
-                    Timestamp.valueOf(lastPollingTimestamp)
-                )
-            relevantIssuesTerm.add(createdRecently)
-        }
+        relevantIssuesTerm.add(modifiedRecently)
+        relevantIssuesTerm.add(createdRecently)
+        //
         val searchTerm = Term(Term.Operator.AND)
-        searchTerm.add(projectAreaExpression)
         searchTerm.add(relevantIssuesTerm)
+        searchTerm.add(projectAreaExpression)
         return searchTerm
     }
 
@@ -82,14 +91,6 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         lastPollingTimestamp: LocalDateTime,
         projectArea: IProjectArea
     ): Term {
-        val partnerApplicationLinkNotEmptyExpressions =
-            setup.fieldsHoldingPartnerApplicationKey.map {
-                AttributeExpression(
-                    getQueryableAttribute(it.value, projectArea),
-                    AttributeOperation.NOT_EQUALS,
-                    ""
-                )
-            }
         val modifiedRecently =
             AttributeExpression(
                 getQueryableAttribute(IWorkItem.MODIFIED_PROPERTY, projectArea),
@@ -98,11 +99,6 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             )
         val modifiedIssuesTerm = Term(Term.Operator.AND)
         modifiedIssuesTerm.add(modifiedRecently)
-        if (partnerApplicationLinkNotEmptyExpressions.isNotEmpty()) {
-            val anyPartnerLinkTerm = Term(Term.Operator.OR)
-            partnerApplicationLinkNotEmptyExpressions.forEach { anyPartnerLinkTerm.add(it) }
-            modifiedIssuesTerm.add(anyPartnerLinkTerm)
-        }
         return modifiedIssuesTerm
     }
 
@@ -117,15 +113,13 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         )
     }
 
-    @Throws(TeamRepositoryException::class)
     private fun getProjectArea(): IProjectArea {
         val processClient = teamRepository.getClientLibrary(IProcessClientService::class.java) as IProcessClientService
-        val uri = URI.create(setup.rtcProjectArea?.replace(" ", "%20"))
+        val uri = URI.create(setup.project?.replace(" ", "%20"))
         return processClient.findProcessArea(uri, null, null) as IProjectArea?
-            ?: throw IllegalStateException("Project area ${setup.rtcProjectArea} not found.")
+            ?: throw IllegalStateException("Project area ${setup.project} is invalid")
     }
 
-    @Throws(TeamRepositoryException::class)
     private fun toWorkItems(resolvedResults: IQueryResult<IResolvedResult<IWorkItem>>): List<IWorkItem> {
         val result = LinkedList<IWorkItem>()
         while (resolvedResults.hasNext(progressMonitor)) {

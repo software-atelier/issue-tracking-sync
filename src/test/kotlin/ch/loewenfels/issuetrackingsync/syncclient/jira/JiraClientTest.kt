@@ -1,7 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -42,14 +41,11 @@ internal class JiraClientTest : AbstractSpringTest() {
     private fun buildSetup(): IssueTrackingApplication {
         return IssueTrackingApplication(
             "ch.loewenfels.issuetrackingsync.client.jira.JiraClient",
-            ApplicationRole.SLAVE,
             "JIRA",
             "myusername",
             "mysecret",
             "https://jira.foobar.com/jira",
-            false,
-            mapOf("RTC" to "12440"),
-            ""
+            false
         )
     }
 

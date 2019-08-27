@@ -5,8 +5,12 @@ import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 import java.io.IOException
+import java.util.*
 
-data class Settings(var trackingApplications: MutableList<IssueTrackingApplication> = mutableListOf()) {
+data class Settings(
+    var trackingApplications: MutableList<IssueTrackingApplication> = mutableListOf(),
+    var syncFlowDefinitions: MutableList<SyncFlowDefinition> = mutableListOf()
+) {
     companion object : Logging {
         fun loadFromFile(fileLocation: String, objectMapper: ObjectMapper): Settings {
             val settingsFile = File(fileLocation)
@@ -21,4 +25,7 @@ data class Settings(var trackingApplications: MutableList<IssueTrackingApplicati
             }
         }
     }
+
+    fun getTrackingApplication(name: TrackingApplicationName): IssueTrackingApplication? =
+        trackingApplications.find { Objects.equals(it.name, name) }
 }
