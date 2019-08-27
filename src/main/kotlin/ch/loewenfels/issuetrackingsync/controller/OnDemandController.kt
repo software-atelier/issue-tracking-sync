@@ -3,11 +3,11 @@ package ch.loewenfels.issuetrackingsync.controller;
 import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_ISSUEKEY
 import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_RESPONSEMESSAGE
 import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_TRACKINGSYSTEM
-import ch.loewenfels.issuetrackingsync.client.ClientFactory
-import ch.loewenfels.issuetrackingsync.dto.Issue
-import ch.loewenfels.issuetrackingsync.scheduled.SyncRequestProducer
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
-import ch.loewenfels.issuetrackingsync.settings.Settings
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.scheduling.SyncRequestProducer
+import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncconfig.Settings
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody

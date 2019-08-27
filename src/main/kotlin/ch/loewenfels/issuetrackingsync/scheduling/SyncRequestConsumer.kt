@@ -1,8 +1,7 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.scheduling
 
 import ch.loewenfels.issuetrackingsync.INTERNAL_QUEUE_NAME
 import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.dto.SyncRequest
 import ch.loewenfels.issuetrackingsync.logger
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Component

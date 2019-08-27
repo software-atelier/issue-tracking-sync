@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.settings
+package ch.loewenfels.issuetrackingsync.syncconfig
 
 import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.logger

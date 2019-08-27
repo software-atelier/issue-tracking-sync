@@ -1,9 +1,9 @@
-package ch.loewenfels.issuetrackingsync.client.rtc
+package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.client.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.dto.Issue
-import ch.loewenfels.issuetrackingsync.settings.ApplicationRole
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
+import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.ibm.team.process.client.IProcessClientService
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository

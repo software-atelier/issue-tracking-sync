@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.settings
+package ch.loewenfels.issuetrackingsync.syncconfig
 
 typealias TrackingApplicationName = String
 

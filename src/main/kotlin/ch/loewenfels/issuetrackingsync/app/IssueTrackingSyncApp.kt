@@ -1,13 +1,14 @@
 package ch.loewenfels.issuetrackingsync.app
 
-import ch.loewenfels.issuetrackingsync.client.ClientFactory
-import ch.loewenfels.issuetrackingsync.client.DefaultClientFactory
-import ch.loewenfels.issuetrackingsync.settings.Settings
+import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
+import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
+import ch.loewenfels.issuetrackingsync.syncclient.DefaultClientFactory
+import ch.loewenfels.issuetrackingsync.syncconfig.Settings
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ibm.team.repository.client.TeamPlatform
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.boot.system.ApplicationHome
 import org.springframework.context.annotation.Bean
@@ -20,7 +21,7 @@ import javax.annotation.PreDestroy
 
 @SpringBootApplication(
     scanBasePackages = ["ch.loewenfels.issuetrackingsync.controller",//
-        "ch.loewenfels.issuetrackingsync.scheduled", //
+        "ch.loewenfels.issuetrackingsync.scheduling", //
         "ch.loewenfels.issuetrackingsync.executor"
     ]
 )
@@ -30,13 +31,14 @@ import javax.annotation.PreDestroy
     defaultCountsEnabled = "true",
     defaultStatsEnabled = "true"
 )
+@EnableConfigurationProperties(SyncApplicationProperties::class)
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
-    @Value("\${sync.settingsLocation}")
-    lateinit var settingsLocation: String;
+    @Autowired
+    lateinit var syncApplicationProperties: SyncApplicationProperties;
 
     @Bean
     open fun settings(@Autowired objectMapper: ObjectMapper): Settings {
-        return Settings.loadFromFile(settingsLocation, objectMapper)
+        return Settings.loadFromFile(syncApplicationProperties.settingsLocation, objectMapper)
     }
 
     @Bean
@@ -48,6 +50,13 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     @Bean
     open fun clientFactory(): ClientFactory {
         return DefaultClientFactory
+    }
+
+    @Bean
+    open fun notificationObserver(): NotificationObserver {
+        val observer = NotificationObserver()
+        syncApplicationProperties.notificationChannels.forEach { observer.addChannel(it) }
+        return observer
     }
 
     @PostConstruct

@@ -1,8 +1,8 @@
-package ch.loewenfels.issuetrackingsync.client.rtc
+package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.settings.ApplicationRole
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

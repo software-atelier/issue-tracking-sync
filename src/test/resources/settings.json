@@ -2,7 +2,7 @@
   "trackingApplications": [
     {
       "name": "JIRA",
-      "className": "ch.loewenfels.issuetrackingsync.client.jira.JiraClient",
+      "className": "ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient",
       "role": "SLAVE",
       "username": "foobar",
       "password": "{xor}asasdds",
@@ -13,7 +13,7 @@
     },
     {
       "name": "RTC",
-      "className": "ch.loewenfels.issuetrackingsync.client.rtc.RtcClient",
+      "className": "ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient",
       "role": "MASTER",
       "username": "foobar",
       "password": "{xor}asasdds",

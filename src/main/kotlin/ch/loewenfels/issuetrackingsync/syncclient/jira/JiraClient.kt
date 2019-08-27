@@ -1,9 +1,9 @@
-package ch.loewenfels.issuetrackingsync.client.jira
+package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.client.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.dto.Issue
-import ch.loewenfels.issuetrackingsync.settings.ApplicationRole
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
+import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
 import java.net.URI

@@ -1,8 +1,8 @@
-package ch.loewenfels.issuetrackingsync.client.jira
+package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.settings.ApplicationRole
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncconfig.ApplicationRole
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assumptions

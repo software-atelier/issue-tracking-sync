@@ -1,6 +1,6 @@
-package ch.loewenfels.issuetrackingsync.client;
+package ch.loewenfels.issuetrackingsync.syncclient;
 
-import ch.loewenfels.issuetrackingsync.dto.Issue
+import ch.loewenfels.issuetrackingsync.Issue
 import java.time.LocalDateTime
 
 interface IssueTrackingClient {

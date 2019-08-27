@@ -1,8 +1,8 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.client.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.dto.Issue
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import java.time.LocalDateTime
 
 class MockJiraClient(val setup: IssueTrackingApplication) : IssueTrackingClient {

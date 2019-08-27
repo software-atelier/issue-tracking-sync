@@ -1,8 +1,8 @@
 package ch.loewenfels.issuetrackingsync
 
 import ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp
-import ch.loewenfels.issuetrackingsync.client.ClientFactory
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import ch.loewenfels.issuetrackingsync.testcontext.MockJiraClient
 import ch.loewenfels.issuetrackingsync.testcontext.MockRtcClient
 import org.junit.jupiter.api.BeforeEach

@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.dto
+package ch.loewenfels.issuetrackingsync
 
 import java.time.LocalDateTime
 

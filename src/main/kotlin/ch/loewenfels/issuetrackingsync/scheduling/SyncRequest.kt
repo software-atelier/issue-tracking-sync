@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.dto
+package ch.loewenfels.issuetrackingsync.scheduling
 
 import java.io.Serializable
 import java.time.LocalDateTime

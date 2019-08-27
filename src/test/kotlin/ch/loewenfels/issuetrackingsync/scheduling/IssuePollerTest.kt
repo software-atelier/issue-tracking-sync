@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.scheduled
+package ch.loewenfels.issuetrackingsync.scheduling
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.app.AppState

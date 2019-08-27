@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.settings
+package ch.loewenfels.issuetrackingsync.syncconfig
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import com.fasterxml.jackson.databind.ObjectMapper

@@ -1,6 +1,6 @@
-package ch.loewenfels.issuetrackingsync.client
+package ch.loewenfels.issuetrackingsync.syncclient
 
-import ch.loewenfels.issuetrackingsync.settings.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 
 interface ClientFactory {
     fun getClient(clientSettings: IssueTrackingApplication): IssueTrackingClient

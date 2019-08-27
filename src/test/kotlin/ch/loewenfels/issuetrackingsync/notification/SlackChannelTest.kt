@@ -1,0 +1,58 @@
+package ch.loewenfels.issuetrackingsync.notification
+
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
+import org.apache.commons.io.IOUtils
+import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.conn.HttpHostConnectException
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.CloseableHttpClient
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
+import java.time.LocalDateTime
+
+internal class SlackChannelTest {
+    @Test
+    fun onSuccessfulSync_httpClientSuccess_noException() {
+        // arrange
+        val httpClient = Mockito.mock(CloseableHttpClient::class.java)
+        val httpResponse = Mockito.mock(CloseableHttpResponse::class.java)
+        Mockito.`when`(httpClient.execute(Mockito.any())).thenReturn(httpResponse)
+        val properties = defaultProperties()
+        val testee = SlackChannel(properties)
+        testee.injectedHttpClient = httpClient
+        // act
+        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()))
+        // assert
+        val captor = ArgumentCaptor.forClass(HttpPost::class.java)
+        Mockito.verify(httpClient).execute(captor.capture())
+        val post = captor.value
+        val postEntity = post.entity as StringEntity
+        val postEntityContent = IOUtils.toString(postEntity.content)
+        assertThat(postEntityContent, containsString("MK-1"))
+    }
+
+    @Test
+    fun onSuccessfulSync_httpClientError_noException() {
+        // arrange
+        val httpClient = Mockito.mock(CloseableHttpClient::class.java)
+        Mockito.`when`(httpClient.execute(Mockito.any())).thenThrow(HttpHostConnectException::class.java)
+        val properties = defaultProperties()
+        val testee = SlackChannel(properties)
+        testee.injectedHttpClient = httpClient
+        // act
+        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()))
+        // assert
+        Mockito.verify(httpClient).execute(Mockito.any(HttpPost::class.java))
+    }
+
+    private fun defaultProperties(): NotificationChannelProperties {
+        val properties = NotificationChannelProperties()
+        properties.endpoint = "http://localhost:8080/slack"
+        return properties
+    }
+}
