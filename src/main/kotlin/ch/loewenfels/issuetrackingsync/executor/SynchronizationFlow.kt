@@ -1,8 +1,11 @@
 package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
+import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.util.*
@@ -13,23 +16,27 @@ import java.util.*
  */
 class SynchronizationFlow(
     syncFlowDefinition: SyncFlowDefinition,
-    private val sourceClient: IssueTrackingClient,
-    private val targetClient: IssueTrackingClient,
+    private val sourceClient: IssueTrackingClient<Any>,
+    private val targetClient: IssueTrackingClient<Any>,
     private val notificationObserver: NotificationObserver
-) {
+) : Logging {
     private val sourceApplication: TrackingApplicationName = syncFlowDefinition.source
     private val syncAction: SynchronizationAction
     private val issueFilter: IssueFilter?
+    private val keyFieldMapping: KeyFieldMapping
+    private val fieldMappings: List<FieldMapping>
+    private val defaultsForNewIssue: DefaultsForNewIssue?
 
     init {
         val actionClass = Class.forName(syncFlowDefinition.actionClassname) as Class<SynchronizationAction>
         syncAction = actionClass.newInstance()
-        // TODO: load fieldMapper into new class which hold from/to + mapper class instance
-        // pass resulting list to syncAction instance (possibly in c'tor?)
-        issueFilter = syncFlowDefinition.filterClassname.let {
+        issueFilter = syncFlowDefinition.filterClassname?.let {
             val filterClass = Class.forName(it) as Class<IssueFilter>
             filterClass.newInstance()
         }
+        keyFieldMapping = FieldMappingFactory.getKeyMapping(syncFlowDefinition.keyFieldMappingDefinition)
+        fieldMappings = syncFlowDefinition.fieldMappingDefinitions.map { FieldMappingFactory.getMapping(it) }.toList()
+        defaultsForNewIssue = syncFlowDefinition.defaultsForNewIssue
     }
 
     fun applies(source: TrackingApplicationName, issue: Issue): Boolean {
@@ -39,9 +46,10 @@ class SynchronizationFlow(
 
     fun execute(issue: Issue) {
         try {
-            syncAction.execute(sourceClient, targetClient, issue)
+            syncAction.execute(sourceClient, targetClient, issue, keyFieldMapping, fieldMappings, defaultsForNewIssue)
             notificationObserver.notifySuccessfulSync(issue)
         } catch (ex: Exception) {
+            logger().debug(ex.message, ex)
             notificationObserver.notifyException(issue, ex)
         }
     }

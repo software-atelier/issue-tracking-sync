@@ -71,49 +71,23 @@ action class.
       "target": "JIRA",
       "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
       "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SyncChangesAction",
+      "defaultsForNewIssue": {
+        "issueType": "change",
+        "project": "IGS",
+        "category": ""
+      },
       "fieldMappings": [
         {
-          "sourceName": "title",
+          "sourceName": "summary",
           "targetName": "title"
         }
       ]
     }
+    ...
+  ]
 ```
 
 Finally, the [fieldMappings] define the synchronization mapping on a per-field level.
-
-name: createChangeFromRtc
-source: RTC
-target: JIRA
-filterclass: JadaJadaChaneg (wants NotificationObserver)
-actionClass: CreateJiraFromRtc
-
-name: createDefectFromRtc
-source: RTC
-target: JIRA
-filterclass: JadaJadaDefect (wants NotificationObserver)
-actionClass: CreateJiraFromRtc
-fieldMappings 
-- title: title
-- status: RtcStatusMapper
-
-
-create filters:
-RTC: defect, status not in (closed, new), no existing DEV- or MIG- link, assigned to @loewenfels.ch user
-  (warn if everything matches except assigned to)
-JIRA: DEV-project, defect, link "implementiert" SD, no RTC link (yet)
-
-RTC: change, not closed, no existing DEV- or MIG- link
-
-synch: any issues with existing links
-
-filter
-rules
-field mappings
-
-- status (matrix mapping)
-- geplant für, zieliteration
-- schätzung
 
 ## For contributors
 
@@ -127,4 +101,20 @@ Individual synchronization requests are processed in a queue (backed by ActiveMQ
 that no two synchronization threads might affect the same items (configure in application.yml).
 
 See the IssuePoller as an entry point, which runs based on a CRON expression. Found issues are then run through
-the SynchronizationContext, and for all issues with a matching flow, a SyncRequest is produced on the queue.
+the SynchronizationFlowFactory, and for all issues with a matching flow, a SyncRequest is produced on the queue.
+
+### Processing a single issue
+
+From a SyncRequest, an issue is derived and the matching SynchronizationFlow is retrieved from the 
+SynchronizationFlowFactory. As described in [syncFlowDefinitions](#syncflowdefinitions), a SynchronizationFlow can
+define an issue filter, and must define a SynchronizationAction class. 
+
+Execution of a flow is delegated to the SynchronizationAction, which:
+
+1. Loads the source issue along with the key (=unique identifier) mapping. This step also verifies that the 
+   "last updated" timestamp of the synchronization request matches that of the loaded issue (if not, a 
+   SynchronizationAbortedException is thrown)
+2. Load all mapped source fields into the Issue object
+3. Pass the Issue object to the target client, along with the (nullable) defaults for new issues. If the latter are 
+   missing and the target client fails to locate a target issue from the key field mapping, a  
+   SynchronizationAbortedException is thrown   

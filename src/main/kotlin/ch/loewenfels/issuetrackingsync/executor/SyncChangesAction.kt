@@ -2,12 +2,19 @@ package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
+import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
 class SyncChangesAction : AbstractSynchronizationAction(), SynchronizationAction {
-    // TODO: receive fieldMapper directives (possibly in AbstractSynchronizationAction),
-    // and process those
-    // TODO: separate logic for create? (use if issue.proprietaryTargetInstance is empty)
-    override fun execute(sourceClient: IssueTrackingClient, targetClient: IssueTrackingClient, issue: Issue) {
-        loadProprietaryIssueInstances(sourceClient, targetClient, issue)
+    override fun execute(
+        sourceClient: IssueTrackingClient<Any>,
+        targetClient: IssueTrackingClient<Any>,
+        issue: Issue,
+        keyFieldMapping: KeyFieldMapping,
+        fieldMappings: List<FieldMapping>,
+        defaultsForNewIssue: DefaultsForNewIssue?
+    ) {
+        buildTargetIssueKey(sourceClient, issue, keyFieldMapping)
+        buildTargetIssueValues(sourceClient, issue, fieldMappings)
+        createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
     }
 }

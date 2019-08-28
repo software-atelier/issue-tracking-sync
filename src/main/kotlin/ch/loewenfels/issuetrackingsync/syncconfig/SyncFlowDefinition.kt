@@ -6,5 +6,7 @@ data class SyncFlowDefinition(
     var target: TrackingApplicationName = "",
     var filterClassname: String? = null,
     var actionClassname: String = "",
-    var fieldMappings: MutableList<FieldMapping> = mutableListOf()
+    var defaultsForNewIssue: DefaultsForNewIssue? = null,
+    var keyFieldMappingDefinition: FieldMappingDefinition = FieldMappingDefinition("key", "key"),
+    var fieldMappingDefinitions: MutableList<FieldMappingDefinition> = mutableListOf()
 )

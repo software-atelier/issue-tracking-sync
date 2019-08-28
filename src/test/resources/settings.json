@@ -24,9 +24,18 @@
       "target": "JIRA",
       "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
       "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SyncChangesAction",
+      "keyFieldMapping": {
+        "sourceName": "id",
+        "targetName": "custom_field_12044"
+      },
+      "defaultsForNewIssue": {
+        "issueType": "10302",
+        "project": "IGS",
+        "category": ""
+      },
       "fieldMappings": [
         {
-          "sourceName": "title",
+          "sourceName": "summary",
           "targetName": "title"
         }
       ]
