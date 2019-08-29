@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
 open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
@@ -16,6 +17,9 @@ open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingCli
     override fun getIssue(key: String): Issue? {
         return testIssues.find { it.key == key }
     }
+
+    override fun getIssueFromWebhookBody(body: JsonNode): Issue =
+        throw UnsupportedOperationException("RTC does not support webhooks")
 
     override fun getProprietaryIssue(issueKey: String): Issue? {
         return getIssue(issueKey)

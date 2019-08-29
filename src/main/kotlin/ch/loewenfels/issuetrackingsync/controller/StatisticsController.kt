@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
-class StatisticsController constructor(
-    val jmsTemplate: JmsTemplate,
-    val activeMQConnectionFactory: ActiveMQConnectionFactory
+class StatisticsController(
+    private val jmsTemplate: JmsTemplate,
+    private val activeMQConnectionFactory: ActiveMQConnectionFactory
 ) {
     @GetMapping("/statistics")
     fun statistics(): Map<String, String> {

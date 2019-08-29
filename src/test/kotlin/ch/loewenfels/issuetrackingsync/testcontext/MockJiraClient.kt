@@ -4,7 +4,10 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 open class MockJiraClient(val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
@@ -15,6 +18,19 @@ open class MockJiraClient(val setup: IssueTrackingApplication) : IssueTrackingCl
 
     override fun getIssue(key: String): Issue? {
         return testIssues.find { it.key == key }
+    }
+
+    override fun getIssueFromWebhookBody(body: JsonNode): Issue {
+        val formatter = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS][xxx][xx][X]")
+        return Issue(
+            body.get("issue")?.get("key")?.asText() ?: "",
+            setup.name,
+            OffsetDateTime.parse(
+                body.get("issue")?.get("fields")?.get("updated")?.asText() ?: "",
+                formatter
+            ).toLocalDateTime()
+        )
     }
 
     override fun getProprietaryIssue(issueKey: String): Issue? {

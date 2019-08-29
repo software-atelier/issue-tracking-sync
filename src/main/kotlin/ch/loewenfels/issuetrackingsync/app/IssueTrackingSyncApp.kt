@@ -75,6 +75,7 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
      */
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
+            .authorizeRequests().antMatchers("/webhook/**").permitAll()
     }
 }
 

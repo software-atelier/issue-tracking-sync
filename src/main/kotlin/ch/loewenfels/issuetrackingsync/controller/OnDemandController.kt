@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class OnDemandController constructor(
+class OnDemandController(
     private val syncRequestProducer: SyncRequestProducer,
     private val clientFactory: ClientFactory,
     private val settings: Settings
@@ -22,7 +22,8 @@ class OnDemandController constructor(
     @PutMapping("/manualsync")
     fun manualSync(@RequestBody body: Map<String, String>): Map<String, String> {
         val sourceAppName = body.getValue(HTTP_PARAMNAME_TRACKINGSYSTEM);
-        val trackingApp: IssueTrackingApplication? = settings.trackingApplications.find { it.name == sourceAppName }
+        val trackingApp: IssueTrackingApplication? =
+            settings.trackingApplications.find { it.name.equals(sourceAppName, ignoreCase = true) }
         val resultMessage = trackingApp?.let { loadAndQueueIssue(body.getValue(HTTP_PARAMNAME_ISSUEKEY), it) }
             ?: "Unknown source app $sourceAppName. Are your settings correct?"
         return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to resultMessage)

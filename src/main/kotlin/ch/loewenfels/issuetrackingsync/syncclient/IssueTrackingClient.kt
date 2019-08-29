@@ -2,6 +2,7 @@ package ch.loewenfels.issuetrackingsync.syncclient;
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
+import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.workitem.common.model.IWorkItem
 import java.time.LocalDateTime
 
@@ -11,6 +12,12 @@ interface IssueTrackingClient<T> {
      * is not authorized to load the issue
      */
     fun getIssue(key: String): Issue?
+
+    /**
+     * Extract an issue from a webhook payload. If a issue tracking application cannot issue webhooks, the
+     * client implementation should throw an [UnsupportedOperationException]
+     */
+    fun getIssueFromWebhookBody(body: JsonNode): Issue
 
     /**
      * Get the issue instance as used by the implementation. For JIRA, this is a [com.atlassian.jira.rest.client.api.domain.Issue],

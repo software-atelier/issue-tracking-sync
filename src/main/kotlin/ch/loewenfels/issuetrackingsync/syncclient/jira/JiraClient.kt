@@ -10,10 +10,12 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
+import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.beans.BeanWrapperImpl
 import java.net.URI
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -32,6 +34,19 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     override fun getIssue(key: String): Issue? {
         return getJiraIssue(key)
             .let { mapJiraIssue(it) }
+    }
+
+    override fun getIssueFromWebhookBody(body: JsonNode): Issue {
+        val formatter = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS][xxx][xx][X]")
+        return Issue(
+            body.get("issue")?.get("key")?.asText() ?: "",
+            setup.name,
+            OffsetDateTime.parse(
+                body.get("issue")?.get("fields")?.get("updated")?.asText() ?: "",
+                formatter
+            ).toLocalDateTime()
+        )
     }
 
     override fun getLastUpdated(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): LocalDateTime =
@@ -85,7 +100,8 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
-        val lastPollingTimestampAsString = lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        val lastPollingTimestampAsString =
+            lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project.let { jql += " AND project = '$it'" }
         return jiraRestClient.searchClient

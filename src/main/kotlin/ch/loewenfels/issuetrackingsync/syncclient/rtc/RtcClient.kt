@@ -7,6 +7,7 @@ import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.process.client.IProcessClientService
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
@@ -46,6 +47,9 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             toSyncIssue(it)
         }
     }
+
+    override fun getIssueFromWebhookBody(body: JsonNode): Issue =
+        throw UnsupportedOperationException("RTC does not support webhooks")
 
     override fun getProprietaryIssue(issueKey: String): IWorkItem? {
         return getRtcIssue(issueKey)
