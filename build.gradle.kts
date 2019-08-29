@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -5,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.21"
     id("org.springframework.boot") version "2.1.7.RELEASE"
     id("io.spring.dependency-management") version "1.0.8.RELEASE"
+    id("com.github.johnrengelman.shadow") version "2.0.4"
 }
 
 group = "ch.loewenfels.issuetrackingsync"
@@ -25,6 +27,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
+    implementation("org.apache.activemq:activemq-spring")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -52,4 +55,10 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.withType<ShadowJar> {
+    baseName = "app"
+    classifier = ""
+    version = ""
 }

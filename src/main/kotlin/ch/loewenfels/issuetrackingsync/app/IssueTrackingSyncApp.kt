@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.boot.system.ApplicationHome
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ImportResource
 import org.springframework.integration.config.EnableIntegrationManagement
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -32,6 +33,7 @@ import javax.annotation.PreDestroy
     defaultStatsEnabled = "true"
 )
 @EnableConfigurationProperties(SyncApplicationProperties::class)
+@ImportResource("classpath:activemq.xml")
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     @Autowired
     lateinit var syncApplicationProperties: SyncApplicationProperties;
@@ -59,6 +61,13 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
         return observer
     }
 
+    //    @Bean
+//    open fun connectionFactory(): ConnectionFactory {
+//        val connectionFactory = ActiveMQConnectionFactory();
+//        connectionFactory.isStatsEnabled = true;
+//
+//        return connectionFactory;
+//    }
     @PostConstruct
     fun onStartup() {
         TeamPlatform.startup()
