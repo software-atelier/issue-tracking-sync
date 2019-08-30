@@ -37,3 +37,5 @@ private fun <T> any(type: Class<T>): T {
     Mockito.any(type)
     return null as T
 }
+
+inline fun <reified T : Any> genericMock() = Mockito.mock(T::class.java)

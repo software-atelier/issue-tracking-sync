@@ -46,7 +46,11 @@ open class MockJiraClient(val setup: IssueTrackingApplication) : IssueTrackingCl
     }
 
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
-        return "foobar"
+        return when (fieldName) {
+            "priorityId" -> "12"
+            "comments" -> "h4. Important stuff"
+            else -> "foobar"
+        }
     }
 
     override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {

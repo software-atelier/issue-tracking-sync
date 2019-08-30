@@ -57,11 +57,33 @@ The currently defined client implementations are:
 - ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 - ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 
+#### actionDefinitions
+
+An action definition represents a synchronization sequence, similar to a macro. Multiple actions can be stringed together
+to form a synchronization flow. By defining actions separately, they can be re-used in multiple flows. 
+
+```json
+"actionDefinitions": [
+    {
+      "name": "SimpleFieldsRtcToJira",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
+      "fieldMappingDefinitions": [
+        {
+          "sourceName": "summary",
+          "targetName": "title"
+        }
+      ]
+    }
+  ],
+```
+
+The [fieldMappings] define the synchronization mapping on a per-field level.
+
 #### syncFlowDefinitions
 
 Individual synchronization streams are defined as "flows". Apart from defining the source and target application
-(referring to the trackingApplication#name), the configuration *can* define a filter class, and *must* define an
-action class. 
+(referring to the trackingApplication#name), the configuration *can* define a filter class, and *must* define a
+list of action references. 
 
 ```json
   "syncFlowDefinitions": [
@@ -70,7 +92,6 @@ action class.
       "source": "RTC",
       "target": "JIRA",
       "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
-      "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "custom_field_12044"
@@ -80,18 +101,17 @@ action class.
         "project": "TST",
         "category": ""
       },
-      "fieldMappingDefinitions": [
-        {
-          "sourceName": "summary",
-          "targetName": "title"
-        }
+      "actions": [
+        "SimpleFieldsRtcToJira"
       ]
     }
     ...
   ]
 ```
 
-Finally, the [fieldMappings] define the synchronization mapping on a per-field level.
+A note on the field names in the [keyFieldMappingDefinition]. The keyfield mapping is used to load an issue, and thus 
+has no issue or project context. As JIRA allows for multiple custom fields to have identical names (in different projects),
+customer fields **must be defined by their internal name** here. 
 
 ## For contributors
 
@@ -111,14 +131,13 @@ the SynchronizationFlowFactory, and for all issues with a matching flow, a SyncR
 
 From a SyncRequest, an issue is derived and the matching SynchronizationFlow is retrieved from the 
 SynchronizationFlowFactory. As described in [syncFlowDefinitions](#syncflowdefinitions), a SynchronizationFlow can
-define an issue filter, and must define a SynchronizationAction class. 
+define an issue filter, and must define a collection of SynchronizationActions. 
 
-Execution of a flow is delegated to the SynchronizationAction, which:
-
-1. Loads the source issue along with the key (=unique identifier) mapping. This step also verifies that the 
+1. Load the source issue along with the key (=unique identifier) mapping. This step also verifies that the 
    "last updated" timestamp of the synchronization request matches that of the loaded issue (if not, a 
    SynchronizationAbortedException is thrown)
-2. Load all mapped source fields into the Issue object
-3. Pass the Issue object to the target client, along with the (nullable) defaults for new issues. If the latter are 
-   missing and the target client fails to locate a target issue from the key field mapping, a  
-   SynchronizationAbortedException is thrown   
+2. Delegate the data mapping to one or several SynchronizationAction instances, which:
+    1. Load all mapped source fields into the Issue object
+    2. Optionally pass the Issue object to the target client, along with the (nullable) defaults for new issues. If the latter are 
+   missing and the target client fails to locate a target issue from the key field mapping, a SynchronizationAbortedException is thrown
+   

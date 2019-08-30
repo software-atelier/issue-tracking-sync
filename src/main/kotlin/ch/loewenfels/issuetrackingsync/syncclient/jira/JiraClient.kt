@@ -1,9 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -14,12 +11,12 @@ import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientF
 import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.beans.BeanWrapperImpl
 import java.net.URI
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 
+/**
+ * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
+ */
 class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<com.atlassian.jira.rest.client.api.domain.Issue>, Logging {
     private val jiraRestClient: JiraRestClient = AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
@@ -37,7 +34,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         fieldValue: String
     ): com.atlassian.jira.rest.client.api.domain.Issue? {
         val jql = if (fieldName.startsWith("custom_field")) {
-            val cfNumber = fieldName.substring(12)
+            val cfNumber = fieldName.substring(13)
             "cf[$cfNumber] ~ '$fieldValue'"
         } else {
             "$fieldName = '$fieldValue'"
@@ -72,11 +69,36 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
     override fun getValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String): Any? {
-        return BeanWrapperImpl(internalIssue).getPropertyValue(fieldName)
+        val beanWrapper = BeanWrapperImpl(internalIssue)
+        var internalValue = if (beanWrapper.isReadableProperty(fieldName))
+            beanWrapper.getPropertyValue(fieldName)
+        else
+            null
+        return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
     override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
-        value?.let { BeanWrapperImpl(internalIssueBuilder).setPropertyValue(fieldName, it) }
+        convertToMetadataId(fieldName, value)?.let {
+            val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
+            if (beanWrapper.isWritableProperty(fieldName))
+                beanWrapper.setPropertyValue(fieldName, it)
+            else if (internalIssueBuilder is IssueInputBuilder)
+                internalIssueBuilder.addProperty(fieldName, it.toString())
+        }
+    }
+
+    private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
+        return when (fieldName) {
+            "priorityId" -> JiraMetadata.getPriorityId(value?.toString() ?: "", jiraRestClient)
+            else -> value
+        }
+    }
+
+    private fun convertFromMetadataId(fieldName: String, value: Any): Any {
+        return when (fieldName) {
+            "priorityId" -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
+            else -> value
+        }
     }
 
     private fun getJiraIssue(key: String): com.atlassian.jira.rest.client.api.domain.Issue {
@@ -99,14 +121,15 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue) {
+        val issueType = JiraMetadata.getIssueTypeId(defaultsForNewIssue.issueType, jiraRestClient)
         val issueBuilder = IssueInputBuilder()
-        issueBuilder.setIssueTypeId(defaultsForNewIssue.issueType.toLong())
+        issueBuilder.setIssueTypeId(issueType)
         issueBuilder.setProjectKey(defaultsForNewIssue.project)
         issue.fieldMappings.forEach {
             it.setTargetValue(issueBuilder, this)
         }
-        // TODO: enable val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
-        // logger().info("Created new JIRA issue ${basicIssue.key}")
+        val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
+        logger().info("Created new JIRA issue ${basicIssue.key}")
         // TODO: update collections such as comments and attachments
     }
 
@@ -116,7 +139,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
             it.setTargetValue(issueBuilder, this)
         }
         logger().info("Updating JIRA issue ${targetIssue.key}")
-        // TODO: enable jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
+        jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
@@ -142,5 +165,13 @@ class JiraClient(private val setup: IssueTrackingApplication) :
             setup.name,
             getLastUpdated(jiraIssue)
         )
+    }
+
+    private fun getCustomFieldNumber(
+        jiraIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        label: String
+    ): String? {
+        val fld = jiraIssue.getFieldByName(label);
+        return fld?.id
     }
 }

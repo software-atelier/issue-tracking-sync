@@ -34,7 +34,12 @@ open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingCli
     }
 
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
-        return "foobar"
+        return when (fieldName) {
+            "severity" -> "com.ibm.team.workitem.common.model.ISeverity:severity.s2"
+            "priority" -> "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12"
+            "comments" -> "<b>Important stuff</b>"
+            else -> "foobar"
+        }
     }
 
     override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {

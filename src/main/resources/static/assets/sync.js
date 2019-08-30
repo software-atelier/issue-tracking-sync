@@ -10,10 +10,12 @@ var sync = {
                 var container = $('.sync-statistics');
                 container.empty();
                 Object.keys(response).forEach(function (key) {
-                    var line = $("<div />");
+                    var row = $("<div class='row'/>");
+                    var labelCell = $("<div class='col-sm-3'>" + key + "</div>");
                     var value = key.indexOf("EnqueueTime") >= 0 ? response[key] + " ms" : response[key];
-                    line.text(key + ": " + value);
-                    container.append(line);
+                    var valueCell = $("<div class='col-sm-3'>" + value + "</div>");
+                    row.append(labelCell).append(valueCell)
+                    container.append(row);
                 });
             });
     },

@@ -25,6 +25,14 @@
         {
           "sourceName": "summary",
           "targetName": "title"
+        },
+        {
+          "sourceName": "priority,severity",
+          "targetName": "priorityId",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.PriorityAndSeverityFieldMapper",
+          "associations": {
+            "P1 - Kritisch,S1-Geringfügig": "Hoch"
+          }
         }
       ]
     }

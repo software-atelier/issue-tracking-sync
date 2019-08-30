@@ -1,9 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -16,10 +13,7 @@ import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.common.IAuditableCommon
-import com.ibm.team.workitem.common.expression.AttributeExpression
-import com.ibm.team.workitem.common.expression.IQueryableAttribute
-import com.ibm.team.workitem.common.expression.QueryableAttributes
-import com.ibm.team.workitem.common.expression.Term
+import com.ibm.team.workitem.common.expression.*
 import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
@@ -34,13 +28,22 @@ import java.util.*
 class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
     private val teamRepository: ITeamRepository
-    private val workItemClient: IWorkItemClient;
+    private val workItemClient: IWorkItemClient
+    private val projectArea: IProjectArea
 
     init {
         teamRepository = TeamPlatform.getTeamRepositoryService().getTeamRepository(setup.endpoint)
         teamRepository.registerLoginHandler(LoginHandler())
         teamRepository.login(NullProgressMonitor())
         workItemClient = teamRepository.getClientLibrary(IWorkItemClient::class.java) as IWorkItemClient
+        val processClient = teamRepository.getClientLibrary(IProcessClientService::class.java) as IProcessClientService
+        val uri = URI.create(
+            setup.project?.replace(" ", "%20") ?: throw IllegalStateException(
+                "Need project for RTC client"
+            )
+        )
+        projectArea = processClient.findProcessArea(uri, null, null) as IProjectArea?
+            ?: throw IllegalStateException("Project area ${setup.project} is invalid")
     }
 
     override fun getIssue(key: String): Issue? {
@@ -58,10 +61,9 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     override fun getProprietaryIssue(fieldName: String, fieldValue: String): IWorkItem? {
         val queryClient = workItemClient.queryClient
-        val projectArea = getProjectArea()
         val attrExpression =
             AttributeExpression(
-                getQueryableAttribute(fieldName, projectArea),
+                getQueryableAttribute(fieldName),
                 AttributeOperation.EQUALS,
                 fieldValue
             )
@@ -83,13 +85,52 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         LocalDateTime.ofInstant(internalIssue.modified().toInstant(), ZoneId.systemDefault())
 
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
-        return BeanWrapperImpl(internalIssue).getPropertyValue(fieldName)
+        val beanWrapper = BeanWrapperImpl(internalIssue)
+        var internalValue = if (beanWrapper.isReadableProperty(fieldName))
+            beanWrapper.getPropertyValue(fieldName)
+        else
+            null
+        return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
     override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
-        val workItem = internalIssueBuilder as IWorkItem
-        val attribute = getAttribute(fieldName, getProjectArea())
-        workItem.setValue(attribute, value);
+        convertToMetadataId(fieldName, value)?.let {
+            val workItem = internalIssueBuilder as IWorkItem
+            val attribute = getAttribute(fieldName)
+            workItem.setValue(attribute, value);
+        }
+    }
+
+    private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
+        return when (fieldName) {
+            "priority" -> RtcMetadata.getPriorityId(
+                value?.toString() ?: "",
+                getAttribute(IWorkItem.PRIORITY_PROPERTY),
+                workItemClient
+            )
+            "severity" -> RtcMetadata.getSeverityId(
+                value?.toString() ?: "",
+                getAttribute(IWorkItem.SEVERITY_PROPERTY),
+                workItemClient
+            )
+            else -> value
+        }
+    }
+
+    private fun convertFromMetadataId(fieldName: String, value: Any): Any {
+        return when (fieldName) {
+            "priority" -> RtcMetadata.getPriorityName(
+                value.toString(),
+                getAttribute(IWorkItem.PRIORITY_PROPERTY),
+                workItemClient
+            )
+            "severity" -> RtcMetadata.getSeverity(
+                value.toString(),
+                getAttribute(IWorkItem.SEVERITY_PROPERTY),
+                workItemClient
+            )
+            else -> value
+        }
     }
 
     override fun createOrUpdateTargetIssue(
@@ -110,7 +151,6 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     }
 
     private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue) {
-        val projectArea = getProjectArea()
         val workItemType: IWorkItemType =
             workItemClient.findWorkItemType(projectArea, defaultsForNewIssue.issueType, progressMonitor)
         val path = defaultsForNewIssue.category.split("/")
@@ -157,28 +197,27 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
         val queryClient = workItemClient.queryClient
-        val projectArea = getProjectArea()
-        val searchTerms = buildSearchTermForChangedIssues(lastPollingTimestamp, projectArea)
+        val searchTerms = buildSearchTermForChangedIssues(lastPollingTimestamp)
         val resolvedResultOfWorkItems =
             queryClient.getResolvedExpressionResults(projectArea, searchTerms, IWorkItem.FULL_PROFILE)
         return toWorkItems(resolvedResultOfWorkItems).map { toSyncIssue(it) }
     }
 
-    private fun buildSearchTermForChangedIssues(lastPollingTimestamp: LocalDateTime, projectArea: IProjectArea): Term {
+    private fun buildSearchTermForChangedIssues(lastPollingTimestamp: LocalDateTime): Term {
         val modifiedRecently =
             AttributeExpression(
-                getQueryableAttribute(IWorkItem.MODIFIED_PROPERTY, projectArea),
+                getQueryableAttribute(IWorkItem.MODIFIED_PROPERTY),
                 AttributeOperation.GREATER_OR_EQUALS,
                 Timestamp.valueOf(lastPollingTimestamp)
             )
         val createdRecently =
             AttributeExpression(
-                getQueryableAttribute(IWorkItem.CREATION_DATE_PROPERTY, projectArea),
+                getQueryableAttribute(IWorkItem.CREATION_DATE_PROPERTY),
                 AttributeOperation.GREATER_OR_EQUALS,
                 Timestamp.valueOf(lastPollingTimestamp)
             )
         val projectAreaExpression = AttributeExpression(
-            getQueryableAttribute(IWorkItem.PROJECT_AREA_PROPERTY, projectArea),
+            getQueryableAttribute(IWorkItem.PROJECT_AREA_PROPERTY),
             AttributeOperation.EQUALS,
             projectArea
         )
@@ -192,7 +231,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         return searchTerm
     }
 
-    private fun getQueryableAttribute(attributeName: String, projectArea: IProjectArea): IQueryableAttribute {
+    private fun getQueryableAttribute(attributeName: String): IQueryableAttribute {
         val auditableCommon: IAuditableCommon =
             teamRepository.getClientLibrary(IAuditableCommon::class.java) as IAuditableCommon
         return QueryableAttributes.getFactory(IWorkItem.ITEM_TYPE).findAttribute(
@@ -203,23 +242,12 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         )
     }
 
-    private fun getAttribute(attributeName: String, projectArea: IProjectArea): IAttribute =
+    private fun getAttribute(attributeName: String): IAttribute =
         workItemClient.findAttribute(
             projectArea,
             attributeName,
             progressMonitor
         )
-
-    private fun getProjectArea(): IProjectArea {
-        val processClient = teamRepository.getClientLibrary(IProcessClientService::class.java) as IProcessClientService
-        val uri = URI.create(
-            setup.project?.replace(" ", "%20") ?: throw IllegalStateException(
-                "Need project for RTC client"
-            )
-        )
-        return processClient.findProcessArea(uri, null, null) as IProjectArea?
-            ?: throw IllegalStateException("Project area ${setup.project} is invalid")
-    }
 
     private fun toWorkItems(resolvedResults: IQueryResult<IResolvedResult<IWorkItem>>): List<IWorkItem> {
         val result = LinkedList<IWorkItem>()
@@ -231,7 +259,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     private fun toSyncIssue(workItem: IWorkItem): Issue {
         return Issue(
-            Integer.toString(workItem.id),
+            workItem.id.toString(),
             setup.name,
             getLastUpdated(workItem)
         )

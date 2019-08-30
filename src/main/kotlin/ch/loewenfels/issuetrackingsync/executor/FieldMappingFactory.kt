@@ -9,25 +9,40 @@ object FieldMappingFactory {
     fun getMapping(fieldMappingDefinition: FieldMappingDefinition): FieldMapping = FieldMapping(
         fieldMappingDefinition.sourceName,
         fieldMappingDefinition.targetName,
-        getMapper(fieldMappingDefinition.mapperClassname)
+        getMapper(fieldMappingDefinition)
     )
 
     fun getKeyMapping(fieldMappingDefinition: KeyFieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
         fieldMappingDefinition.sourceName,
         fieldMappingDefinition.targetName,
         fieldMappingDefinition.writeBackToSourceName,
-        getMapper(fieldMappingDefinition.mapperClassname)
+        getMapper(fieldMappingDefinition)
     )
 
+    private fun getMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
+        return mapperInstances.computeIfAbsent(fieldMappingDefinition.mapperClassname) {
+            buildMapper(fieldMappingDefinition)
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
-    private fun getMapper(mapperClassname: String): FieldMapper {
-        return try {
-            mapperInstances.computeIfAbsent(mapperClassname) {
-                val mapperClass = Class.forName(it) as Class<FieldMapper>
-                mapperClass.newInstance()
-            }
+    private fun buildMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
+        val mapperClass = try {
+            Class.forName(fieldMappingDefinition.mapperClassname) as Class<FieldMapper>
         } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to load field mapper class $mapperClassname", e)
+            throw IllegalArgumentException(
+                "Failed to load field mapper class ${fieldMappingDefinition.mapperClassname}",
+                e
+            )
+        }
+        return try {
+            mapperClass.getConstructor(FieldMappingDefinition::class.java).newInstance(fieldMappingDefinition)
+        } catch (e: Exception) {
+            null;
+        } ?: try {
+            mapperClass.newInstance()
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Failed to instantiate mapper class $mapperClass", e)
         }
     }
 }

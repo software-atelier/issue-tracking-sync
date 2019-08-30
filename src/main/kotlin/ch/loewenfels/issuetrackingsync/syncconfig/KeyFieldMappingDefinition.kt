@@ -2,9 +2,10 @@ package ch.loewenfels.issuetrackingsync.syncconfig
 
 import ch.loewenfels.issuetrackingsync.executor.DirectFieldMapper
 
-data class KeyFieldMappingDefinition(
-    var sourceName: String = "",
-    var targetName: String = "",
-    var writeBackToSourceName: String = "",
-    var mapperClassname: String = DirectFieldMapper::class.qualifiedName ?: ""
-)
+class KeyFieldMappingDefinition(
+    sourceName: String = "",
+    targetName: String = "",
+    mapperClassname: String = DirectFieldMapper::class.qualifiedName ?: "",
+    associations: MutableMap<String, String> = mutableMapOf(),
+    var writeBackToSourceName: String = ""
+) : FieldMappingDefinition(sourceName, targetName, mapperClassname, associations)

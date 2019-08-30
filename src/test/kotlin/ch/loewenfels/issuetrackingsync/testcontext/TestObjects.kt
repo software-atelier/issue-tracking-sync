@@ -30,7 +30,11 @@ object TestObjects {
     }
 
     fun buildKeyFieldMappingDefinition(): KeyFieldMappingDefinition =
-        KeyFieldMappingDefinition("key", "custom_field_10244", "ch.foobar.team.workitem.attribute.external_refid")
+        KeyFieldMappingDefinition(
+            "key",
+            "custom_field_10244",
+            writeBackToSourceName = "ch.foobar.team.workitem.attribute.external_refid"
+        )
 
     fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
         mutableListOf(buildFieldMappingDefinition())
