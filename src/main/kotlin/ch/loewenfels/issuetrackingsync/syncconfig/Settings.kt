@@ -9,6 +9,7 @@ import java.util.*
 
 data class Settings(
     var trackingApplications: MutableList<IssueTrackingApplication> = mutableListOf(),
+    var actionDefinitions: MutableList<SyncActionDefinition> = mutableListOf(),
     var syncFlowDefinitions: MutableList<SyncFlowDefinition> = mutableListOf()
 ) {
     companion object : Logging {

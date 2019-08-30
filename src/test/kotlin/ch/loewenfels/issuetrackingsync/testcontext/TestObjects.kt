@@ -10,16 +10,23 @@ import org.mockito.Mockito.spy
 import java.time.LocalDateTime
 
 object TestObjects {
+    private val simpleActionName = "foobar"
     fun buildSyncFlowDefinition(source: TrackingApplicationName, target: TrackingApplicationName): SyncFlowDefinition {
         val syncFlowDefinition = SyncFlowDefinition()
         syncFlowDefinition.source = source
         syncFlowDefinition.target = target
-        syncFlowDefinition.actionClassname = SimpleSynchronizationAction::class.qualifiedName ?: ""
+        syncFlowDefinition.actions = mutableListOf(simpleActionName)
         syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
         syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
-        syncFlowDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
-
         return syncFlowDefinition
+    }
+
+    fun buildSyncActionDefinition(): SyncActionDefinition {
+        val syncActionDefinition = SyncActionDefinition()
+        syncActionDefinition.name = simpleActionName
+        syncActionDefinition.classname = SimpleSynchronizationAction::class.qualifiedName ?: ""
+        syncActionDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
+        return syncActionDefinition
     }
 
     fun buildKeyFieldMappingDefinition(): KeyFieldMappingDefinition =
@@ -35,12 +42,10 @@ object TestObjects {
         KeyFieldMapping("key", "id", "ch.foobar.team.workitem.attribute.external_refid", DirectFieldMapper())
 
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
-
     fun buildFieldMapping(): FieldMapping =
         FieldMapping("title", "summary", DirectFieldMapper())
 
     fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
-
     fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
         val issueTrackingApplication = IssueTrackingApplication()
         issueTrackingApplication.className = simpleClassName

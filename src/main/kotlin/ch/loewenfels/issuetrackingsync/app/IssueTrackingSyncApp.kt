@@ -56,13 +56,6 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
         return observer
     }
 
-    //    @Bean
-//    open fun connectionFactory(): ConnectionFactory {
-//        val connectionFactory = ActiveMQConnectionFactory();
-//        connectionFactory.isStatsEnabled = true;
-//
-//        return connectionFactory;
-//    }
     @PostConstruct
     fun onStartup() {
         TeamPlatform.startup()

@@ -37,6 +37,11 @@ dependencies {
     implementation("com.ibm.team.rtc:plain-java-client:6.0.3")
     implementation("com.atlassian.jira:jira-rest-java-client-core:5.1.0-476bd700")
     implementation("io.atlassian.fugue:fugue:4.7.2")
+    implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
+        exclude(module = "log4j")
+        exclude("javax.activation:activation:1.0.2")
+    }
+    implementation("javax.activation:activation:1.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "junit")
     }

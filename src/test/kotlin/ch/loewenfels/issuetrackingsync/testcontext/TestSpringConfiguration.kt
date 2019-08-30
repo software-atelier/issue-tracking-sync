@@ -3,10 +3,7 @@ package ch.loewenfels.issuetrackingsync.testcontext
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.mockito.Mockito
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
-import org.springframework.context.annotation.Profile
+import org.springframework.context.annotation.*
 
 /**
  * Where necessary, this class adds secondary bean definitions, and enforces their use by marking
@@ -35,6 +32,7 @@ open class TestSpringConfiguration {
  * Kotlin's "not null" paradigm clashing with Mockito is well documented, see
  * eg. https://stackoverflow.com/questions/51868577/how-do-you-get-mockito-to-play-nice-with-kotlin-non-nullable-types
  */
+@Suppress("UNCHECKED_CAST")
 private fun <T> any(type: Class<T>): T {
     Mockito.any(type)
     return null as T

@@ -7,6 +7,7 @@ interface ClientFactory {
 }
 
 object DefaultClientFactory : ClientFactory {
+    @Suppress("UNCHECKED_CAST")
     override fun getClient(clientSettings: IssueTrackingApplication): IssueTrackingClient<Any> {
         try {
             val clientClass = Class.forName(clientSettings.className) as Class<IssueTrackingClient<Any>>

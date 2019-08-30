@@ -19,6 +19,7 @@ object FieldMappingFactory {
         getMapper(fieldMappingDefinition.mapperClassname)
     )
 
+    @Suppress("UNCHECKED_CAST")
     private fun getMapper(mapperClassname: String): FieldMapper {
         return try {
             mapperInstances.computeIfAbsent(mapperClassname) {

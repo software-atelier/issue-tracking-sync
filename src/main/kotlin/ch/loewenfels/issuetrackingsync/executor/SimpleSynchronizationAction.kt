@@ -9,11 +9,9 @@ class SimpleSynchronizationAction : AbstractSynchronizationAction(), Synchroniza
         sourceClient: IssueTrackingClient<Any>,
         targetClient: IssueTrackingClient<Any>,
         issue: Issue,
-        keyFieldMapping: KeyFieldMapping,
         fieldMappings: List<FieldMapping>,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-        buildTargetIssueKey(sourceClient, issue, keyFieldMapping)
         buildTargetIssueValues(sourceClient, issue, fieldMappings)
         createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
     }

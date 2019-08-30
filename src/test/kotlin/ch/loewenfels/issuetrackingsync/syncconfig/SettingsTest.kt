@@ -22,6 +22,14 @@ internal class SettingsTest : AbstractSpringTest() {
         val result = Settings.loadFromFile(classpathResource.getPath(), objectMapper)
         // assert
         assertEquals(2, result.trackingApplications.size, "Count of configured tracking applications")
+        assertEquals(1, result.actionDefinitions.size, "Count of configured actions")
+        val actionDefinition = result.actionDefinitions[0]
+        assertEquals(1, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
+        assertEquals(
+            "summary",
+            actionDefinition.fieldMappingDefinitions[0].sourceName,
+            "Source property of first field mapping"
+        )
         assertEquals(1, result.syncFlowDefinitions.size, "Count of configured flows")
         val syncFlow = result.syncFlowDefinitions[0]
         assertEquals("id", syncFlow.keyFieldMappingDefinition.sourceName, "source property name for key field mapping")
@@ -32,12 +40,7 @@ internal class SettingsTest : AbstractSpringTest() {
         )
         assertNotNull(syncFlow.defaultsForNewIssue)
         assertEquals("TST", syncFlow.defaultsForNewIssue?.project, "Default project for new issues")
-        assertEquals(1, syncFlow.fieldMappingDefinitions.size, "Count of field mappings")
-        assertEquals(
-            "summary",
-            syncFlow.fieldMappingDefinitions[0].sourceName,
-            "Source property of first field mapping"
-        )
+        assertEquals(1, syncFlow.actions.size, "Count of actions in sync flow")
     }
 
     @Test

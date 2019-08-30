@@ -72,7 +72,7 @@ class SlackChannel : NotificationChannel, Logging {
         payload.put("text", text);
         payload.put("username", username);
         payload.put("icon_emoji", emoji);
-        payload.put("channel", channel);
+        payload.put("channel", "#" + channel);
         return StringEntity(objectMapper.writeValueAsString(payload))
     }
 }

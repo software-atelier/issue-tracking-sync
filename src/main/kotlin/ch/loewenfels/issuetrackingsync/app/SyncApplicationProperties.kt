@@ -13,6 +13,7 @@ open class SyncApplicationProperties {
         private set
 
     @PostConstruct
+    @Suppress("UNCHECKED_CAST")
     fun loadChannels() {
         notificationChannelProperties.map {
             try {

@@ -91,12 +91,10 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
         val targetIssue =
             if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
-        if (targetIssue != null) {
-            updateTargetIssue(targetIssue, issue)
-        } else if (defaultsForNewIssue != null) {
-            createTargetIssue(defaultsForNewIssue, issue)
-        } else {
-            throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+        when {
+            targetIssue != null -> updateTargetIssue(targetIssue, issue)
+            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
+            else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
     }
 

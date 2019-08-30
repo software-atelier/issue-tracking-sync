@@ -9,7 +9,7 @@ open class FieldMapping(
     private val mapper: FieldMapper
 ) {
     protected var sourceValue: Any? = null
-
+    @Suppress("UNCHECKED_CAST")
     fun <T> loadSourceValue(issue: Issue, issueTrackingClient: IssueTrackingClient<in T>) {
         if (issue.proprietarySourceInstance == null) {
             throw IllegalStateException("Internal source issue needs to be loaded first")

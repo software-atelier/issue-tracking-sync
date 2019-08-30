@@ -9,7 +9,6 @@ interface SynchronizationAction {
         sourceClient: IssueTrackingClient<Any>,
         targetClient: IssueTrackingClient<Any>,
         issue: Issue,
-        keyFieldMapping: KeyFieldMapping,
         fieldMappings: List<FieldMapping>,
         defaultsForNewIssue: DefaultsForNewIssue?
     )

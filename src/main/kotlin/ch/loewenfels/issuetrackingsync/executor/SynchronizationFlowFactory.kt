@@ -28,6 +28,7 @@ class SynchronizationFlowFactory @Autowired constructor(
                 ?: throw IllegalArgumentException("No application configured for ${it.target}")
             SynchronizationFlow(
                 it,
+                settings.actionDefinitions,
                 clientFactory.getClient(sourceClientSettings),
                 clientFactory.getClient(targetClientSettings),
                 notificationObserver
