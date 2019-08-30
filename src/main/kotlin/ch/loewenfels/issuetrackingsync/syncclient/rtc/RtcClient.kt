@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
 import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -55,6 +56,25 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         return getRtcIssue(issueKey)
     }
 
+    override fun getProprietaryIssue(fieldName: String, fieldValue: String): IWorkItem? {
+        val queryClient = workItemClient.queryClient
+        val projectArea = getProjectArea()
+        val attrExpression =
+            AttributeExpression(
+                getQueryableAttribute(fieldName, projectArea),
+                AttributeOperation.EQUALS,
+                fieldValue
+            )
+        val resolvedResultOfWorkItems =
+            queryClient.getResolvedExpressionResults(projectArea, attrExpression, IWorkItem.FULL_PROFILE)
+        val workItems = toWorkItems(resolvedResultOfWorkItems)
+        return when (workItems.size) {
+            0 -> null
+            1 -> workItems[0]
+            else -> throw IssueClientException("Query too broad, multiple issues found for $fieldValue")
+        }
+    }
+
     private fun getRtcIssue(key: String): IWorkItem? {
         return workItemClient.findWorkItemById(Integer.parseInt(key), IWorkItem.SMALL_PROFILE, progressMonitor)
     }
@@ -76,8 +96,10 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-        val targetIssueKey = issue.keyFieldMapping?.getKeyForTargetIssue().toString()
-        val targetIssue = if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetIssueKey) else null
+        val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
+        val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
+        val targetIssue =
+            if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
         if (targetIssue != null) {
             updateTargetIssue(targetIssue, issue)
         } else if (defaultsForNewIssue != null) {
@@ -105,12 +127,12 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {
         val copyManager = workItemClient.workItemWorkingCopyManager
-
         copyManager.connect(targetIssue, IWorkItem.FULL_PROFILE, progressMonitor)
         try {
             val workingCopy = copyManager.getWorkingCopy(targetIssue)
             val changeableWorkingItem = workingCopy.workItem
             mapNewIssueValues(changeableWorkingItem, issue)
+            logger().info("Updating RTC issue ${targetIssue.id}")
             val detailedStatus = workingCopy.save(null)
             if (!detailedStatus.isOK) {
                 throw  RuntimeException("Error saving work item", detailedStatus.getException())
@@ -122,7 +144,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     private fun mapNewIssueValues(targetIssue: IWorkItem, issue: Issue) {
         issue.fieldMappings.forEach {
-            it.setTargetValue(issue, this)
+            it.setTargetValue(targetIssue, this)
         }
         // TODO: map collections such as comments and attachments
 //        val comments = changeableWorkingItem.getComments();

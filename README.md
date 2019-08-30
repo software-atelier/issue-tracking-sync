@@ -70,13 +70,17 @@ action class.
       "source": "RTC",
       "target": "JIRA",
       "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
-      "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SyncChangesAction",
+      "actionClassname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
+      "keyFieldMappingDefinition": {
+        "sourceName": "id",
+        "targetName": "custom_field_12044"
+      },
       "defaultsForNewIssue": {
         "issueType": "change",
-        "project": "IGS",
+        "project": "TST",
         "category": ""
       },
-      "fieldMappings": [
+      "fieldMappingDefinitions": [
         {
           "sourceName": "summary",
           "targetName": "title"

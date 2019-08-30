@@ -24,7 +24,8 @@ class QueueStatistics(
      * Or average time it is taking the consumers to successfully process messages.
      */
     val averageEnqueueTime: Double,
-    val memoryUsage: Long, memoryPercentUsage: Long
+    val memoryUsage: Long,
+    memoryPercentUsage: Long
 ) {
     val memoryPercentUsage: Double
 

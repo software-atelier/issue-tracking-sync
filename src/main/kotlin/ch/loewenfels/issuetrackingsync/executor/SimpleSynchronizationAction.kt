@@ -4,7 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
-class SyncChangesAction : AbstractSynchronizationAction(), SynchronizationAction {
+class SimpleSynchronizationAction : AbstractSynchronizationAction(), SynchronizationAction {
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,
         targetClient: IssueTrackingClient<Any>,

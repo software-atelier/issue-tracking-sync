@@ -14,10 +14,6 @@ spring:
     cache:
       enabled: false
 
-  activemq:
-    packages:
-      trusted: ch.loewenfels.issuetrackingsync.scheduling, java.time, java.lang
-
 sync:
   settingsLocation: build/resources/test/settings.json
   pollingCron: 0 0 0 1 * ?

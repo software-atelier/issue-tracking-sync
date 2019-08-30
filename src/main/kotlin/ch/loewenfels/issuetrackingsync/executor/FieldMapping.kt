@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 open class FieldMapping(
     private val sourceName: String,
-    private val targetName: String,
+    protected val targetName: String,
     private val mapper: FieldMapper
 ) {
     protected var sourceValue: Any? = null
@@ -17,7 +17,7 @@ open class FieldMapping(
         sourceValue = mapper.getValue(issue.proprietarySourceInstance as T, sourceName, issueTrackingClient)
     }
 
-    fun <T> setTargetValue(issue: Issue, targetClient: IssueTrackingClient<in T>) {
-        mapper.setValue(issue, targetName, targetClient, sourceValue)
+    fun <T> setTargetValue(issueBuilder: Any, targetClient: IssueTrackingClient<in T>) {
+        mapper.setValue(issueBuilder, targetName, targetClient, sourceValue)
     }
 }

@@ -21,6 +21,6 @@
 
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.apache.http" level="INFO"/>
-        <logger name="ch.loewenfels" level="INFO"/>
+        <logger name="ch.loewenfels" level="DEBUG"/>
     </springProfile>
 </configuration>

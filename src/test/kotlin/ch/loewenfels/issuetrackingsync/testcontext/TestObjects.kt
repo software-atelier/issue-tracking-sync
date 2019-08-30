@@ -14,7 +14,7 @@ object TestObjects {
         val syncFlowDefinition = SyncFlowDefinition()
         syncFlowDefinition.source = source
         syncFlowDefinition.target = target
-        syncFlowDefinition.actionClassname = SyncChangesAction::class.qualifiedName ?: ""
+        syncFlowDefinition.actionClassname = SimpleSynchronizationAction::class.qualifiedName ?: ""
         syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
         syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
         syncFlowDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
@@ -22,8 +22,8 @@ object TestObjects {
         return syncFlowDefinition
     }
 
-    fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition("key", "id")
+    fun buildKeyFieldMappingDefinition(): KeyFieldMappingDefinition =
+        KeyFieldMappingDefinition("key", "custom_field_10244", "ch.foobar.team.workitem.attribute.external_refid")
 
     fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
         mutableListOf(buildFieldMappingDefinition())
@@ -32,7 +32,7 @@ object TestObjects {
         FieldMappingDefinition("title", "summary")
 
     fun buildKeyFieldMapping(): KeyFieldMapping =
-        KeyFieldMapping("key", "id", DirectFieldMapper())
+        KeyFieldMapping("key", "id", "ch.foobar.team.workitem.attribute.external_refid", DirectFieldMapper())
 
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
 

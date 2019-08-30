@@ -37,6 +37,10 @@ open class MockJiraClient(val setup: IssueTrackingApplication) : IssueTrackingCl
         return getIssue(issueKey)
     }
 
+    override fun getProprietaryIssue(fieldName: String, fieldValue: String): Issue? {
+        return getIssue(fieldValue)
+    }
+
     override fun getLastUpdated(internalIssue: Issue): LocalDateTime {
         return internalIssue.lastUpdated
     }

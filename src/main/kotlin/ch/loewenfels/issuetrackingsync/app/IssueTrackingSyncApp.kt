@@ -13,7 +13,6 @@ import org.springframework.boot.runApplication
 import org.springframework.boot.system.ApplicationHome
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ImportResource
-import org.springframework.integration.config.EnableIntegrationManagement
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
@@ -27,11 +26,7 @@ import javax.annotation.PreDestroy
     ]
 )
 @EnableScheduling
-@EnableIntegrationManagement(
-    defaultLoggingEnabled = "true",
-    defaultCountsEnabled = "true",
-    defaultStatsEnabled = "true"
-)
+// @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableConfigurationProperties(SyncApplicationProperties::class)
 @ImportResource("classpath:activemq.xml")
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {

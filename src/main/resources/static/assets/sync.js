@@ -1,6 +1,7 @@
 var sync = {
     init: function () {
         sync._loadDefinedTrackingApplications();
+        sync.updateStatistics();
         setInterval(sync.updateStatistics, 10000);
     },
     updateStatistics: function () {
@@ -10,7 +11,8 @@ var sync = {
                 container.empty();
                 Object.keys(response).forEach(function (key) {
                     var line = $("<div />");
-                    line.text(key + ": " + response[key]);
+                    var value = key.indexOf("EnqueueTime") >= 0 ? response[key] + " ms" : response[key];
+                    line.text(key + ": " + value);
                     container.append(line);
                 });
             });
@@ -29,10 +31,12 @@ var sync = {
             dataType: 'json',
             data: JSON.stringify(requestBody),
             success: function (data) {
-                $('#manual-sync-status').text(data.message);
+                $('#manual-sync-error').text("").hide();
+                $('#manual-sync-status').text(data.message).show();
             },
             error: function (data) {
-                $('#manual-sync-status').text("An error occurred: " + data.message);
+                $('#manual-sync-error').text("An error occurred: " + data.message).show();
+                $('#manual-sync-status').text("").hide();
             }
         });
     },

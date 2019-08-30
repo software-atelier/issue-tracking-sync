@@ -25,6 +25,10 @@ open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingCli
         return getIssue(issueKey)
     }
 
+    override fun getProprietaryIssue(fieldName: String, fieldValue: String): Issue? {
+        return getIssue(fieldValue)
+    }
+
     override fun getLastUpdated(internalIssue: Issue): LocalDateTime {
         return internalIssue.lastUpdated
     }

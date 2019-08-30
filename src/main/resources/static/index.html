@@ -32,6 +32,8 @@
     <div class="card-body">
         <h5 class="card-title">Trigger sync manually</h5>
         <div class="card-text manual-sync">
+            <div id="manual-sync-status" class="alert alert-primary" role="alert" style="display: none"></div>
+            <div id="manual-sync-error" class="alert alert-danger" role="alert" style="display: none"></div>
             <form id="manual-sync-form">
                 <div class="form-group">
                     <label for="trackingsystem">Source application</label>
@@ -47,7 +49,6 @@
                         610098).</small>
                 </div>
                 <button type="button" class="btn btn-primary" onclick="sync.runManual();">Submit</button>
-                <div id="manual-sync-status"></div>
             </form>
         </div>
     </div>

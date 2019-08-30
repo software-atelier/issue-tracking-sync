@@ -25,6 +25,11 @@ interface IssueTrackingClient<T> {
      */
     fun getProprietaryIssue(issueKey: String): T?
 
+    /**
+     * Search for an issue based on a field value. If the search finds more than 1 issue, an exception is thrown
+     */
+    fun getProprietaryIssue(fieldName: String, fieldValue: String): T?
+
     fun getLastUpdated(internalIssue: T): LocalDateTime
 
     fun getValue(internalIssue: T, fieldName: String): Any?

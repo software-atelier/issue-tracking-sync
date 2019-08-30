@@ -13,7 +13,12 @@
         <amq:transportConnectors>
             <amq:transportConnector uri="vm://localhost"/>
         </amq:transportConnectors>
+        <amq:shutdownHooks>
+            <bean xmlns="http://www.springframework.org/schema/beans"
+                  class="org.apache.activemq.hooks.SpringContextHook"/>
+        </amq:shutdownHooks>
     </amq:broker>
 
     <amq:connectionFactory id="jmsFactory" brokerURL="vm://localhost"/>
+
 </beans>

@@ -1,6 +1,7 @@
 package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.KeyFieldMappingDefinition
 
 object FieldMappingFactory {
     private val mapperInstances = mutableMapOf<String, FieldMapper>()
@@ -11,9 +12,10 @@ object FieldMappingFactory {
         getMapper(fieldMappingDefinition.mapperClassname)
     )
 
-    fun getKeyMapping(fieldMappingDefinition: FieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
+    fun getKeyMapping(fieldMappingDefinition: KeyFieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
         fieldMappingDefinition.sourceName,
         fieldMappingDefinition.targetName,
+        fieldMappingDefinition.writeBackToSourceName,
         getMapper(fieldMappingDefinition.mapperClassname)
     )
 
@@ -24,7 +26,7 @@ object FieldMappingFactory {
                 mapperClass.newInstance()
             }
         } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to load field mapper class " + mapperClassname, e)
+            throw IllegalArgumentException("Failed to load field mapper class $mapperClassname", e)
         }
     }
 }

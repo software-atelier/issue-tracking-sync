@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class SyncChangesActionTest : AbstractSpringTest() {
+internal class SimpleSynchronizationActionTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
 
@@ -22,7 +22,7 @@ internal class SyncChangesActionTest : AbstractSpringTest() {
         val keyFieldMapping = TestObjects.buildKeyFieldMapping()
         val fieldMappings = TestObjects.buildFieldMappingList()
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
-        val testee = SyncChangesAction()
+        val testee = SimpleSynchronizationAction()
         // act
         testee.execute(sourceClient, targetClient, issue, keyFieldMapping, fieldMappings, null)
         // assert

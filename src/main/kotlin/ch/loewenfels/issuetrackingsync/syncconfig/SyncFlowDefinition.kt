@@ -7,6 +7,6 @@ data class SyncFlowDefinition(
     var filterClassname: String? = null,
     var actionClassname: String = "",
     var defaultsForNewIssue: DefaultsForNewIssue? = null,
-    var keyFieldMappingDefinition: FieldMappingDefinition = FieldMappingDefinition("key", "key"),
+    var keyFieldMappingDefinition: KeyFieldMappingDefinition = KeyFieldMappingDefinition(),
     var fieldMappingDefinitions: MutableList<FieldMappingDefinition> = mutableListOf()
 )
