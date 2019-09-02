@@ -1,24 +1,37 @@
 package ch.loewenfels.issuetrackingsync.controller;
 
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_ISSUEKEY
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_RESPONSEMESSAGE
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_TRACKINGSYSTEM
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.app.AppState
+import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import ch.loewenfels.issuetrackingsync.scheduling.SyncRequestProducer
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.scheduling.support.CronSequenceGenerator
+import org.springframework.web.bind.annotation.*
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @RestController
-class OnDemandController(
+class InteractivceSyncController(
     private val syncRequestProducer: SyncRequestProducer,
     private val clientFactory: ClientFactory,
-    private val settings: Settings
+    private val settings: Settings,
+    private val syncApplicationProperties: SyncApplicationProperties,
+    private val appState: AppState
 ) {
+    @GetMapping("/info")
+    fun getSettings(): Map<String, String> {
+        val dateFormat = "dd. MMM. yyyy HH:mm:ss"
+        val cronTrigger = CronSequenceGenerator(syncApplicationProperties.pollingCron)
+        val nextPollingDate = cronTrigger.next(Date())
+        return mapOf(
+            "Next run" to SimpleDateFormat(dateFormat).format(nextPollingDate),
+            "Process issues updated after" to DateTimeFormatter.ofPattern(dateFormat).format(appState.lastPollingTimestamp)
+        )
+    }
+
     @PutMapping("/manualsync")
     fun manualSync(@RequestBody body: Map<String, String>): Map<String, String> {
         val sourceAppName = body.getValue(HTTP_PARAMNAME_TRACKINGSYSTEM);

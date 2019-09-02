@@ -1,11 +1,9 @@
 package ch.loewenfels.issuetrackingsync.scheduling
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.app.AppState
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowFactory
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,6 +26,11 @@ class IssuePoller @Autowired constructor(
     @PostConstruct
     fun afterPropertiesSet() {
         logger().info("Polling set for {}", syncApplicationProperties.pollingCron)
+        settings.earliestSyncDate?.let {
+            // we want to fail hard here as assuming a different "earliest" date might have
+            // unwanted effects
+            appState.lastPollingTimestamp = LocalDateTime.parse(it)
+        }
     }
 
     @Scheduled(cron = "\${sync.pollingCron:}")

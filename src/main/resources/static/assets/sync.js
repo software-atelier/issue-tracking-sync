@@ -1,9 +1,26 @@
 var sync = {
     init: function () {
         sync._loadDefinedTrackingApplications();
+        sync.readInfo();
         sync.updateStatistics();
         setInterval(sync.updateStatistics, 10000);
     },
+
+    readInfo: function () {
+        $.get('/info')
+            .done(function (response) {
+                var container = $('.sync-polling');
+                container.empty();
+                Object.keys(response).forEach(function (key) {
+                    var row = $("<div class='row'/>");
+                    var labelCell = $("<div class='col-sm-3'>" + key + "</div>");
+                    var valueCell = $("<div class='col-sm-3'>" + response[key] + "</div>");
+                    row.append(labelCell).append(valueCell)
+                    container.append(row);
+                });
+            });
+    },
+
     updateStatistics: function () {
         $.get('/statistics')
             .done(function (response) {

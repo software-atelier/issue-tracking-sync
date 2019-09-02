@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class StatisticsController(
-    private val brokerFacade: BrokerFacade
-) {
+class StatisticsController(private val brokerFacade: BrokerFacade) {
     @GetMapping("/statistics")
     fun statistics(): QueueStatistics? {
         return brokerFacade.getStatistics(INTERNAL_QUEUE_NAME)

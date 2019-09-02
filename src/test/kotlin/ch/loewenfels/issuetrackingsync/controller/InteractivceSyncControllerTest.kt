@@ -1,9 +1,6 @@
 package ch.loewenfels.issuetrackingsync.controller
 
-import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_ISSUEKEY
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_RESPONSEMESSAGE
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_TRACKINGSYSTEM
+import ch.loewenfels.issuetrackingsync.*
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.Matchers
@@ -16,7 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
-internal class OnDemandControllerTest : AbstractSpringTest() {
+internal class InteractivceSyncControllerTest : AbstractSpringTest() {
     @Autowired
     lateinit var mockMvc: MockMvc
 

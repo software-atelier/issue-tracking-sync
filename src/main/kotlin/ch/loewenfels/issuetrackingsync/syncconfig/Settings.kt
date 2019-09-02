@@ -8,6 +8,7 @@ import java.io.IOException
 import java.util.*
 
 data class Settings(
+    var earliestSyncDate: String? = null,
     var trackingApplications: MutableList<IssueTrackingApplication> = mutableListOf(),
     var actionDefinitions: MutableList<SyncActionDefinition> = mutableListOf(),
     var syncFlowDefinitions: MutableList<SyncFlowDefinition> = mutableListOf()
