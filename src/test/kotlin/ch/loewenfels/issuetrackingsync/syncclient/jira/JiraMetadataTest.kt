@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.testcontext.genericMock
+import ch.loewenfels.issuetrackingsync.genericMock
 import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.api.MetadataRestClient
 import com.atlassian.jira.rest.client.api.domain.IssueType

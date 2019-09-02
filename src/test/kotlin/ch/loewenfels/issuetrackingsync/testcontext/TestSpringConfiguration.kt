@@ -1,5 +1,6 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
+import ch.loewenfels.issuetrackingsync.any
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.mockito.Mockito
@@ -28,14 +29,3 @@ open class TestSpringConfiguration {
     }
 }
 
-/**
- * Kotlin's "not null" paradigm clashing with Mockito is well documented, see
- * eg. https://stackoverflow.com/questions/51868577/how-do-you-get-mockito-to-play-nice-with-kotlin-non-nullable-types
- */
-@Suppress("UNCHECKED_CAST")
-private fun <T> any(type: Class<T>): T {
-    Mockito.any(type)
-    return null as T
-}
-
-inline fun <reified T : Any> genericMock() = Mockito.mock(T::class.java)

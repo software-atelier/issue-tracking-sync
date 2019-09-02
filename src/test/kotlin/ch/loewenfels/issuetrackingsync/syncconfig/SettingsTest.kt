@@ -34,9 +34,19 @@ internal class SettingsTest : AbstractSpringTest() {
         val syncFlow = result.syncFlowDefinitions[0]
         assertEquals("id", syncFlow.keyFieldMappingDefinition.sourceName, "source property name for key field mapping")
         assertEquals(
-            "custom_field_12044",
+            "RTC ID",
             syncFlow.keyFieldMappingDefinition.targetName,
             "target property name for key field mapping"
+        )
+        assertEquals(
+            "key",
+            syncFlow.writeBackFieldMappingDefinition?.sourceName,
+            "source property name for write-back mapping"
+        )
+        assertEquals(
+            "ch.loewenfels.team.workitem.attribute.external_refid",
+            syncFlow.writeBackFieldMappingDefinition?.targetName,
+            "target property name for write-back mapping"
         )
         assertNotNull(syncFlow.defaultsForNewIssue)
         assertEquals("TST", syncFlow.defaultsForNewIssue?.project, "Default project for new issues")

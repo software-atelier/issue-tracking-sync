@@ -18,6 +18,7 @@ object TestObjects {
         syncFlowDefinition.actions = mutableListOf(simpleActionName)
         syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
         syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
+        syncFlowDefinition.writeBackFieldMappingDefinition = buildWriteBackFieldMappingDefinition()
         return syncFlowDefinition
     }
 
@@ -29,11 +30,16 @@ object TestObjects {
         return syncActionDefinition
     }
 
-    fun buildKeyFieldMappingDefinition(): KeyFieldMappingDefinition =
-        KeyFieldMappingDefinition(
+    fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
+        FieldMappingDefinition(
+            "id",
+            "custom_field_10244"
+        )
+
+    fun buildWriteBackFieldMappingDefinition(): FieldMappingDefinition =
+        FieldMappingDefinition(
             "key",
-            "custom_field_10244",
-            writeBackToSourceName = "ch.foobar.team.workitem.attribute.external_refid"
+            "ch.foobar.team.workitem.attribute.external_refid"
         )
 
     fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
@@ -43,7 +49,7 @@ object TestObjects {
         FieldMappingDefinition("title", "summary")
 
     fun buildKeyFieldMapping(): KeyFieldMapping =
-        KeyFieldMapping("key", "id", "ch.foobar.team.workitem.attribute.external_refid", DirectFieldMapper())
+        KeyFieldMapping("key", "id", DirectFieldMapper())
 
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
     fun buildFieldMapping(): FieldMapping =

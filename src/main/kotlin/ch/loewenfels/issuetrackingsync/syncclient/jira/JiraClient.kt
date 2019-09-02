@@ -120,7 +120,10 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue) {
+    private fun createTargetIssue(
+        defaultsForNewIssue: DefaultsForNewIssue,
+        issue: Issue
+    ): com.atlassian.jira.rest.client.api.domain.Issue {
         val issueType = JiraMetadata.getIssueTypeId(defaultsForNewIssue.issueType, jiraRestClient)
         val issueBuilder = IssueInputBuilder()
         issueBuilder.setIssueTypeId(issueType)
@@ -130,6 +133,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
+        return getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
         // TODO: update collections such as comments and attachments
     }
 

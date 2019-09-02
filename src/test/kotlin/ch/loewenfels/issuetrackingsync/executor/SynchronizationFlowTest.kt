@@ -1,13 +1,15 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.notification.NotificationChannel
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
+import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.testcontext.AlwaysFalseIssueFilter
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.times
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class SynchronizationFlowTest : AbstractSpringTest() {
@@ -120,6 +122,10 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         testee.execute(issue)
         // assert
         assertEquals(1, TestNotificationChannel.successfulIssueKeys.size)
+        Mockito.verify(sourceClient, times(1))
+            .createOrUpdateTargetIssue(safeEq(issue), any(DefaultsForNewIssue::class.java))
+        Mockito.verify(targetClient, times(2))
+            .createOrUpdateTargetIssue(safeEq(issue), any(DefaultsForNewIssue::class.java))
     }
 }
 

@@ -1,7 +1,6 @@
 package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.KeyFieldMappingDefinition
 
 object FieldMappingFactory {
     private val mapperInstances = mutableMapOf<String, FieldMapper>()
@@ -12,10 +11,9 @@ object FieldMappingFactory {
         getMapper(fieldMappingDefinition)
     )
 
-    fun getKeyMapping(fieldMappingDefinition: KeyFieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
+    fun getKeyMapping(fieldMappingDefinition: FieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
         fieldMappingDefinition.sourceName,
         fieldMappingDefinition.targetName,
-        fieldMappingDefinition.writeBackToSourceName,
         getMapper(fieldMappingDefinition)
     )
 

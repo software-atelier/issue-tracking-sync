@@ -58,6 +58,8 @@ class SynchronizationFlow(
         try {
             loadInternalSourceIssue(issue)
             syncActions.forEach { execute(it, issue) }
+
+            writeBackKeyReference(issue)
             notificationObserver.notifySuccessfulSync(issue)
         } catch (ex: Exception) {
             logger().debug(ex.message, ex)
@@ -76,11 +78,41 @@ class SynchronizationFlow(
         val keyFieldMapping = FieldMappingFactory.getKeyMapping(syncFlowDefinition.keyFieldMappingDefinition)
         keyFieldMapping.loadSourceValue(issue, sourceClient)
         issue.keyFieldMapping = keyFieldMapping
+        syncFlowDefinition.writeBackFieldMappingDefinition?.let {
+            val writeBackFieldMapping = FieldMappingFactory.getKeyMapping(it)
+            issue.writeBackFieldMapping = writeBackFieldMapping
+        }
     }
 
     private fun execute(syncActionEntry: Map.Entry<SyncActionName, SynchronizationAction>, issue: Issue) {
         val actionDefinition = actionDefinitions.first { it.name.equals(syncActionEntry.key, ignoreCase = true) }
         val fieldMappings = actionDefinition.fieldMappingDefinitions.map { FieldMappingFactory.getMapping(it) }.toList()
         syncActionEntry.value.execute(sourceClient, targetClient, issue, fieldMappings, defaultsForNewIssue)
+        issue.fieldMappings.clear()
+    }
+
+    private fun writeBackKeyReference(issue: Issue) {
+        issue.keyFieldMapping?.let {
+            val fieldMappings = listOf(it)
+            SimpleSynchronizationAction().execute(
+                sourceClient,
+                targetClient,
+                issue,
+                fieldMappings,
+                defaultsForNewIssue
+            )
+        }
+        issue.fieldMappings.clear()
+        issue.writeBackFieldMapping?.let { writeBack ->
+            val fieldMappings = listOf(writeBack)
+            SimpleSynchronizationAction().execute(
+                targetClient,
+                sourceClient,
+                issue,
+                fieldMappings,
+                defaultsForNewIssue
+            )
+        }
+        issue.fieldMappings.clear()
     }
 }
