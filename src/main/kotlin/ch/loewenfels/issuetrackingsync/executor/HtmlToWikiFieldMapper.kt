@@ -4,7 +4,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.ibm.team.foundation.common.text.XMLString
 
-class HtmlToWikiFieldMapper : FieldMapper {
+open class HtmlToWikiFieldMapper : FieldMapper {
     override fun <T> getValue(
         proprietaryIssue: T,
         fieldname: String,

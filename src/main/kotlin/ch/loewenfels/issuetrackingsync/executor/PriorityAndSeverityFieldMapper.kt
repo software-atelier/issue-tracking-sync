@@ -9,7 +9,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * values are:
  * - priority [, severity]
  */
-class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
+open class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
     private val associations: Map<String, String> = fieldMappingDefinition.associations
 
     override fun <T> getValue(
@@ -62,14 +62,14 @@ class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinit
         }
     }
 
-    private fun merge(priorityAndSeverity: Pair<*, *>): Any? {
+    protected fun merge(priorityAndSeverity: Pair<*, *>): Any? {
         val keyFirstSecond = "${priorityAndSeverity.first},${priorityAndSeverity.second}"
         val keySecondFirst = "${priorityAndSeverity.second},${priorityAndSeverity.first}"
         return associations[keyFirstSecond] ?: associations[keySecondFirst]
         ?: throw IssueClientException("No association found for $priorityAndSeverity")
     }
 
-    private fun split(priorityAndSeverity: Pair<*, *>): List<String> {
+    protected fun split(priorityAndSeverity: Pair<*, *>): List<String> {
         val keyFirst = "${priorityAndSeverity.first}"
         return associations[keyFirst]?.let {
             it.split(",")
