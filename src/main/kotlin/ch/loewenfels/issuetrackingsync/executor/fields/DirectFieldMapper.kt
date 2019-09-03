@@ -1,5 +1,6 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 class DirectFieldMapper : FieldMapper {
@@ -14,9 +15,10 @@ class DirectFieldMapper : FieldMapper {
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,
+        issue: Issue,
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        issueTrackingClient.setValue(proprietaryIssueBuilder, fieldname, value)
+        issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, value)
     }
 }

@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
 class KeyFieldMapping(
     sourceName: String,

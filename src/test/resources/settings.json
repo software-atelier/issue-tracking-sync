@@ -20,7 +20,7 @@
   "actionDefinitions": [
     {
       "name": "SimpleFieldsRtcToJira",
-      "classname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction",
       "fieldMappingDefinitions": [
         {
           "sourceName": "summary",
@@ -29,12 +29,20 @@
         {
           "sourceName": "priority,severity",
           "targetName": "priorityId",
-          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.PriorityAndSeverityFieldMapper",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper",
           "associations": {
             "P1 - Kritisch,S1-Geringfügig": "Hoch"
           }
         }
       ]
+    },
+    {
+      "name": "SynchronizeComments",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
+    },
+    {
+      "name": "SynchronizeAttachments",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction"
     }
   ],
   "syncFlowDefinitions": [
@@ -42,7 +50,7 @@
       "name": "Sync changes from RTC to JIRA",
       "source": "RTC",
       "target": "JIRA",
-      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedFilter",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedChangeFilter",
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "RTC ID"
@@ -57,7 +65,9 @@
         "category": ""
       },
       "actions": [
-        "SimpleFieldsRtcToJira"
+        "SimpleFieldsRtcToJira",
+        "SynchronizeComments",
+        "SynchronizeAttachments"
       ]
     }
   ]

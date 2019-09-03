@@ -29,7 +29,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 
-class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
+open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
     private val teamRepository: ITeamRepository
     private val workItemClient: IWorkItemClient
@@ -76,7 +76,8 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         val workItems = toWorkItems(resolvedResultOfWorkItems)
         return when (workItems.size) {
             0 -> null
-            1 -> workItems[0]
+            // reload to get full issue incl. collections such as comments
+            1 -> getProprietaryIssue(workItems[0].id.toString())
             else -> throw IssueClientException("Query too broad, multiple issues found for $fieldValue")
         }
     }
@@ -104,7 +105,12 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
-    override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
+    override fun setValue(
+        internalIssueBuilder: Any,
+        issue: Issue,
+        fieldName: String,
+        value: Any?
+    ) {
         convertToMetadataId(fieldName, value)?.let {
             val workItem = internalIssueBuilder as IWorkItem
             val attribute = getAttribute(fieldName)
@@ -151,7 +157,10 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
         var targetIssue =
-            if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
+            (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
+                targetKeyFieldname,
+                targetIssueKey
+            ) else null) as IWorkItem
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
             defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
@@ -185,7 +194,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
 
     private fun mapNewIssueValues(targetIssue: IWorkItem, issue: Issue) {
         issue.fieldMappings.forEach {
-            it.setTargetValue(targetIssue, this)
+            it.setTargetValue(targetIssue, issue, this)
         }
     }
 
@@ -232,8 +241,8 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             projectArea,
             attributeName,
             auditableCommon,
-            null
-        )
+            progressMonitor
+        ) ?: throw IllegalArgumentException("Attribute $attributeName is either unknown or not query-able")
     }
 
     private fun getAttribute(attributeName: String): IAttribute =
@@ -241,7 +250,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             projectArea,
             attributeName,
             progressMonitor
-        )
+        ) ?: throw IllegalArgumentException("Unknown attribute $attributeName")
 
     private fun toWorkItems(resolvedResults: IQueryResult<IResolvedResult<IWorkItem>>): List<IWorkItem> {
         val result = LinkedList<IWorkItem>()
@@ -317,8 +326,6 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)
         try {
             val workingCopy = copyManager.getWorkingCopy(originalWorkItem)
-
-
             consumer.invoke(workingCopy)
             val detailedStatus = workingCopy.save(null)
             if (!detailedStatus.isOK) {
@@ -346,5 +353,3 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         }
     }
 }
-
-

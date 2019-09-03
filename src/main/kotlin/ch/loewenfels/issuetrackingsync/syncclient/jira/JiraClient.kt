@@ -6,6 +6,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.atlassian.jira.rest.client.api.JiraRestClient
+import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
 import com.fasterxml.jackson.databind.JsonNode
@@ -20,7 +21,7 @@ import java.time.format.DateTimeFormatter
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
  */
-class JiraClient(private val setup: IssueTrackingApplication) :
+open class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<com.atlassian.jira.rest.client.api.domain.Issue>, Logging {
     private val jiraRestClient: JiraRestClient = AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
         URI(setup.endpoint),
@@ -36,8 +37,8 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String,
         fieldValue: String
     ): com.atlassian.jira.rest.client.api.domain.Issue? {
-        val jql = if (fieldName.startsWith("custom_field")) {
-            val cfNumber = fieldName.substring(13)
+        val jql = if (fieldName.startsWith("customfield")) {
+            val cfNumber = fieldName.substring(12)
             "cf[$cfNumber] ~ '$fieldValue'"
         } else {
             "$fieldName = '$fieldValue'"
@@ -45,7 +46,8 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         val foundIssues = jiraRestClient.searchClient.searchJql(jql).claim().issues.toList()
         return when (foundIssues.size) {
             0 -> null
-            1 -> foundIssues[0]
+            // reload to get full issue incl. collections such as comments
+            1 -> getProprietaryIssue(foundIssues[0].key)
             else -> throw IssueClientException("Query too broad, multiple issues found for $fieldValue")
         }
     }
@@ -85,19 +87,29 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
-    override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
+    override fun setValue(
+        internalIssueBuilder: Any,
+        issue: Issue,
+        fieldName: String,
+        value: Any?
+    ) {
         convertToMetadataId(fieldName, value)?.let {
             val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
             if (beanWrapper.isWritableProperty(fieldName))
                 beanWrapper.setPropertyValue(fieldName, it)
-            else if (internalIssueBuilder is IssueInputBuilder)
-                internalIssueBuilder.addProperty(fieldName, it.toString())
+            else if (internalIssueBuilder is IssueInputBuilder) {
+                val targetInternalIssue = (issue.proprietaryTargetInstance
+                    ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
+
+                setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
+            }
         }
     }
 
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
         return when (fieldName) {
             "priorityId" -> JiraMetadata.getPriorityId(value?.toString() ?: "", jiraRestClient)
+            "issueTypeId" -> JiraMetadata.getIssueTypeId(value?.toString() ?: "", jiraRestClient)
             else -> value
         }
     }
@@ -119,36 +131,41 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        var targetIssue =
+        val targetIssue =
             if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
-            defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
+            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
-        issue.proprietaryTargetInstance = targetIssue
     }
 
     private fun createTargetIssue(
         defaultsForNewIssue: DefaultsForNewIssue,
         issue: Issue
-    ): com.atlassian.jira.rest.client.api.domain.Issue {
+    ) {
         val issueType = JiraMetadata.getIssueTypeId(defaultsForNewIssue.issueType, jiraRestClient)
         val issueBuilder = IssueInputBuilder()
-        issueBuilder.setIssueTypeId(issueType)
-        issueBuilder.setProjectKey(defaultsForNewIssue.project)
-        issue.fieldMappings.forEach {
-            it.setTargetValue(issueBuilder, this)
-        }
+            .setIssueTypeId(issueType)
+            .setProjectKey(defaultsForNewIssue.project)
+        //  here we need to delay custom fields until issue has been created!
+        val beanWrapper = BeanWrapperImpl(issueBuilder)
+        issue.fieldMappings.filter { beanWrapper.isWritableProperty(it.targetName) }
+            .forEach {
+                it.setTargetValue(issueBuilder, issue, this)
+            }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
-        return getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
+        val targetIssue =
+            getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
+        updateTargetIssue(targetIssue, issue)
     }
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
+        issue.proprietaryTargetInstance = targetIssue
         val issueBuilder = IssueInputBuilder()
         issue.fieldMappings.forEach {
-            it.setTargetValue(issueBuilder, this)
+            it.setTargetValue(issueBuilder, issue, this)
         }
         logger().info("Updating JIRA issue ${targetIssue.key}")
         jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
@@ -182,7 +199,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getAttachments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Attachment> =
-        internalIssue.attachments.map { jiraAttachment ->
+        internalIssue.attachments?.map { jiraAttachment ->
             val attachmentInputStreamPromise = jiraRestClient.issueClient.getAttachment(jiraAttachment.contentUri)
             attachmentInputStreamPromise.get().use {
                 Attachment(
@@ -190,7 +207,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
                     IOUtils.toByteArray(it)
                 )
             }
-        }
+        } ?: listOf()
 
     override fun addAttachment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, attachment: Attachment) {
         jiraRestClient.issueClient.addAttachment(
@@ -204,6 +221,12 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         return jiraRestClient.metadataClient.serverInfo.claim().serverTitle
     }
 
+    fun listFields() {
+        jiraRestClient.metadataClient.fields.claim().forEach { f ->
+            println("${f.id} / ${f.name} type ${f.fieldType} ${f.schema?.type}")
+        }
+    }
+
     private fun mapJiraIssue(jiraIssue: com.atlassian.jira.rest.client.api.domain.Issue): Issue {
         return Issue(
             jiraIssue.key,
@@ -212,12 +235,31 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         )
     }
 
-    private fun getCustomFieldNumber(
+    /**
+     * More generic method to set values where a simple setter on the [internalIssueBuilder] is not available.
+     *
+     * (https://developer.atlassian.com/server/jira/platform/rest-apis/) gives some more insight
+     */
+    private fun setInternalFieldValue(
+        internalIssueBuilder: IssueInputBuilder,
         jiraIssue: com.atlassian.jira.rest.client.api.domain.Issue,
-        label: String
-    ): String? {
-        val fld = jiraIssue.getFieldByName(label);
-        return fld?.id
+        fieldName: String,
+        value: Any
+    ) {
+        val fld = jiraIssue.getFieldByName(fieldName) ?: jiraIssue.getField(fieldName)
+        ?: throw IllegalArgumentException("Unknown field $fieldName")
+        // you might be tempted to query [metadataClient] directly here. However, JIRA setup allows to map fields
+        // to certain projects only, and so finding a field in the metadataClient does NOT mean it is available
+        // in the project the issue is assigned to
+        val fldType = JiraMetadata.getFieldType(fld.id, jiraRestClient)
+        when (fldType) {
+            // Text custom field
+            "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
+            "option" -> {
+                val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())
+                internalIssueBuilder.setFieldValue(fld.id, complexValue)
+            }
+        }
     }
 
     private fun toLocalDateTime(jodaDateTime: DateTime): LocalDateTime =

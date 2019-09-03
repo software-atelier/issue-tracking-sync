@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
+import kotlin.random.Random
 
 open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
@@ -59,13 +61,21 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         }
     }
 
-    override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
+    override fun setValue(
+        internalIssueBuilder: Any,
+        issue: Issue,
+        fieldName: String,
+        value: Any?
+    ) {
     }
 
     override fun createOrUpdateTargetIssue(
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
+        val targetIssue = Issue("MK-" + (abs(Random.nextInt()) % 10000).toString(), "JIRA", LocalDateTime.now())
+        testIssues.add(targetIssue)
+        issue.proprietaryTargetInstance = targetIssue
         testIssues.add(issue)
     }
 

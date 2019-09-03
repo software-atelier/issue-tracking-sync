@@ -1,7 +1,10 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
 import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.executor.*
+import ch.loewenfels.issuetrackingsync.executor.IssueFilter
+import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowTest
+import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
+import ch.loewenfels.issuetrackingsync.executor.fields.*
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
@@ -49,11 +52,19 @@ object TestObjects {
         FieldMappingDefinition("title", "summary")
 
     fun buildKeyFieldMapping(): KeyFieldMapping =
-        KeyFieldMapping("key", "id", DirectFieldMapper())
+        KeyFieldMapping(
+            "key",
+            "id",
+            DirectFieldMapper()
+        )
 
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
     fun buildFieldMapping(): FieldMapping =
-        FieldMapping("title", "summary", DirectFieldMapper())
+        FieldMapping(
+            "title",
+            "summary",
+            DirectFieldMapper()
+        )
 
     fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
     fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
@@ -80,9 +91,9 @@ object TestObjects {
 }
 
 class AlwaysTrueIssueFilter : IssueFilter {
-    override fun test(issue: Issue): Boolean = true
+    override fun test(client: IssueTrackingClient<out Any>, issue: Issue): Boolean = true
 }
 
 class AlwaysFalseIssueFilter : IssueFilter {
-    override fun test(issue: Issue): Boolean = false
+    override fun test(client: IssueTrackingClient<out Any>, issue: Issue): Boolean = false
 }

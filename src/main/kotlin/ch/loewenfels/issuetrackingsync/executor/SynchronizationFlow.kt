@@ -1,6 +1,9 @@
 package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
+import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
@@ -51,7 +54,7 @@ class SynchronizationFlow(
 
     fun applies(source: TrackingApplicationName, issue: Issue): Boolean {
         return Objects.equals(sourceApplication, source) &&
-                issueFilter?.test(issue) ?: true
+                issueFilter?.test(sourceClient, issue) ?: true
     }
 
     fun execute(issue: Issue) {
@@ -77,10 +80,6 @@ class SynchronizationFlow(
         val keyFieldMapping = FieldMappingFactory.getKeyMapping(syncFlowDefinition.keyFieldMappingDefinition)
         keyFieldMapping.loadSourceValue(issue, sourceClient)
         issue.keyFieldMapping = keyFieldMapping
-        syncFlowDefinition.writeBackFieldMappingDefinition?.let {
-            val writeBackFieldMapping = FieldMappingFactory.getKeyMapping(it)
-            issue.writeBackFieldMapping = writeBackFieldMapping
-        }
     }
 
     private fun execute(syncActionEntry: Map.Entry<SyncActionName, SynchronizationAction>, issue: Issue) {
@@ -114,11 +113,14 @@ class SynchronizationFlow(
     private fun updateKeyReferenceOnSource(issue: Issue) {
         if (issue.proprietaryTargetInstance != null) {
             issue.targetKey = issue.proprietaryTargetInstance?.let { targetClient.getKey(it) }
-            val invertedIssue = Issue(issue.targetKey!!, "", issue.lastUpdated)
-            invertedIssue.proprietarySourceInstance = issue.proprietaryTargetInstance
-            invertedIssue.proprietaryTargetInstance = issue.proprietarySourceInstance
-            issue.writeBackFieldMapping?.let { writeBack ->
-                val fieldMappings = listOf(writeBack)
+            syncFlowDefinition.writeBackFieldMappingDefinition?.let { writeBack ->
+                val invertedIssue = Issue(issue.targetKey!!, "", issue.lastUpdated)
+                invertedIssue.proprietarySourceInstance = issue.proprietaryTargetInstance
+                invertedIssue.proprietaryTargetInstance = issue.proprietarySourceInstance
+                val invertedKeyMapping = FieldMappingFactory.getKeyMapping(writeBack)
+                invertedKeyMapping.loadSourceValue(invertedIssue, targetClient)
+                invertedIssue.keyFieldMapping = invertedKeyMapping
+                val fieldMappings = listOf(invertedKeyMapping)
                 SimpleSynchronizationAction().execute(
                     targetClient,
                     sourceClient,

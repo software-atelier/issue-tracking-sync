@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
@@ -43,11 +43,11 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
         val value = "foobar\n\nh4. Text 2\nSome more text\nh4. Text 3\nAnd still some more"
         // act
-        testee.setValue(issue, "text,text2,text3", targetClient, value)
+        testee.setValue(issue, "text,text2,text3", issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient).setValue(issue, "text", "foobar")
-        Mockito.verify(targetClient).setValue(issue, "text2", "Some more text")
-        Mockito.verify(targetClient).setValue(issue, "text3", "And still some more")
+        Mockito.verify(targetClient).setValue(issue, issue, "text", "foobar")
+        Mockito.verify(targetClient).setValue(issue, issue, "text2", "Some more text")
+        Mockito.verify(targetClient).setValue(issue, issue, "text3", "And still some more")
     }
 
     private fun buildTestee(): CompoundStringFieldMapper {

@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.actions
 
 import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
+internal class AttachmentsSynchronizationActionTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
 
@@ -22,10 +22,10 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
-        val testee = CommentsSynchronizationAction()
+        val testee = AttachmentsSynchronizationAction()
         // act
         testee.execute(sourceClient, targetClient, issue, fieldMappings, null)
         // assert
-        Mockito.verify(targetClient).addComment(safeEq(issue), any(Comment::class.java))
+        Mockito.verify(targetClient).addAttachment(safeEq(issue), any(Attachment::class.java))
     }
 }

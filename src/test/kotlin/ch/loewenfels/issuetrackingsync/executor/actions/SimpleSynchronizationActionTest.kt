@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.actions
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory

@@ -1,5 +1,6 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 /**
@@ -18,11 +19,12 @@ interface FieldMapper {
 
     /**
      * Set a value on the [proprietaryIssueBuilder], which is whatever object the [issueTrackingClient] uses
-     * to "build" an issue create/update before submitting it.
+     * to "build" an issue create/update before submitting it. The current [issue] is provided for context.
      */
     fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,
+        issue: Issue,
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     )

@@ -38,7 +38,12 @@ interface IssueTrackingClient<T> {
 
     fun getValue(internalIssue: T, fieldName: String): Any?
 
-    fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?)
+    fun setValue(
+        internalIssueBuilder: Any,
+        issue: Issue,
+        fieldName: String,
+        value: Any?
+    )
 
     fun getComments(internalIssue: T): List<Comment>
 

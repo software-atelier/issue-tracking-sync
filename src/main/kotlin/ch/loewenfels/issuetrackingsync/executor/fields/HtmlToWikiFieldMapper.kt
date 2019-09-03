@@ -1,5 +1,6 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.ibm.team.foundation.common.text.XMLString
@@ -16,6 +17,7 @@ open class HtmlToWikiFieldMapper : FieldMapper {
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,
+        issue: Issue,
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
@@ -24,6 +26,6 @@ open class HtmlToWikiFieldMapper : FieldMapper {
         } else {
             value
         }
-        issueTrackingClient.setValue(proprietaryIssueBuilder, fieldname, wikiMarkup)
+        issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, wikiMarkup)
     }
 }

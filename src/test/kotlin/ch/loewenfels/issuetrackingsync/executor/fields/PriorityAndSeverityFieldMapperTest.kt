@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
@@ -32,7 +32,7 @@ internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
         )
         assertEquals(
             "com.ibm.team.workitem.common.model.ISeverity:severity.s2",
-            (result as Pair<String, String>).second
+            result.second
         )
     }
 
@@ -48,16 +48,34 @@ internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
             "com.ibm.team.workitem.common.model.ISeverity:severity.s2"
         )
         // act
-        testee.setValue(issue, "priorityId", targetClient, value)
+        testee.setValue(issue, "priorityId", issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient).setValue(issue, "priorityId", "Hoch")
+        Mockito.verify(targetClient).setValue(issue, issue, "priorityId", "Hoch")
+    }
+
+    @Test
+    fun setValue_fallback() {
+        // arrange
+        val testee = buildTestee()
+        val issue = TestObjects.buildIssue("MK-1")
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val value = Pair(
+            "weird_value",
+            "another_weird_value"
+        )
+        // act
+        testee.setValue(issue, "priorityId", issue, targetClient, value)
+        // assert
+        Mockito.verify(targetClient).setValue(issue, issue, "priorityId", "Normal")
     }
 
     private fun buildTestee(): PriorityAndSeverityFieldMapper {
         val associations =
             mutableMapOf(
                 "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12,com.ibm.team.workitem.common.model.ISeverity:severity.s2" to "Hoch",
-                "Hoch" to "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12,com.ibm.team.workitem.common.model.ISeverity:severity.s2"
+                "Hoch" to "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12,com.ibm.team.workitem.common.model.ISeverity:severity.s2",
+                "*,*" to "Normal"
             )
         val fieldDefinition = FieldMappingDefinition(
             "priority,severity", "priorityId",

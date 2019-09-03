@@ -6,6 +6,8 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
+import kotlin.math.abs
+import kotlin.random.Random
 
 open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
@@ -49,14 +51,21 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         }
     }
 
-    override fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?) {
+    override fun setValue(
+        internalIssueBuilder: Any,
+        issue: Issue,
+        fieldName: String,
+        value: Any?
+    ) {
     }
 
     override fun createOrUpdateTargetIssue(
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-        testIssues.add(issue)
+        val targetIssue = Issue((abs(Random.nextInt()) % 10000).toString(), "RTC", LocalDateTime.now())
+        testIssues.add(targetIssue)
+        issue.proprietaryTargetInstance = targetIssue
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {

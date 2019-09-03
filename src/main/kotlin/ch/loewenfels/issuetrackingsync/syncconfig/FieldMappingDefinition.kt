@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncconfig
 
-import ch.loewenfels.issuetrackingsync.executor.DirectFieldMapper
+import ch.loewenfels.issuetrackingsync.executor.fields.DirectFieldMapper
 
 open class FieldMappingDefinition(
     var sourceName: String = "",

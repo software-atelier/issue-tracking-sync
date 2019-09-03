@@ -123,7 +123,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // assert
         assertEquals(1, TestNotificationChannel.successfulIssueKeys.size)
         Mockito.verify(sourceClient, times(1))
-            .createOrUpdateTargetIssue(safeEq(issue), any(DefaultsForNewIssue::class.java))
+            .createOrUpdateTargetIssue(any(Issue::class.java), any(DefaultsForNewIssue::class.java))
         Mockito.verify(targetClient, times(2))
             .createOrUpdateTargetIssue(safeEq(issue), any(DefaultsForNewIssue::class.java))
     }

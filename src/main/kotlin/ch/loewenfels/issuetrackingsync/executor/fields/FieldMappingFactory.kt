@@ -1,21 +1,23 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
 object FieldMappingFactory {
     private val mapperInstances = mutableMapOf<String, FieldMapper>()
 
-    fun getMapping(fieldMappingDefinition: FieldMappingDefinition): FieldMapping = FieldMapping(
-        fieldMappingDefinition.sourceName,
-        fieldMappingDefinition.targetName,
-        getMapper(fieldMappingDefinition)
-    )
+    fun getMapping(fieldMappingDefinition: FieldMappingDefinition): FieldMapping =
+        FieldMapping(
+            fieldMappingDefinition.sourceName,
+            fieldMappingDefinition.targetName,
+            getMapper(fieldMappingDefinition)
+        )
 
-    fun getKeyMapping(fieldMappingDefinition: FieldMappingDefinition): KeyFieldMapping = KeyFieldMapping(
-        fieldMappingDefinition.sourceName,
-        fieldMappingDefinition.targetName,
-        getMapper(fieldMappingDefinition)
-    )
+    fun getKeyMapping(fieldMappingDefinition: FieldMappingDefinition): KeyFieldMapping =
+        KeyFieldMapping(
+            fieldMappingDefinition.sourceName,
+            fieldMappingDefinition.targetName,
+            getMapper(fieldMappingDefinition)
+        )
 
     private fun getMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
         return mapperInstances.computeIfAbsent(fieldMappingDefinition.mapperClassname) {

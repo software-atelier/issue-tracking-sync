@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import org.junit.jupiter.api.Assertions.assertNotNull

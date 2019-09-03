@@ -1,7 +1,7 @@
-package ch.loewenfels.issuetrackingsync.executor
+package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
@@ -38,6 +38,7 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,
+        issue: Issue,
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
@@ -53,14 +54,10 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         }
         if (remainingStringValue.isNotEmpty()) {
             val catchAllProperty = fieldname.split(",").first { !sections.keys.contains(it) }
-            if (catchAllProperty == null) {
-                logger().error("Found remaining string, but no property to take it on field mapping $fieldname")
-            } else {
-                sections[catchAllProperty] = remainingStringValue
-            }
+            sections[catchAllProperty] = remainingStringValue
         }
         sections.forEach { (propertyName, content) ->
-            super.setValue(proprietaryIssueBuilder, propertyName, issueTrackingClient, content.trim())
+            super.setValue(proprietaryIssueBuilder, propertyName, issue, issueTrackingClient, content.trim())
         }
     }
 
