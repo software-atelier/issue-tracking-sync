@@ -1,8 +1,6 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
@@ -38,12 +36,12 @@ class SynchronizationFlowFactory @Autowired constructor(
 
     fun getSynchronizationFlow(source: TrackingApplicationName, issue: Issue): SynchronizationFlow? {
         val applicableFlows = definedFlows.filter { it.applies(source, issue) }.toList()
-        when (applicableFlows.size) {
-            0 -> return null
-            1 -> return applicableFlows.first()
+        return when (applicableFlows.size) {
+            0 -> null
+            1 -> applicableFlows.first()
             else -> {
                 logger().error("Found multiple flows for issue $issue from $source. Consider defining a filter")
-                return null
+                null
             }
         }
     }

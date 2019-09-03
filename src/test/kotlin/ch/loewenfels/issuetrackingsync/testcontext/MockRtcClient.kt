@@ -1,13 +1,13 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
-open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
+open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
         Issue("1234", setup.name, LocalDateTime.now().minusHours(2)),//
         Issue("2345", setup.name, LocalDateTime.now().minusHours(3)),//
@@ -33,6 +33,13 @@ open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingCli
         return internalIssue.lastUpdated
     }
 
+    override fun getKey(internalIssue: Issue): String =
+        internalIssue.key
+
+    override fun getIssueUrl(internalIssue: Issue): String =
+        "${setup.endpoint}/web/projects/${setup.project}#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.key}"
+            .replace("//", "/")
+
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
         return when (fieldName) {
             "severity" -> "com.ibm.team.workitem.common.model.ISeverity:severity.s2"
@@ -54,5 +61,31 @@ open class MockRtcClient(val setup: IssueTrackingApplication) : IssueTrackingCli
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
         return testIssues
+    }
+
+    override fun getComments(internalIssue: Issue): List<Comment> =
+        listOf(
+            Comment(
+                "Quiet Mary",
+                LocalDateTime.now().minusHours(36),
+                "I'll have to take a closer look at the logic here"
+            ),
+            Comment("Impatient Rick", LocalDateTime.now().minusHours(24), "Mary, this is rather urgent!")
+        )
+
+    override fun addComment(internalIssue: Issue, comment: Comment) {
+        // no-op
+    }
+
+    override fun getAttachments(internalIssue: Issue): List<Attachment> =
+        listOf(
+            Attachment(
+                "explanation.docx",
+                "some other content here".toByteArray()
+            )
+        )
+
+    override fun addAttachment(internalIssue: Issue, attachment: Attachment) {
+        // no-op
     }
 }

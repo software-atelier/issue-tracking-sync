@@ -6,19 +6,23 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
+import com.ibm.team.foundation.common.text.XMLString
 import com.ibm.team.process.client.IProcessClientService
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
-import com.ibm.team.workitem.client.IAuditableClient
-import com.ibm.team.workitem.client.IWorkItemClient
+import com.ibm.team.repository.common.IContent
+import com.ibm.team.workitem.client.*
 import com.ibm.team.workitem.common.IAuditableCommon
+import com.ibm.team.workitem.common.IWorkItemCommon
 import com.ibm.team.workitem.common.expression.*
 import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.springframework.beans.BeanWrapperImpl
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -84,9 +88,16 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     override fun getLastUpdated(internalIssue: IWorkItem): LocalDateTime =
         LocalDateTime.ofInstant(internalIssue.modified().toInstant(), ZoneId.systemDefault())
 
+    override fun getKey(internalIssue: IWorkItem): String =
+        internalIssue.id.toString()
+
+    override fun getIssueUrl(internalIssue: IWorkItem): String =
+        "${setup.endpoint}/web/projects/${setup.project}#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
+            .replace("//", "/")
+
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
-        var internalValue = if (beanWrapper.isReadableProperty(fieldName))
+        val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
         else
             null
@@ -97,7 +108,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         convertToMetadataId(fieldName, value)?.let {
             val workItem = internalIssueBuilder as IWorkItem
             val attribute = getAttribute(fieldName)
-            workItem.setValue(attribute, value);
+            workItem.setValue(attribute, value)
         }
     }
 
@@ -139,18 +150,17 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        val targetIssue =
+        var targetIssue =
             if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
-        if (targetIssue != null) {
-            updateTargetIssue(targetIssue, issue)
-        } else if (defaultsForNewIssue != null) {
-            createTargetIssue(defaultsForNewIssue, issue)
-        } else {
-            throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+        when {
+            targetIssue != null -> updateTargetIssue(targetIssue, issue)
+            defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
+            else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
+        issue.proprietaryTargetInstance = targetIssue
     }
 
-    private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue) {
+    private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue): IWorkItem {
         val workItemType: IWorkItemType =
             workItemClient.findWorkItemType(projectArea, defaultsForNewIssue.issueType, progressMonitor)
         val path = defaultsForNewIssue.category.split("/")
@@ -162,23 +172,14 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             teamRepository.getClientLibrary(IAuditableClient::class.java) as IAuditableClient
         val workItem: IWorkItem = auditableClient.resolveAuditable(handle, IWorkItem.FULL_PROFILE, progressMonitor)
         logger().info("Created new RTC issue ${workItem.id}")
-        // TODO: update collections such as comments and attachments
+        return workItem
     }
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {
-        val copyManager = workItemClient.workItemWorkingCopyManager
-        copyManager.connect(targetIssue, IWorkItem.FULL_PROFILE, progressMonitor)
-        try {
-            val workingCopy = copyManager.getWorkingCopy(targetIssue)
-            val changeableWorkingItem = workingCopy.workItem
+        doWithWorkingCopy(targetIssue) {
+            val changeableWorkingItem = it.workItem
             mapNewIssueValues(changeableWorkingItem, issue)
             logger().info("Updating RTC issue ${targetIssue.id}")
-            val detailedStatus = workingCopy.save(null)
-            if (!detailedStatus.isOK) {
-                throw  RuntimeException("Error saving work item", detailedStatus.getException())
-            }
-        } finally {
-            copyManager.disconnect(targetIssue)
         }
     }
 
@@ -186,13 +187,6 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
         issue.fieldMappings.forEach {
             it.setTargetValue(targetIssue, this)
         }
-        // TODO: map collections such as comments and attachments
-//        val comments = changeableWorkingItem.getComments();
-//        val newComment = comments.createComment(
-//            teamRepository.loggedInContributor(),
-//            XMLString.createFromXMLText("<a href='" + extRefUrl + "'>" + extRefId + "</>")
-//        );
-//        comments.append(newComment);
     }
 
     override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
@@ -252,7 +246,7 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
     private fun toWorkItems(resolvedResults: IQueryResult<IResolvedResult<IWorkItem>>): List<IWorkItem> {
         val result = LinkedList<IWorkItem>()
         while (resolvedResults.hasNext(progressMonitor)) {
-            result.add(resolvedResults.next(progressMonitor).getItem())
+            result.add(resolvedResults.next(progressMonitor).item)
         }
         return result
     }
@@ -264,6 +258,79 @@ class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClie
             getLastUpdated(workItem)
         )
     }
+
+    override fun getComments(internalIssue: IWorkItem): List<Comment> =
+        internalIssue.comments.contents.map { jiraComment ->
+            Comment(
+                jiraComment.creator.toString(),
+                jiraComment.creationDate.toLocalDateTime(),
+                jiraComment.htmlContent.plainText
+            )
+        }
+
+    override fun addComment(internalIssue: IWorkItem, comment: Comment) {
+        doWithWorkingCopy(internalIssue) {
+            val changeableWorkingItem = it.workItem
+            val comments = changeableWorkingItem.comments
+            val newComment = comments.createComment(
+                teamRepository.loggedInContributor(),
+                XMLString.createFromXMLText(comment.content)
+            )
+            comments.append(newComment)
+        }
+    }
+
+    override fun getAttachments(internalIssue: IWorkItem): List<Attachment> {
+        val auditableClient = teamRepository.getClientLibrary(IAuditableClient::class.java) as IAuditableClient
+        val common = teamRepository.getClientLibrary(IWorkItemCommon::class.java) as IWorkItemCommon
+        return common.resolveWorkItemReferences(internalIssue, progressMonitor)
+            .getReferences(WorkItemEndPoints.ATTACHMENT)
+            .map {
+                val attachHandle = it.resolve() as IAttachmentHandle
+                val attachment = auditableClient.resolveAuditable(
+                    attachHandle,
+                    IAttachment.DEFAULT_PROFILE, null
+                ) as IAttachment
+                val baos = ByteArrayOutputStream()
+                teamRepository.contentManager().retrieveContent(attachment.content, baos, null);
+                Attachment(attachment.name, baos.toByteArray())
+            }
+    }
+
+    override fun addAttachment(internalIssue: IWorkItem, attachment: Attachment) {
+        doWithWorkingCopy(internalIssue) {
+            val contentType = IContent.CONTENT_TYPE_UNKNOWN // or IContent.CONTENT_TYPE_TEXT?
+            val encoding = IContent.ENCODING_UTF_8
+            var newAttachment = workItemClient.createAttachment(
+                projectArea, attachment.filename, "", contentType,
+                encoding, ByteArrayInputStream(attachment.content), progressMonitor
+            )
+            newAttachment = newAttachment.workingCopy as IAttachment
+            newAttachment = workItemClient.saveAttachment(newAttachment, progressMonitor)
+            val reference = WorkItemLinkTypes.createAttachmentReference(newAttachment)
+            it.references.add(WorkItemEndPoints.ATTACHMENT, reference)
+        }
+    }
+
+    private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
+        val copyManager = workItemClient.workItemWorkingCopyManager
+        copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)
+        try {
+            val workingCopy = copyManager.getWorkingCopy(originalWorkItem)
+
+
+            consumer.invoke(workingCopy)
+            val detailedStatus = workingCopy.save(null)
+            if (!detailedStatus.isOK) {
+                throw  RuntimeException("Error saving work item", detailedStatus.exception)
+            }
+        } finally {
+            copyManager.disconnect(originalWorkItem)
+        }
+    }
+
+    fun listMetadata(): List<IAttribute> =
+        workItemClient.findAttributes(projectArea, progressMonitor).toList()
 
     inner class LoginHandler : ITeamRepository.ILoginHandler, ITeamRepository.ILoginHandler.ILoginInfo {
         override fun getUserId(): String {

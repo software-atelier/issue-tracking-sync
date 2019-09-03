@@ -9,7 +9,10 @@ import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
 import com.fasterxml.jackson.databind.JsonNode
+import org.apache.commons.io.IOUtils
+import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
+import java.io.ByteArrayInputStream
 import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -48,8 +51,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getIssue(key: String): Issue? {
-        return getJiraIssue(key)
-            .let { mapJiraIssue(it) }
+        return mapJiraIssue(getJiraIssue(key))
     }
 
     override fun getIssueFromWebhookBody(body: JsonNode): Issue {
@@ -65,12 +67,18 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         )
     }
 
+    override fun getKey(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String =
+        internalIssue.key
+
+    override fun getIssueUrl(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String =
+        "${setup.endpoint}/browse/${internalIssue.key}".replace("//", "/")
+
     override fun getLastUpdated(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
     override fun getValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
-        var internalValue = if (beanWrapper.isReadableProperty(fieldName))
+        val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
         else
             null
@@ -111,13 +119,14 @@ class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        val targetIssue =
+        var targetIssue =
             if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
-            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
+            defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
+        issue.proprietaryTargetInstance = targetIssue
     }
 
     private fun createTargetIssue(
@@ -134,7 +143,6 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
         return getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
-        // TODO: update collections such as comments and attachments
     }
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
@@ -159,6 +167,39 @@ class JiraClient(private val setup: IssueTrackingApplication) :
             .toList()
     }
 
+    override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> =
+        internalIssue.comments.map { jiraComment ->
+            Comment(
+                jiraComment.author?.displayName ?: "n/a",
+                toLocalDateTime(jiraComment.creationDate),
+                jiraComment.body
+            )
+        }
+
+    override fun addComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, comment: Comment) {
+        val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(comment.content)
+        jiraRestClient.issueClient.addComment(internalIssue.commentsUri, jiraComment).claim()
+    }
+
+    override fun getAttachments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Attachment> =
+        internalIssue.attachments.map { jiraAttachment ->
+            val attachmentInputStreamPromise = jiraRestClient.issueClient.getAttachment(jiraAttachment.contentUri)
+            attachmentInputStreamPromise.get().use {
+                Attachment(
+                    jiraAttachment.filename,
+                    IOUtils.toByteArray(it)
+                )
+            }
+        }
+
+    override fun addAttachment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, attachment: Attachment) {
+        jiraRestClient.issueClient.addAttachment(
+            internalIssue.attachmentsUri,
+            ByteArrayInputStream(attachment.content),
+            attachment.filename
+        ).claim()
+    }
+
     fun verifySetup(): String {
         return jiraRestClient.metadataClient.serverInfo.claim().serverTitle
     }
@@ -178,4 +219,7 @@ class JiraClient(private val setup: IssueTrackingApplication) :
         val fld = jiraIssue.getFieldByName(label);
         return fld?.id
     }
+
+    private fun toLocalDateTime(jodaDateTime: DateTime): LocalDateTime =
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(jodaDateTime.toInstant().millis), ZoneId.systemDefault())
 }

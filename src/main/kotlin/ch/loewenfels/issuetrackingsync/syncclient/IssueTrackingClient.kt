@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient;
 
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.workitem.common.model.IWorkItem
@@ -32,9 +32,21 @@ interface IssueTrackingClient<T> {
 
     fun getLastUpdated(internalIssue: T): LocalDateTime
 
+    fun getKey(internalIssue: T): String
+
+    fun getIssueUrl(internalIssue: T): String
+
     fun getValue(internalIssue: T, fieldName: String): Any?
 
     fun setValue(internalIssueBuilder: Any, fieldName: String, value: Any?)
+
+    fun getComments(internalIssue: T): List<Comment>
+
+    fun addComment(internalIssue: T, comment: Comment)
+
+    fun getAttachments(internalIssue: T): List<Attachment>
+
+    fun addAttachment(internalIssue: T, attachment: Attachment)
 
     fun createOrUpdateTargetIssue(issue: Issue, defaultsForNewIssue: DefaultsForNewIssue?)
 

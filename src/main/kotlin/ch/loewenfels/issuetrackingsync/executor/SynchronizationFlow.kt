@@ -58,7 +58,6 @@ class SynchronizationFlow(
         try {
             loadInternalSourceIssue(issue)
             syncActions.forEach { execute(it, issue) }
-
             writeBackKeyReference(issue)
             notificationObserver.notifySuccessfulSync(issue)
         } catch (ex: Exception) {
@@ -92,6 +91,13 @@ class SynchronizationFlow(
     }
 
     private fun writeBackKeyReference(issue: Issue) {
+        updateKeyReferenceOnTarget(issue)
+        updateKeyReferenceOnSource(issue)
+        issue.sourceUrl = issue.proprietarySourceInstance?.let { sourceClient.getIssueUrl(it) }
+        issue.targetUrl = issue.proprietaryTargetInstance?.let { targetClient.getIssueUrl(it) }
+    }
+
+    private fun updateKeyReferenceOnTarget(issue: Issue) {
         issue.keyFieldMapping?.let {
             val fieldMappings = listOf(it)
             SimpleSynchronizationAction().execute(
@@ -103,16 +109,24 @@ class SynchronizationFlow(
             )
         }
         issue.fieldMappings.clear()
-        issue.writeBackFieldMapping?.let { writeBack ->
-            val fieldMappings = listOf(writeBack)
-            SimpleSynchronizationAction().execute(
-                targetClient,
-                sourceClient,
-                issue,
-                fieldMappings,
-                defaultsForNewIssue
-            )
+    }
+
+    private fun updateKeyReferenceOnSource(issue: Issue) {
+        if (issue.proprietaryTargetInstance != null) {
+            issue.targetKey = issue.proprietaryTargetInstance?.let { targetClient.getKey(it) }
+            val invertedIssue = Issue(issue.targetKey!!, "", issue.lastUpdated)
+            invertedIssue.proprietarySourceInstance = issue.proprietaryTargetInstance
+            invertedIssue.proprietaryTargetInstance = issue.proprietarySourceInstance
+            issue.writeBackFieldMapping?.let { writeBack ->
+                val fieldMappings = listOf(writeBack)
+                SimpleSynchronizationAction().execute(
+                    targetClient,
+                    sourceClient,
+                    invertedIssue,
+                    fieldMappings,
+                    defaultsForNewIssue
+                )
+            }
         }
-        issue.fieldMappings.clear()
     }
 }

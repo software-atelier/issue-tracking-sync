@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 
+@Suppress("UNCHECKED_CAST")
 internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
