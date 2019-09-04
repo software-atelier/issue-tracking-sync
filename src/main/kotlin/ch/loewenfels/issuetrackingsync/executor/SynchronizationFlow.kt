@@ -77,6 +77,7 @@ class SynchronizationFlow(
             throw SynchronizationAbortedException("Issues has been updated since synchronization request")
         }
         issue.proprietarySourceInstance = sourceIssue
+        issue.sourceUrl = sourceClient.getIssueUrl(sourceIssue)
         val keyFieldMapping = FieldMappingFactory.getKeyMapping(syncFlowDefinition.keyFieldMappingDefinition)
         keyFieldMapping.loadSourceValue(issue, sourceClient)
         issue.keyFieldMapping = keyFieldMapping
@@ -92,8 +93,6 @@ class SynchronizationFlow(
     private fun writeBackKeyReference(issue: Issue) {
         updateKeyReferenceOnTarget(issue)
         updateKeyReferenceOnSource(issue)
-        issue.sourceUrl = issue.proprietarySourceInstance?.let { sourceClient.getIssueUrl(it) }
-        issue.targetUrl = issue.proprietaryTargetInstance?.let { targetClient.getIssueUrl(it) }
     }
 
     private fun updateKeyReferenceOnTarget(issue: Issue) {

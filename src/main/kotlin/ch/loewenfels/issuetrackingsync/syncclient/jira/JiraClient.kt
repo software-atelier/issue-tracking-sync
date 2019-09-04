@@ -5,10 +5,8 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import com.atlassian.jira.rest.client.api.JiraRestClient
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
 import org.joda.time.DateTime
@@ -23,7 +21,7 @@ import java.time.format.DateTimeFormatter
  */
 open class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<com.atlassian.jira.rest.client.api.domain.Issue>, Logging {
-    private val jiraRestClient: JiraRestClient = AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
+    private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
         URI(setup.endpoint),
         setup.username,
         setup.password
@@ -72,11 +70,17 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     override fun getKey(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String =
         internalIssue.key
 
-    override fun getIssueUrl(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String =
-        "${setup.endpoint}/browse/${internalIssue.key}".replace("//", "/")
+    override fun getIssueUrl(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String {
+        val endpoint =
+            if (setup.endpoint.endsWith("/")) setup.endpoint.substring(0, setup.endpoint.length - 1) else setup.endpoint
+        return "$endpoint/browse/${internalIssue.key}"
+    }
 
     override fun getLastUpdated(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
+
+    open fun getHtmlValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String) =
+        jiraRestClient.getHtmlRenderingRestClient().getRenderedHtml(internalIssue.key, fieldName)
 
     override fun getValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
@@ -131,11 +135,22 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        val targetIssue =
-            if (targetIssueKey.isNotEmpty()) getProprietaryIssue(targetKeyFieldname, targetIssueKey) else null
+        var targetIssue =
+            (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
+                targetKeyFieldname,
+                targetIssueKey
+            ) else null) as com.atlassian.jira.rest.client.api.domain.Issue?
         when {
-            targetIssue != null -> updateTargetIssue(targetIssue, issue)
-            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
+            targetIssue != null -> {
+                issue.proprietaryTargetInstance = targetIssue
+                issue.targetUrl = getIssueUrl(targetIssue)
+                updateTargetIssue(targetIssue, issue)
+            }
+            defaultsForNewIssue != null -> {
+                targetIssue = createTargetIssue(defaultsForNewIssue, issue)
+                issue.proprietaryTargetInstance = targetIssue
+                issue.targetUrl = getIssueUrl(targetIssue)
+            }
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
     }
@@ -143,7 +158,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     private fun createTargetIssue(
         defaultsForNewIssue: DefaultsForNewIssue,
         issue: Issue
-    ) {
+    ): com.atlassian.jira.rest.client.api.domain.Issue {
         val issueType = JiraMetadata.getIssueTypeId(defaultsForNewIssue.issueType, jiraRestClient)
         val issueBuilder = IssueInputBuilder()
             .setIssueTypeId(issueType)
@@ -159,10 +174,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         val targetIssue =
             getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
         updateTargetIssue(targetIssue, issue)
+        return targetIssue
     }
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
-        issue.proprietaryTargetInstance = targetIssue
         val issueBuilder = IssueInputBuilder()
         issue.fieldMappings.forEach {
             it.setTargetValue(issueBuilder, issue, this)

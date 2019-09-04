@@ -20,12 +20,13 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
         val fieldMappings = TestObjects.buildFieldMappingList()
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
+        val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         issue.proprietarySourceInstance = issue
-        issue.proprietaryTargetInstance = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
+        issue.proprietaryTargetInstance = targetIssue
         val testee = CommentsSynchronizationAction()
         // act
         testee.execute(sourceClient, targetClient, issue, fieldMappings, null)
         // assert
-        Mockito.verify(targetClient).addComment(safeEq(issue), any(Comment::class.java))
+        Mockito.verify(targetClient).addComment(safeEq(targetIssue), any(Comment::class.java))
     }
 }

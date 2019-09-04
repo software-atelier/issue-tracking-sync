@@ -3,13 +3,14 @@ package ch.loewenfels.issuetrackingsync.syncclient.rtc
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 /**
  * These tests rely on a valid RTC setup. To run, remove the @Disabled and edit buildSetup()
  */
-//@Disabled
+@Disabled
 internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun getIssue_validKey_issueFound() {

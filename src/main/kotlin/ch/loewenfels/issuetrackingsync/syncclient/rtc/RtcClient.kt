@@ -24,6 +24,7 @@ import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
+import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -92,9 +93,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     override fun getKey(internalIssue: IWorkItem): String =
         internalIssue.id.toString()
 
-    override fun getIssueUrl(internalIssue: IWorkItem): String =
-        "${setup.endpoint}/web/projects/${setup.project}#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
-            .replace("//", "/")
+    override fun getIssueUrl(internalIssue: IWorkItem): String {
+        val endpoint =
+            if (setup.endpoint.endsWith("/")) setup.endpoint.substring(0, setup.endpoint.length - 1) else setup.endpoint
+        val encodedProjectName = URLEncoder.encode(setup.project, "UTF-8").replace("+", "%20")
+        return "$endpoint/web/projects/$encodedProjectName#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
+    }
 
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
@@ -114,18 +118,18 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         convertToMetadataId(fieldName, value)?.let {
             val workItem = internalIssueBuilder as IWorkItem
             val attribute = getAttribute(fieldName)
-            workItem.setValue(attribute, value)
+            workItem.setValue(attribute, it)
         }
     }
 
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
         return when (fieldName) {
-            "priority" -> RtcMetadata.getPriorityId(
+            "priority", "internalPriority" -> RtcMetadata.getPriorityId(
                 value?.toString() ?: "",
                 getAttribute(IWorkItem.PRIORITY_PROPERTY),
                 workItemClient
             )
-            "severity" -> RtcMetadata.getSeverityId(
+            "severity", "internalSeverity" -> RtcMetadata.getSeverityId(
                 value?.toString() ?: "",
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
@@ -136,12 +140,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
         return when (fieldName) {
-            "priority" -> RtcMetadata.getPriorityName(
+            "priority", "internalPriority" -> RtcMetadata.getPriorityName(
                 value.toString(),
                 getAttribute(IWorkItem.PRIORITY_PROPERTY),
                 workItemClient
             )
-            "severity" -> RtcMetadata.getSeverity(
+            "severity", "internalSeverity" -> RtcMetadata.getSeverity(
                 value.toString(),
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
@@ -160,13 +164,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
                 targetKeyFieldname,
                 targetIssueKey
-            ) else null) as IWorkItem
+            ) else null) as IWorkItem?
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
             defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
         issue.proprietaryTargetInstance = targetIssue
+        issue.targetUrl = getIssueUrl(targetIssue)
     }
 
     private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue): IWorkItem {
@@ -174,7 +179,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             workItemClient.findWorkItemType(projectArea, defaultsForNewIssue.issueType, progressMonitor)
         val path = defaultsForNewIssue.category.split("/")
         val category: ICategoryHandle = workItemClient.findCategoryByNamePath(projectArea, path, progressMonitor)
-        val operation = WorkItemInitialization("", category)
+        val operation = WorkItemInitialization("creating new issue", category)
         val handle: IWorkItemHandle = operation.run(workItemType, progressMonitor)
         operation.workItem?.let { mapNewIssueValues(it, issue) }
         val auditableClient: IAuditableClient =
