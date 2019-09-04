@@ -37,8 +37,8 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
     }
 
     override fun onSuccessfulSync(issue: Issue) {
-        val source = issue.sourceUrl?.let { "(<$it|${issue.key}>)" } ?: issue.key
-        val target = issue.targetUrl?.let { "(<$it|${issue.targetKey ?: "Issue"}>)" } ?: issue.targetKey ?: "Issue"
+        val source = issue.sourceUrl?.let { "<$it|${issue.key}>" } ?: issue.key
+        val target = issue.targetUrl?.let { "<$it|${issue.targetKey ?: "Issue"}>" } ?: issue.targetKey ?: "Issue"
         val message = "Synchronized issue $source to $target\n" + issue.workLog.joinToString(separator = "\n")
         sendMessage(message.trim())
     }
@@ -71,8 +71,9 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
         val payload = JsonNodeFactory.instance.objectNode()
         payload.put("text", text)
         payload.put("username", username)
+        // If you want to use the channel override feature you need to create a webhook through the legacy
+        // "Incoming Webhook" app, which you can install from the Slack App Directory.
         payload.put("icon_emoji", emoji)
-        // for the channel to work, the app needs chat:write:bot permisson
         payload.put("channel", "#$channel")
         return StringEntity(objectMapper.writeValueAsString(payload))
     }

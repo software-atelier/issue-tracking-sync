@@ -1,6 +1,7 @@
 # Synchronizing issues between multiple tracking platforms
 
-This tool synchronizes issues between [Atlassian JIRA](https://www.atlassian.com/software/jira) and [IBM RTC](https://jazz.net/products/rational-team-concert/). Synchronisation is configured field-per-field in one JSON file. The tool runs as a small web server to allow for processing of (JIRA) webhook calls. 
+This tool synchronizes issues between [Atlassian JIRA](https://www.atlassian.com/software/jira) and [IBM RTC](https://jazz.net/products/rational-team-concert/). 
+Synchronisation is configured field-per-field in one JSON file. The tool runs as a small web server to allow for processing of (JIRA) webhook calls. 
 
 ## Configuration
 
@@ -28,34 +29,37 @@ sync:
       avatar: ":cyclone:"
 ```
 
-Then, define the settings.json. An example file can be found [here](https://github.com/loewenfels/issue-tracking-sync/blob/master/src/test/resources/settings.json)
+Beware that setting username, subject and avatar only works on legacy Slack webhooks.
+
+Finally, define the settings.json. An example file can be found [here](https://github.com/loewenfels/issue-tracking-sync/blob/master/src/test/resources/settings.json)
 
 ### settings.json
 
+Optionally, set a `earliestSyncDate` in the format `yyyy-MM-ddTHH:mm:ss`. If provided, polling will initially seek for 
+issues updated after `earliestSyncDate`. If nothing is defined, polling will start with application start.
+
 #### trackingApplications
 
-Define the basic issue tracking applications in use in the section "trackingApplications" of the settings.json 
+Define the basic issue tracking applications in use in the section `trackingApplications` of the settings.json 
 
 ```json
+{
   "trackingApplications": [
     {
       "name": "JIRA",
       "className": "ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient",
-      "role": "SLAVE",
       "username": "foobar",
       "password": "mysecret",
       "endpoint": "http://localhost:8080/jira",
-      "fieldsHoldingPartnerApplicationKey": {
-        "RTC": "custom_field_1004"
-      }
+      "polling": false
     }
-    ...
   ]
+}
 ```
 
 The currently defined client implementations are:
-- ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
-- ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
+- `ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient`
+- `ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient`
 
 #### actionDefinitions
 
@@ -63,7 +67,8 @@ An action definition represents a synchronization sequence, similar to a macro. 
 to form a synchronization flow. By defining actions separately, they can be re-used in multiple flows. 
 
 ```json
-"actionDefinitions": [
+{
+  "actionDefinitions": [
     {
       "name": "SimpleFieldsRtcToJira",
       "classname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
@@ -73,11 +78,154 @@ to form a synchronization flow. By defining actions separately, they can be re-u
           "targetName": "title"
         }
       ]
+    },
+    {
+      "name": "SynchronizeComments",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
     }
-  ],
+  ]
+}
 ```
 
-The [fieldMappings] define the synchronization mapping on a per-field level.
+- `ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction` reads a list of `fieldMappingDefinitions` (see below).
+- `ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction` adds all comments present in the source 
+  client but missing on the target (equality is based on source comment text being found in target comment text or vice versa)
+- `ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction` adds all attachments present in the source 
+  client but missing on the target (equality is based on content hash)
+
+##### fieldMappingDefinitions
+
+The `fieldMappingDefinitions` allows for a quiet generic approach to synchronizing simple fields.
+
+Fields available in RTC
+
+| Property | Read as | Write as |
+| -------- | ------- | -------- |
+| archived | archived | - |
+| category | category | category |
+| com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance |
+| com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity |
+| com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal |
+| com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal |
+| com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams |
+| com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact |
+| contextId | contextId | contextId |
+| correctedEstimate | correctedEstimate | correctedEstimate |
+| creationDate | creationDate | - |
+| creator | creator | - |
+| description | HTMLDescription.plainText <br/> HTMLDescription using HtmlToWikiFieldMapper | description |
+| dueDate | dueDate | dueDate |
+| duration | duration | duration |
+| foundIn | foundIn | foundIn |
+| id | id | - |
+| internalApprovalDescriptors | internalApprovalDescriptors | internalApprovalDescriptors |
+| internalApprovals | internalApprovals | internalApprovals |
+| internalComments | internalComments | internalComments |
+| internalPriority | internalPriority | internalPriority |
+| internalResolution | internalResolution | internalResolution |
+| internalSequenceValue | internalSequenceValue | internalSequenceValue |
+| internalSeverity | internalSeverity | internalSeverity |
+| internalState | internalState | internalState |
+| internalStateTransitions | internalStateTransitions | internalStateTransitions |
+| internalSubscriptions | internalSubscriptions | internalSubscriptions |
+| internalTags | internalTags | internalTags |
+| modified | modified | - |
+| modifiedBy | modifiedBy | - |
+| owner | owner | owner |
+| projectArea | projectArea | - |
+| resolutionDate | resolutionDate | - |
+| resolver | resolver | resolver |
+| startDate | startDate | - |
+| summary | HTMLSummary.plainText <br/> HTMLSummary using HtmlToWikiFieldMapper | summary |
+| target | target | target |
+| timeSpent | timeSpent | timeSpent |
+| workItemType | workItemType | - |
+
+Additionally on RTC, custom fields can be read/written using the internal FQN (eg. `ch.loewenfels.team.workitem.attribute.defectdescription`)
+
+Fields available in JIRA
+
+| Property | Read as | Write as |
+| -------- | ------- | -------- |
+| affectedVersionsNames | affectedVersionsNames | affectedVersionsNames |
+| assignee | assignee | assignee |
+| assigneeName | assigneeName | assigneeName |
+| description | description | description |
+| dueDate | dueDate | dueDate |
+| fixVersionsNames | fixVersionsNames | fixVersionsNames |
+| priority.name | priority.name | priority.name |
+| priority.id | priority.id | priority.id |
+| priorityId | priorityId | priorityId |
+| reporter | reporter | reporter |
+| reporterName | reporterName | reporterName |
+| resolution.id | resolution.id | resolution.id |
+| resolution.name | resolution.name | resolution.name |
+| summary | summary | summary |
+| status.id | status.id | status.id |
+| status.name | status.name | status.name |
+| creationDate | creationDate | creationDate |
+| timeTracking.originalEstimateMinutes | timeTracking.originalEstimateMinutes | timeTracking.originalEstimateMinutes |
+| timeTracking.remainingEstimateMinutes | timeTracking.remainingEstimateMinutes | timeTracking.remainingEstimateMinutes |
+| timeTracking.timeSpentMinutes | timeTracking.timeSpentMinutes | timeTracking.timeSpentMinutes |
+
+Additionally on JIRA, custom field can be read/written using the internal name (like `customfield_123456`) or the display name 
+(like `Customer reference`)
+
+##### Field mappers
+
+The default field mapper is `ch.loewenfels.issuetrackingsync.executor.fields.DirectFieldMapper`, which attempts to
+read the property `sourceName` and write it to `targetName`.
+
+`ch.loewenfels.issuetrackingsync.executor.fields.HtmlToWikiFieldMapper` is useful for rich text fields which allow for
+markup in JIRA, and/or HTML in RTC (eg. RTC 'description'). 
+
+`ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper` can be used to map multiple text fields onto
+a single text field, and split it back. This mapper expects `associations` for each field definition except one 
+(which will hold "the rest")
+
+To merge multiple fields:
+```json
+{
+  "sourceName": "ch.loewenfels.team.workitem.attribute.requirement,ch.loewenfels.team.workitem.attribute.defectdescription,ch.loewenfels.team.workitem.attribute.expected.conduct",
+  "targetName": "description",
+  "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper",
+  "associations": {
+    "ch.loewenfels.team.workitem.attribute.defectdescription": "<h4>Error description</h4>",
+    "ch.loewenfels.team.workitem.attribute.expected.conduct": "<h4>Expected behaviour</h4>"
+  }
+}
+```
+To split into multiple fields:
+```json
+{
+  "sourceName": "description",
+  "targetName": "ch.loewenfels.team.workitem.attribute.requirement,ch.loewenfels.team.workitem.attribute.defectdescription,ch.loewenfels.team.workitem.attribute.expected.conduct",
+  "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper",
+  "associations": {
+    "ch.loewenfels.team.workitem.attribute.defectdescription": "<h4>Error description</h4>",
+    "ch.loewenfels.team.workitem.attribute.expected.conduct": "<h4>Expected behaviour</h4>"
+  }
+}
+```
+
+The `ch.loewenfels.issuetrackingsync.executor.fields.LinkToIssueFieldMapper` disregards the 'sourceName' and provides a 
+link to the source issue. It can be written to any 'targetName'.
+
+The `ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper` is a slightly more complicated mapper,
+as JIRA typically knows 1 priority field, while RTC has a priority and severity. This mapper uses the `associations`  
+as a matrix to map between these fields:
+```json
+{
+  "sourceName": "priority,severity",
+  "targetName": "priorityId",
+  "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper",
+  "associations": {
+    "P1 - Critical,S1 - Minor": "Normal",
+    "P2 - Critical,S1 - Major": "High",
+    "P3 - Critical,S1 - Urgent": "Blocker"
+  }
+}
+```
 
 #### syncFlowDefinitions
 
@@ -86,6 +234,7 @@ Individual synchronization streams are defined as "flows". Apart from defining t
 list of action references. 
 
 ```json
+{
   "syncFlowDefinitions": [
     {
       "name": "Sync changes from RTC to JIRA",
@@ -96,22 +245,36 @@ list of action references.
         "sourceName": "id",
         "targetName": "custom_field_12044"
       },
+      "writeBackFieldMappingDefinition": {
+        "sourceName": "key",
+        "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
+      },
       "defaultsForNewIssue": {
         "issueType": "change",
         "project": "TST",
         "category": ""
       },
       "actions": [
-        "SimpleFieldsRtcToJira"
+        "SimpleFieldsRtcToJira",
+        "SynchronizeComments"
       ]
     }
-    ...
   ]
+}
 ```
 
-A note on the field names in the [keyFieldMappingDefinition]. The keyfield mapping is used to load an issue, and thus 
-has no issue or project context. As JIRA allows for multiple custom fields to have identical names (in different projects),
-customer fields **must be defined by their internal name** here. 
+The mandatory `keyFieldMappingDefinition` is used to load an issue, and thus has no issue or project context. As JIRA
+allows for multiple custom fields to have identical names (in different projects), the field names here 
+**must be defined by their internal name**.
+
+The optional `writeBackFieldMappingDefinition` allows to define a write-back of the target key to the source issue.
+In the example above, an RTC issue is synchronized to JIRA, but the JIRA `key` is written back to the RTC issue
+in field `ch.loewenfels.team.workitem.attribute.external_refid`.
+
+The optional `defaultsForNewIssue` defines defaults for new issues. If missing, and no target issue is found using
+`keyFieldMappingDefinition`, synchronization will abort.
+
+Finally, the list of `actions` refers to the `name` attribute of the [actionDefinitions](#actionDefinitions)
 
 ## For contributors
 

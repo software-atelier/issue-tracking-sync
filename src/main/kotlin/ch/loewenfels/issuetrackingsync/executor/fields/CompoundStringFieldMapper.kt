@@ -24,12 +24,12 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
     ): Any? {
         val stringBuilder = StringBuilder()
         fieldname.split(",").forEach { propertyName ->
-            val contentPart = super.getValue(proprietaryIssue, propertyName, issueTrackingClient)?.toString() ?: ""
-            if (contentPart.isNotEmpty()) {
+            val contentPartHtml = super.getValue(proprietaryIssue, propertyName, issueTrackingClient)?.toString() ?: ""
+            if (contentPartHtml.isNotEmpty()) {
                 associations[propertyName]?.let {
                     stringBuilder.append(it).append("\n")
                 }
-                stringBuilder.append(contentPart).append("\n")
+                stringBuilder.append(contentPartHtml).append("\n")
             }
         }
         return stringBuilder.toString().trim()
