@@ -2,11 +2,11 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assumptions
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 /**
@@ -27,6 +27,19 @@ internal class JiraClientTest : AbstractSpringTest() {
     }
 
     @Test
+    fun getValue_descriptionAsHtml_issueFound() {
+        // arrange
+        val testee = JiraClient(buildSetup());
+        verifySetup(testee)
+        val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
+        // act
+        val html = testee.getHtmlValue(issue, "description")
+        // assert
+        assertNotNull(issue)
+        assertThat(html, containsString("<h4>"))
+    }
+
+    @Test
     fun changedIssuesSince_updatedTwoDaysAgo_issuesCollectionNotNull() {
         // arrange
         val testee = JiraClient(buildSetup());
@@ -36,6 +49,15 @@ internal class JiraClientTest : AbstractSpringTest() {
         val issues = testee.changedIssuesSince(lastUpdated)
         // assert
         assertNotNull(issues)
+    }
+
+    @Test
+    fun listFields() {
+        // arrange
+        val testee = JiraClient(buildSetup());
+        verifySetup(testee)
+        // act
+        testee.listFields()
     }
 
     private fun buildSetup(): IssueTrackingApplication {

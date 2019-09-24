@@ -274,11 +274,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getComments(internalIssue: IWorkItem): List<Comment> =
-        internalIssue.comments.contents.map { jiraComment ->
+        internalIssue.comments.contents.map { rtcComment ->
             Comment(
-                jiraComment.creator.toString(),
-                jiraComment.creationDate.toLocalDateTime(),
-                jiraComment.htmlContent.plainText
+                rtcComment.creator.toString(),
+                rtcComment.creationDate.toLocalDateTime(),
+                rtcComment.htmlContent.plainText
             )
         }
 

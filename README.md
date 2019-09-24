@@ -52,6 +52,14 @@ Define the basic issue tracking applications in use in the section `trackingAppl
       "password": "mysecret",
       "endpoint": "http://localhost:8080/jira",
       "polling": false
+    },
+    {
+      "name": "RTC",
+      "className": "ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient",
+      "username": "rtcfoobar",
+      "password": "anothersecret",
+      "endpoint": "http://localhost:8081/rtc",
+      "project": "Issues Löwenfels (RTC)"
     }
   ]
 }
@@ -61,41 +69,11 @@ The currently defined client implementations are:
 - `ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient`
 - `ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient`
 
-#### actionDefinitions
 
-An action definition represents a synchronization sequence, similar to a macro. Multiple actions can be stringed together
-to form a synchronization flow. By defining actions separately, they can be re-used in multiple flows. 
+#### fieldMappingDefinitions
 
-```json
-{
-  "actionDefinitions": [
-    {
-      "name": "SimpleFieldsRtcToJira",
-      "classname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
-      "fieldMappingDefinitions": [
-        {
-          "sourceName": "summary",
-          "targetName": "title"
-        }
-      ]
-    },
-    {
-      "name": "SynchronizeComments",
-      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
-    }
-  ]
-}
-```
-
-- `ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction` reads a list of `fieldMappingDefinitions` (see below).
-- `ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction` adds all comments present in the source 
-  client but missing on the target (equality is based on source comment text being found in target comment text or vice versa)
-- `ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction` adds all attachments present in the source 
-  client but missing on the target (equality is based on content hash)
-
-##### fieldMappingDefinitions
-
-The `fieldMappingDefinitions` allows for a quiet generic approach to synchronizing simple fields.
+A field mapping definition works on the smallest possible synchronization level, typically a single field.
+The `fieldMappingDefinitions` allows for a quite generic approach to synchronizing simple fields.
 
 Fields available in RTC
 
@@ -113,7 +91,7 @@ Fields available in RTC
 | correctedEstimate | correctedEstimate | correctedEstimate |
 | creationDate | creationDate | - |
 | creator | creator | - |
-| description | HTMLDescription.plainText <br/> HTMLDescription using HtmlToWikiFieldMapper | description |
+| description | HTMLDescription.plainText <br/> HTMLDescription (_using HtmlToWikiFieldMapper_) | description |
 | dueDate | dueDate | dueDate |
 | duration | duration | duration |
 | foundIn | foundIn | foundIn |
@@ -136,7 +114,7 @@ Fields available in RTC
 | resolutionDate | resolutionDate | - |
 | resolver | resolver | resolver |
 | startDate | startDate | - |
-| summary | HTMLSummary.plainText <br/> HTMLSummary using HtmlToWikiFieldMapper | summary |
+| summary | HTMLSummary.plainText <br/> HTMLSummary (_using HtmlToWikiFieldMapper_) | summary |
 | target | target | target |
 | timeSpent | timeSpent | timeSpent |
 | workItemType | workItemType | - |
@@ -179,9 +157,9 @@ read the property `sourceName` and write it to `targetName`.
 `ch.loewenfels.issuetrackingsync.executor.fields.HtmlToWikiFieldMapper` is useful for rich text fields which allow for
 markup in JIRA, and/or HTML in RTC (eg. RTC 'description'). 
 
-`ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper` can be used to map multiple text fields onto
-a single text field, and split it back. This mapper expects `associations` for each field definition except one 
-(which will hold "the rest")
+`ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper` extends `HtmlToWikiFieldMapper` and can be 
+used to map multiple text fields onto a single text field, and split it back. This mapper expects `associations` for 
+each field definition except one (which will hold "the rest")
 
 To merge multiple fields:
 ```json
@@ -208,11 +186,14 @@ To split into multiple fields:
 }
 ```
 
+Note that the separator associations are in HTML, not in JIRA wiki markup. This is due to the mapper extending HtmlToWikiFieldMapper,
+so it works internally with HTML. 
+
 The `ch.loewenfels.issuetrackingsync.executor.fields.LinkToIssueFieldMapper` disregards the 'sourceName' and provides a 
 link to the source issue. It can be written to any 'targetName'.
 
 The `ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper` is a slightly more complicated mapper,
-as JIRA typically knows 1 priority field, while RTC has a priority and severity. This mapper uses the `associations`  
+as JIRA typically knows 1 priority field, while RTC has a priority and severity. This mapper uses the `associations` 
 as a matrix to map between these fields:
 ```json
 {
@@ -226,6 +207,60 @@ as a matrix to map between these fields:
   }
 }
 ```
+
+The above example maps RTC priority and severity to JIRA priority. The opposite way would be:
+
+ ```json
+{
+  "sourceName": "priority.name",
+  "targetName": "internalPriority,internalSeverity",
+  "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper",
+  "associations": {
+    "Klein": "P4 - Niedrig,S1 - Geringfügig",
+    "Normal": "P3 - Mittel,S2 - Normal",
+    "Hoch": "P1 - Kritisch,S3 - Bedeutend",
+    "Zwingend": "P1 - Kritisch,S4 - Kritisch",
+    "Blocker": "P2 - Hoch,S5 - Blockierend",
+    "*,*": "P3 - Mittel,S2 - Normal"
+  }
+}
+ ```
+
+#### actionDefinitions
+
+An action definition represents a synchronization sequence, similar to a macro. Typically, multiple field mappers are
+combined to define an action. Multiple actions can then be stringed together to form a synchronization flow. By defining
+actions separately, they can be re-used in multiple flows. 
+
+```json
+{
+  "actionDefinitions": [
+    {
+      "name": "SimpleFieldsRtcToJira",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction",
+      "fieldMappingDefinitions": [
+        {
+          "sourceName": "summary",
+          "targetName": "title"
+        }
+      ]
+    },
+    {
+      "name": "SynchronizeComments",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
+    }
+  ]
+}
+```
+
+- `ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction` reads a list of `fieldMappingDefinitions` (see below).
+- `ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction` adds all comments present in the source 
+  client but missing on the target (equality is based on source comment text being found in target comment text or vice versa)
+- `ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction` adds all attachments present in the source 
+  client but missing on the target (equality is based on content hash)
+
+Hint: if comment visibility is an issue, make sure the users defined in `trackingApplications` have access only to the 
+comments which should by synchronized.
 
 #### syncFlowDefinitions
 
@@ -294,13 +329,18 @@ the SynchronizationFlowFactory, and for all issues with a matching flow, a SyncR
 
 From a SyncRequest, an issue is derived and the matching SynchronizationFlow is retrieved from the 
 SynchronizationFlowFactory. As described in [syncFlowDefinitions](#syncflowdefinitions), a SynchronizationFlow can
-define an issue filter, and must define a collection of SynchronizationActions. 
+define an issue filter, and must define a collection of [actionDefinitions](#actionDefinitions). 
 
 1. Load the source issue along with the key (=unique identifier) mapping. This step also verifies that the 
    "last updated" timestamp of the synchronization request matches that of the loaded issue (if not, a 
    SynchronizationAbortedException is thrown)
-2. Delegate the data mapping to one or several SynchronizationAction instances, which:
-    1. Load all mapped source fields into the Issue object
-    2. Optionally pass the Issue object to the target client, along with the (nullable) defaults for new issues. If the latter are 
-   missing and the target client fails to locate a target issue from the key field mapping, a SynchronizationAbortedException is thrown
-   
+2. Locate a fitting sync flow, applying filters where defined.
+3. If one (1) sync flow is found, call that flow with the loaded issue.
+    1. If the flow cannot locate a target issue, and the flow doesn't define `defaultsForNewIssue`, a 
+       SynchronizationAbortedException is thrown
+
+### Custom classes
+
+The `settings.json` works with class FQNs, which must be present on the classpath, but not necessarily in this
+project. If custom field mappers, filters etc. are needed, they can be provided in a separate JAR. If those implementations
+might be of value to others, add them to this project in the `ch.loewenfels.issuetrackingsync.custom` package.   
