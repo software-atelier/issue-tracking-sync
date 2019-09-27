@@ -20,9 +20,17 @@ object FieldMappingFactory {
         )
 
     private fun getMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
-        return mapperInstances.computeIfAbsent(fieldMappingDefinition.mapperClassname) {
-            buildMapper(fieldMappingDefinition)
+        return mapperInstances[fieldMappingDefinition.mapperClassname] ?: buildMapperAndCacheIfReusable(
+            fieldMappingDefinition
+        )
+    }
+
+    private fun buildMapperAndCacheIfReusable(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
+        val mapper = buildMapper(fieldMappingDefinition)
+        if (fieldMappingDefinition.associations.isEmpty()) {
+            mapperInstances[fieldMappingDefinition.mapperClassname] = mapper
         }
+        return mapper
     }
 
     @Suppress("UNCHECKED_CAST")

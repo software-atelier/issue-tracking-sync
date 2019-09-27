@@ -5,6 +5,8 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.atlassian.jira.rest.client.api.domain.IssueFieldId
+import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.fasterxml.jackson.databind.JsonNode
@@ -105,7 +107,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 val targetInternalIssue = (issue.proprietaryTargetInstance
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
 
-                setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
+                if (fieldName == "timeTracking" && value is TimeTracking) {
+                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
+                } else {
+                    setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
+                }
             }
         }
     }
@@ -272,9 +278,17 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
             "option" -> {
                 val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())
-                internalIssueBuilder.setFieldValue(fld.id, complexValue)
+                setInternalFieldValue(internalIssueBuilder, fld.id, complexValue)
             }
         }
+    }
+
+    private fun setInternalFieldValue(
+        internalIssueBuilder: IssueInputBuilder,
+        internalFieldId: String,
+        internalFieldValue: Any
+    ) {
+        internalIssueBuilder.setFieldValue(internalFieldId, internalFieldValue)
     }
 
     private fun toLocalDateTime(jodaDateTime: DateTime): LocalDateTime =

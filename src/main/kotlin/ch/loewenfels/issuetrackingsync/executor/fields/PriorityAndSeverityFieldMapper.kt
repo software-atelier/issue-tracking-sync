@@ -10,8 +10,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * values are:
  * - priority [, severity]
  */
-open class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinition) :
-    FieldMapper {
+open class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
     private val keyFallback = "*,*"
     private val associations: Map<String, String> = fieldMappingDefinition.associations
 

@@ -117,6 +117,8 @@ Fields available in RTC
 | summary | HTMLSummary.plainText <br/> HTMLSummary (_using HtmlToWikiFieldMapper_) | summary |
 | target | target | target |
 | timeSpent | timeSpent | timeSpent |
+| correctedEstimate | correctedEstimate | correctedEstimate |
+| duration | duration | duration |
 | workItemType | workItemType | - |
 
 Additionally on RTC, custom fields can be read/written using the internal FQN (eg. `ch.loewenfels.team.workitem.attribute.defectdescription`)

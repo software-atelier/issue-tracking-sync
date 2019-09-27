@@ -20,10 +20,11 @@ object RtcMetadata {
     }
 
     fun getSeverity(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        val result = severities.filterValues { it.stringIdentifier == internalId }.keys.firstOrNull()
+        val result = severities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }
+            .keys.firstOrNull()
         return if (result == null) {
             loadSeverities(attribute, workItemClient)
-            severities.filterValues { it.stringIdentifier == internalId }.keys.firstOrNull()
+            severities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }.keys.firstOrNull()
                 ?: throw IssueClientException("Unknown priority $internalId")
         } else {
             result
@@ -50,10 +51,11 @@ object RtcMetadata {
     }
 
     fun getPriorityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        val result = priorities.filterValues { it.stringIdentifier == internalId }.keys.firstOrNull()
+        val result = priorities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }
+            .keys.firstOrNull()
         return if (result == null) {
             loadPriorities(attribute, workItemClient)
-            priorities.filterValues { it.stringIdentifier == internalId }.keys.firstOrNull()
+            priorities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }.keys.firstOrNull()
                 ?: throw IssueClientException("Unknown priority $internalId")
         } else {
             result
