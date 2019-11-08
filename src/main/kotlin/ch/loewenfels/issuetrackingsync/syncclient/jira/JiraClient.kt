@@ -17,6 +17,8 @@ import java.io.ByteArrayInputStream
 import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
+import java.util.Collections
+
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
@@ -106,7 +108,6 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             else if (internalIssueBuilder is IssueInputBuilder) {
                 val targetInternalIssue = (issue.proprietaryTargetInstance
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
-
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
                 } else {
@@ -175,6 +176,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .forEach {
                 it.setTargetValue(issueBuilder, issue, this)
             }
+        defaultsForNewIssue.customFields.forEach {
+            val value = ComplexIssueInputFieldValue.with("value", it.value)
+            issueBuilder.setFieldValue(it.key, Collections.singletonList(value))
+        }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
         val targetIssue =

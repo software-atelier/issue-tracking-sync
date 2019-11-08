@@ -18,5 +18,10 @@ data class DefaultsForNewIssue(
      * The category within the project. JIRA does not use this value, for RTC theses are slash-separated
      * categories such as "BUS/SRV/FIN"
      */
-    var category: String = ""
+    var category: String = "",
+
+    /**
+     * CustomFields which have to be entered to create a new JIRA issue. (Entry.Key inside the Map contains the FQN)
+     */
+    var customFields: MutableMap<String, String> = mutableMapOf()
 )
