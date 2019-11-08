@@ -105,8 +105,21 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
         else
-            null
+            getPropertyValueForCustomFields(internalIssue, fieldName)
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
+    }
+
+    private fun getPropertyValueForCustomFields(internalIssue: IWorkItem, fieldName:String): Any? {
+        val attribute:IAttribute
+        try {
+            attribute = getAttribute(fieldName)
+        } catch(ex: Exception) {
+            return null
+        }
+        return if(internalIssue.hasAttribute(attribute))
+            internalIssue.getValue(attribute)
+        else
+            null
     }
 
     override fun setValue(
