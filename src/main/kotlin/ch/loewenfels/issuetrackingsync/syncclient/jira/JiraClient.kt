@@ -190,6 +190,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
         val issueBuilder = IssueInputBuilder()
+        issue.proprietaryTargetInstance = targetIssue
         issue.fieldMappings.forEach {
             it.setTargetValue(issueBuilder, issue, this)
         }
