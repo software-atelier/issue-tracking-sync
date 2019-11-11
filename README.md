@@ -277,7 +277,7 @@ list of action references.
       "name": "Sync changes from RTC to JIRA",
       "source": "RTC",
       "target": "JIRA",
-      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedChangeFilter",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeFilter",
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "custom_field_12044"
