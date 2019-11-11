@@ -1,5 +1,6 @@
 package ch.loewenfels.issuetrackingsync
 
+import org.mockito.AdditionalMatchers.not
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
 
@@ -14,5 +15,7 @@ fun <T> any(type: Class<T>): T {
 }
 
 fun <T : Any> safeEq(value: T): T = eq(value) ?: value
+
+fun <T : Any> safeNot(value: T): T = not(value) ?: value
 
 inline fun <reified T : Any> genericMock() = Mockito.mock(T::class.java)
