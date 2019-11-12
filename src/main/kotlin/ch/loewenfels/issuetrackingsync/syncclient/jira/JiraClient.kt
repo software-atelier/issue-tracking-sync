@@ -5,12 +5,15 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
+import org.codehaus.jettison.json.JSONArray
+import org.codehaus.jettison.json.JSONObject
 import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
@@ -91,7 +94,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
         else
-            null
+            getCustomFields(internalIssue, fieldName)
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
@@ -273,8 +276,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String,
         value: Any
     ) {
-        val fld = jiraIssue.getFieldByName(fieldName) ?: jiraIssue.getField(fieldName)
-        ?: throw IllegalArgumentException("Unknown field $fieldName")
+        val fld = getIssueFieldByNameOrId(jiraIssue, fieldName)
         // you might be tempted to query [metadataClient] directly here. However, JIRA setup allows to map fields
         // to certain projects only, and so finding a field in the metadataClient does NOT mean it is available
         // in the project the issue is assigned to
@@ -287,6 +289,36 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 setInternalFieldValue(internalIssueBuilder, fld.id, complexValue)
             }
         }
+    }
+
+    private fun getCustomFields(
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        fieldName: String
+    ): Any? {
+        var field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
+        val value: Any = field.value
+        val result: MutableList<String> = getArrayForJsonArrayValue(value)
+        return if (result.isEmpty()) value else result
+    }
+
+    private fun getIssueFieldByNameOrId(
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        fieldName: String
+    ): IssueField {
+        return internalIssue.getFieldByName(fieldName) ?: internalIssue.getField(fieldName)
+        ?: throw IllegalArgumentException("Unknown field $fieldName")
+    }
+
+    private fun getArrayForJsonArrayValue(value: Any): MutableList<String> {
+        val result: MutableList<String> = mutableListOf()
+        if (value is JSONArray) {
+            for (i in 0 until value.length()) {
+                val jsonObject = value.get(i) as JSONObject
+                val fieldValue = jsonObject.getString("value")
+                result.add(fieldValue)
+            }
+        }
+        return result
     }
 
     private fun setInternalFieldValue(
