@@ -1,7 +1,11 @@
-FROM anapsix/alpine-java:8
-ARG JARPATH=./build/libs/
-ARG JARFILE=issue-tracking-sync-1.0-SNAPSHOT.jar
-COPY ${JARPATH}${JARFILE} app.jar
-COPY settings.json settings.json
+FROM  gradle:6.0-jdk8 AS build
+COPY --chown=gradle:gradle . /home/gradle/src
+ARG MVN_REPO
+WORKDIR /home/gradle/src
+RUN gradle build --no-daemon --stacktrace -P repositoryIssueTrackingJars=${MVN_REPO}
+
+FROM openjdk:8
+COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
+COPY --from=build /home/gradle/src/settings.json settings.json
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
