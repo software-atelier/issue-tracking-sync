@@ -5,7 +5,11 @@ WORKDIR /home/gradle/src
 RUN gradle build --no-daemon --stacktrace -P repositoryIssueTrackingJars=${MVN_REPO}
 
 FROM openjdk:8
+ARG SETTINGSFILE=test/resources/settings.json
+ARG SETTINGSTARGET=test/settings.json
+ARG APPLICATION_FILE=test/resources/settings.json
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
-COPY --from=build /home/gradle/src/settings.json settings.json
+COPY ${APPLICATION_FILE} config/application.yml
+COPY ${SETTINGSFILE} ${SETTINGSTARGET}
 EXPOSE 8080
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
