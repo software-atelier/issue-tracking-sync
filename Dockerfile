@@ -7,7 +7,7 @@ RUN gradle build --no-daemon --stacktrace -P repositoryIssueTrackingJars=${MVN_R
 FROM openjdk:8
 ARG SETTINGSFILE=test/resources/settings.json
 ARG SETTINGSTARGET=test/settings.json
-ARG APPLICATION_FILE=test/resources/settings.json
+ARG APPLICATIONFILE=test/resources/settings.json
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 COPY ${APPLICATION_FILE} config/application.yml
 COPY ${SETTINGSFILE} ${SETTINGSTARGET}
