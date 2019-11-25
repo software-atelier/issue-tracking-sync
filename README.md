@@ -13,6 +13,13 @@ To build the tool via Docker you have to have a mvn Repository url. Build and st
     docker build --build-arg MVN_REPO=<URL_TO_MVN_REPO> -t issue-tracking-sync .
     docker run -p 8080:8080 issue-tracking-sync
 ```
+This Dockerfile has 3 more build arguments which can get passed in. They are used to change the application.yml and settings.json file.
+The build args are:
+```
+SETTINGSFILE=<PATH_TO_SETTINGSFILE>
+SETTINGSTARGET=<PATH_WHERE_SETTINGSFILE_SHOULD_GET_STORED>
+APPLICATIONFILE=<PATH_TO_APPLICATIONFILE>
+```
 
 ## Configuration
 
