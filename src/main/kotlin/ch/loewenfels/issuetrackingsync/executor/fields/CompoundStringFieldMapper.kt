@@ -45,6 +45,7 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         val sections: MutableMap<String, String> = mutableMapOf()
         var remainingStringValue = value?.toString() ?: ""
         var propertyWithLastHeader = getPropertyWithLastHeader(remainingStringValue)
+        sections[fieldname] = remainingStringValue
         while (propertyWithLastHeader != null) {
             val headerStart = remainingStringValue.indexOf(associations[propertyWithLastHeader]!!)
             sections[propertyWithLastHeader] =
@@ -52,12 +53,12 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
             remainingStringValue = remainingStringValue.substring(0, headerStart)
             propertyWithLastHeader = getPropertyWithLastHeader(remainingStringValue)
         }
-        if (remainingStringValue.isNotEmpty()) {
+        if (remainingStringValue.isNotEmpty() && fieldname.split(",").size != 1) {
             val catchAllProperty = fieldname.split(",").first { !sections.keys.contains(it) }
             sections[catchAllProperty] = remainingStringValue
         }
-        sections.forEach { (propertyName, content) ->
-            super.setValue(proprietaryIssueBuilder, propertyName, issue, issueTrackingClient, content.trim())
+        fieldname.split(",").forEach {
+            super.setValue(proprietaryIssueBuilder, it, issue, issueTrackingClient, sections[it]?.trim() ?: "")
         }
     }
 

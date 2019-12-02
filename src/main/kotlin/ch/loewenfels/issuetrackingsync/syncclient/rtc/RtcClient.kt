@@ -12,7 +12,9 @@ import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.IContent
-import com.ibm.team.workitem.client.*
+import com.ibm.team.workitem.client.IAuditableClient
+import com.ibm.team.workitem.client.IWorkItemClient
+import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
 import com.ibm.team.workitem.common.expression.*
@@ -28,7 +30,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -105,8 +107,21 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
         else
-            null
+            getPropertyValueForCustomFields(internalIssue, fieldName)
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
+    }
+
+    private fun getPropertyValueForCustomFields(internalIssue: IWorkItem, fieldName: String): Any? {
+        val attribute: IAttribute
+        try {
+            attribute = getAttribute(fieldName)
+        } catch (ex: Exception) {
+            return null
+        }
+        return if (internalIssue.hasAttribute(attribute))
+            internalIssue.getValue(attribute)
+        else
+            null
     }
 
     override fun setValue(

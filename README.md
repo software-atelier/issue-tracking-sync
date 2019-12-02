@@ -3,6 +3,24 @@
 This tool synchronizes issues between [Atlassian JIRA](https://www.atlassian.com/software/jira) and [IBM RTC](https://jazz.net/products/rational-team-concert/). 
 Synchronisation is configured field-per-field in one JSON file. The tool runs as a small web server to allow for processing of (JIRA) webhook calls. 
 
+## Simple Build
+To build the tool you need the IBM RTC Library. You can achieve this with two approaches.
+1. Download and install the Library from IBM
+2. Add a mvn Repository to your local ~/.gradle/gradle.properties as the following parameter ```repositoryIssueTrackingJars=<URL_TO_MVN_REPO>```.
+
+To build the tool via Docker you have to have a mvn Repository url. Build and start the Docker image with the following commands:
+ ```
+    docker build --build-arg MVN_REPO=<URL_TO_MVN_REPO> -t issue-tracking-sync .
+    docker run -p 8080:8080 issue-tracking-sync
+```
+This Dockerfile has 3 more build arguments which can get passed in. They are used to change the application.yml and settings.json file.
+The build args are:
+```
+SETTINGSFILE=<PATH_TO_SETTINGSFILE>
+SETTINGSTARGET=<PATH_WHERE_SETTINGSFILE_SHOULD_GET_STORED>
+APPLICATIONFILE=<PATH_TO_APPLICATIONFILE>
+```
+
 ## Configuration
 
 The application will look for a file named application.properties or application.yml in
@@ -277,7 +295,7 @@ list of action references.
       "name": "Sync changes from RTC to JIRA",
       "source": "RTC",
       "target": "JIRA",
-      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.NotClosedChangeFilter",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeFilter",
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "custom_field_12044"
