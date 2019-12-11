@@ -74,7 +74,7 @@ class SynchronizationFlow(
             sourceClient.getProprietaryIssue(issue.key) ?: throw IllegalArgumentException("No source issue found")
         val gap = issue.lastUpdated.until(sourceClient.getLastUpdated(sourceIssue), ChronoUnit.SECONDS)
         if (abs(gap) > 5) {
-            throw SynchronizationAbortedException("Issues has been updated since synchronization request")
+            throw SynchronizationAbortedException("Issues have been updated since synchronization request")
         }
         issue.proprietarySourceInstance = sourceIssue
         issue.sourceUrl = sourceClient.getIssueUrl(sourceIssue)
