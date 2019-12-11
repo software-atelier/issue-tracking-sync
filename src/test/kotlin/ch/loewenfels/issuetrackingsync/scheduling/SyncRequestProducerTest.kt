@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 internal class SyncRequestProducerTest : AbstractSpringTest() {
     @Autowired
-    lateinit var syncRequestProducer: SyncRequestProducer;
+    lateinit var syncRequestProducer: SyncRequestProducer
 
     @Test
     fun queue_validIssue_sentViaJmsTemplate() {

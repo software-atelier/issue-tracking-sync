@@ -123,7 +123,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
         val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(htmlString)
-        setValue(internalIssueBuilder, issue, fieldName, convertedValue);
+        setValue(internalIssueBuilder, issue, fieldName, convertedValue)
     }
 
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {

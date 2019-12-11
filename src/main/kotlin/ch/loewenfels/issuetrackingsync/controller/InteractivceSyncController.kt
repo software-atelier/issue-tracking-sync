@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.controller;
+package ch.loewenfels.issuetrackingsync.controller
 
 import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.app.AppState
@@ -34,7 +34,7 @@ class InteractivceSyncController(
 
     @PutMapping("/manualsync")
     fun manualSync(@RequestBody body: Map<String, String>): Map<String, String> {
-        val sourceAppName = body.getValue(HTTP_PARAMNAME_TRACKINGSYSTEM);
+        val sourceAppName = body.getValue(HTTP_PARAMNAME_TRACKINGSYSTEM)
         val trackingApp: IssueTrackingApplication? =
             settings.trackingApplications.find { it.name.equals(sourceAppName, ignoreCase = true) }
         val resultMessage = trackingApp?.let { loadAndQueueIssue(body.getValue(HTTP_PARAMNAME_ISSUEKEY), it) }

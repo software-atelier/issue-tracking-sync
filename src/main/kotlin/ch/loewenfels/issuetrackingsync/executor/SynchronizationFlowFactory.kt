@@ -15,7 +15,7 @@ class SynchronizationFlowFactory @Autowired constructor(
     private val clientFactory: ClientFactory,
     private val notificationObserver: NotificationObserver
 ) : Logging {
-    private lateinit var definedFlows: List<SynchronizationFlow>;
+    private lateinit var definedFlows: List<SynchronizationFlow>
 
     @PostConstruct
     fun loadSyncFlows() {

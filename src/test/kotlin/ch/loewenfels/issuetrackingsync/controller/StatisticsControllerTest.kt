@@ -21,7 +21,7 @@ internal class StatisticsControllerTest : AbstractSpringTest() {
             get("/statistics")
                 .accept(MediaType.APPLICATION_JSON)
         )
-            .andExpect(status().isOk())
+            .andExpect(status().isOk)
             .andExpect(jsonPath("queuename").isNotEmpty)
             .andExpect { content().string(containsString("")) }
     }

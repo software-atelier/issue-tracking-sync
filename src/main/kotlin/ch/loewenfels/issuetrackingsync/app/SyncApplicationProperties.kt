@@ -6,9 +6,9 @@ import javax.annotation.PostConstruct
 
 @ConfigurationProperties("sync")
 open class SyncApplicationProperties {
-    lateinit var settingsLocation: String;
-    lateinit var pollingCron: String;
-    var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf();
+    lateinit var settingsLocation: String
+    lateinit var pollingCron: String
+    var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
     var notificationChannels = ArrayList<NotificationChannel>()
         private set
 
@@ -28,9 +28,9 @@ open class SyncApplicationProperties {
 }
 
 class NotificationChannelProperties {
-    var classname: String = "";
-    var endpoint: String = "";
-    var username: String = "";
-    var subject: String = "";
-    var avatar: String = "";
+    var classname: String = ""
+    var endpoint: String = ""
+    var username: String = ""
+    var subject: String = ""
+    var avatar: String = ""
 }

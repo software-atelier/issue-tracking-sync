@@ -10,9 +10,9 @@ import java.time.temporal.ChronoUnit
 
 internal class IssuePollerTest : AbstractSpringTest() {
     @Autowired
-    lateinit var issuePoller: IssuePoller;
+    lateinit var issuePoller: IssuePoller
     @Autowired
-    lateinit var appState: AppState;
+    lateinit var appState: AppState
 
     @Test
     fun checkforUpdatedIssues_validSettings_appStateUpdated() {

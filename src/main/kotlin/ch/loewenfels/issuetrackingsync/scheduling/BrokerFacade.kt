@@ -27,9 +27,9 @@ class BrokerFacade(private val connectionFactory: ConnectionFactory) {
     }
 
     inner class StatisticsBrokerAccess(queueName: QueueName) {
-        private val statisticsMessageConsumer: MessageConsumer;
-        private val statisticsMessageProducer: MessageProducer;
-        private val statisticsMessage: Message;
+        private val statisticsMessageConsumer: MessageConsumer
+        private val statisticsMessageProducer: MessageProducer
+        private val statisticsMessage: Message
 
         init {
             val connection = connectionFactory.createConnection()
@@ -40,7 +40,7 @@ class BrokerFacade(private val connectionFactory: ConnectionFactory) {
             val statisticsQueue = session.createQueue("ActiveMQ.Statistics.Destination.$queueName")
             statisticsMessageProducer = session.createProducer(statisticsQueue)
             statisticsMessage = session.createMessage()
-            statisticsMessage.setJMSReplyTo(statisticsReplyQueue)
+            statisticsMessage.jmsReplyTo = statisticsReplyQueue
         }
 
         fun getCurrentStatistics(): MapMessage? {

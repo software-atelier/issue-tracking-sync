@@ -12,7 +12,7 @@ class AsynchronousHtmlRenderingRestClient(private val baseUri: URI, client: Http
     override fun getRenderedHtml(jiraKey: String, field: String): String? {
         val uriBuilder = UriBuilder.fromUri(baseUri)
             .path("issue/$jiraKey")
-            .queryParam("expand", "renderedFields");
+            .queryParam("expand", "renderedFields")
         return getAndParse(uriBuilder.build(), RenderedFieldJsonParser(field)).claim()
     }
 
