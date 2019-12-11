@@ -4,9 +4,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
-    id("org.springframework.boot") version "2.1.7.RELEASE"
+    id("org.springframework.boot") version "2.2.2.RELEASE"
     id("io.spring.dependency-management") version "1.0.8.RELEASE"
-    id("com.github.johnrengelman.shadow") version "2.0.4"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "ch.loewenfels.issuetrackingsync"
@@ -22,6 +22,7 @@ repositories {
     jcenter()
     maven {
         url = uri(repositoryIssueTrackingJars)
+        isAllowInsecureProtocol = true
     }
 }
 
@@ -61,7 +62,7 @@ tasks.withType<Test> {
 }
 
 tasks.withType<ShadowJar> {
-    baseName = "app"
-    classifier = ""
-    version = ""
+    archiveBaseName.set("app")
+    archiveClassifier.set("")
+    archiveVersion.set("")
 }
