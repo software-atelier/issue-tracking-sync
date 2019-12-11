@@ -220,14 +220,15 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .toList()
     }
 
-    override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> =
-        internalIssue.comments.map { jiraComment ->
+    override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> {
+        return internalIssue.comments.map { jiraComment ->
             Comment(
                 jiraComment.author?.displayName ?: "n/a",
                 toLocalDateTime(jiraComment.creationDate),
                 jiraComment.body
             )
         }
+    }
 
     override fun addComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, comment: Comment) {
         val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(comment.content)

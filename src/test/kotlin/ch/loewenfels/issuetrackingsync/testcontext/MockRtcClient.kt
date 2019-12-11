@@ -80,8 +80,8 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         return testIssues
     }
 
-    override fun getComments(internalIssue: Issue): List<Comment> =
-        listOf(
+    override fun getComments(internalIssue: Issue): List<Comment> {
+        return listOf(
             Comment(
                 "Quiet Mary",
                 LocalDateTime.now().minusHours(36),
@@ -89,6 +89,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
             ),
             Comment("Impatient Rick", LocalDateTime.now().minusHours(24), "Mary, this is rather urgent!")
         )
+    }
 
     override fun addComment(internalIssue: Issue, comment: Comment) {
         // no-op

@@ -12,6 +12,7 @@ import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.IContent
+import com.ibm.team.repository.common.IContributor
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
@@ -36,6 +37,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private val progressMonitor = NullProgressMonitor()
     private val teamRepository: ITeamRepository
     private val workItemClient: IWorkItemClient
+    private val auditableClient: IAuditableClient
     private val projectArea: IProjectArea
 
     init {
@@ -43,6 +45,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         teamRepository.registerLoginHandler(LoginHandler())
         teamRepository.login(NullProgressMonitor())
         workItemClient = teamRepository.getClientLibrary(IWorkItemClient::class.java) as IWorkItemClient
+        auditableClient = teamRepository.getClientLibrary(IAuditableClient::class.java) as IAuditableClient
         val processClient = teamRepository.getClientLibrary(IProcessClientService::class.java) as IProcessClientService
         val uri = URI.create(
             setup.project?.replace(" ", "%20") ?: throw IllegalStateException(
@@ -202,8 +205,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val operation = WorkItemInitialization("creating new issue", category)
         val handle: IWorkItemHandle = operation.run(workItemType, progressMonitor)
         operation.workItem?.let { mapNewIssueValues(it, issue) }
-        val auditableClient: IAuditableClient =
-            teamRepository.getClientLibrary(IAuditableClient::class.java) as IAuditableClient
         val workItem: IWorkItem = auditableClient.resolveAuditable(handle, IWorkItem.FULL_PROFILE, progressMonitor)
         logger().info("Created new RTC issue ${workItem.id}")
         return workItem
@@ -296,7 +297,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     override fun getComments(internalIssue: IWorkItem): List<Comment> {
         return internalIssue.comments.contents.map { rtcComment ->
             Comment(
-                rtcComment.creator.toString(),
+                (auditableClient.resolveAuditable(rtcComment.creator, ItemProfile.CONTRIBUTOR_DEFAULT, null) as IContributor).name,
                 rtcComment.creationDate.toLocalDateTime(),
                 rtcComment.htmlContent.plainText
             )
@@ -316,7 +317,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getAttachments(internalIssue: IWorkItem): List<Attachment> {
-        val auditableClient = teamRepository.getClientLibrary(IAuditableClient::class.java) as IAuditableClient
         val common = teamRepository.getClientLibrary(IWorkItemCommon::class.java) as IWorkItemCommon
         return common.resolveWorkItemReferences(internalIssue, progressMonitor)
             .getReferences(WorkItemEndPoints.ATTACHMENT)

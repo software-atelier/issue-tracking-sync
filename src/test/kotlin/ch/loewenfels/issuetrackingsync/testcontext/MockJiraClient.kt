@@ -95,8 +95,8 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         return testIssues
     }
 
-    override fun getComments(internalIssue: Issue): List<Comment> =
-        listOf(
+    override fun getComments(internalIssue: Issue): List<Comment> {
+        return listOf(
             Comment(
                 "Quiet Mary",
                 LocalDateTime.now().minusHours(36),
@@ -104,6 +104,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
             ),
             Comment("Happy Joe", LocalDateTime.now().minusHours(24), "Mary, could this be related to BUG-1234?")
         )
+    }
 
     override fun addComment(internalIssue: Issue, comment: Comment) {
         // no-op
