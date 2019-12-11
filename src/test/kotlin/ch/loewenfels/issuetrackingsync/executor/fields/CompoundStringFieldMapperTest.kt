@@ -30,11 +30,8 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
         // assert
         assertNotNull(result)
         assertEquals(
-            "foobar\n" +
-                    "h4. Text 2\n" +
-                    "foobar\n" +
-                    "h4. Text 3\n" +
-                    "foobar", (result as String)
+            "text should have no title<br><h4>Text 2</h4><br>foobar<br><h4>Text 3</h4><br>foobar<br>",
+            (result as String)
         )
     }
 
@@ -45,13 +42,13 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
         val issue = TestObjects.buildIssue("MK-1")
         val targetClient =
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val value = "foobar\n\nh4. Text 2\nSome more text\nh4. Text 3\nAnd still some more"
+        val value = "foobar\n\n<h4>Text 2</h4>\nSome more text\n<h4>Text 3</h4>\nAnd still some more"
         // act
         testee.setValue(issue, "text,text2,text3", issue, targetClient, value)
         // assert
-        verify(targetClient).setValue(issue, issue, "text", "foobar")
-        verify(targetClient).setValue(issue, issue, "text2", "Some more text")
-        verify(targetClient).setValue(issue, issue, "text3", "And still some more")
+        verify(targetClient).setHtmlValue(issue, issue, "text", "foobar")
+        verify(targetClient).setHtmlValue(issue, issue, "text2", "Some more text")
+        verify(targetClient).setHtmlValue(issue, issue, "text3", "And still some more")
     }
 
     @Test
@@ -74,14 +71,19 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(issue, "description,defectdescription,conduct", issue, targetClient, value)
         // assert
-        verify(targetClient).setValue(safeEq(issue), safeEq(issue), safeEq("conduct"), safeEq("And still some more"))
-        verify(targetClient).setValue(
+        verify(targetClient).setHtmlValue(
+            safeEq(issue),
+            safeEq(issue),
+            safeEq("conduct"),
+            safeEq("And still some more")
+        )
+        verify(targetClient).setHtmlValue(
             safeEq(issue),
             safeEq(issue),
             safeEq("defectdescription"),
             safeEq("Some more text")
         )
-        verify(targetClient).setValue(safeEq(issue), safeEq(issue), safeEq("description"), safeEq("foobar"))
+        verify(targetClient).setHtmlValue(safeEq(issue), safeEq(issue), safeEq("description"), safeEq("foobar"))
     }
 
     @Test
@@ -95,7 +97,7 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(issue, "description", issue, targetClient, value)
         // assert
-        verify(targetClient, never()).setValue(
+        verify(targetClient, never()).setHtmlValue(
             safeEq(issue),
             safeEq(issue),
             safeNot(safeEq("description")),
@@ -106,8 +108,8 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
     private fun buildTestee(): CompoundStringFieldMapper {
         val associations =
             mutableMapOf(
-                "text2" to "h4. Text 2",
-                "text3" to "h4. Text 3"
+                "text2" to "<h4>Text 2</h4>",
+                "text3" to "<h4>Text 3</h4>"
             )
         val fieldDefinition = FieldMappingDefinition(
             "text,text2,text3", "description",

@@ -10,6 +10,7 @@ import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
+import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
 import org.codehaus.jettison.json.JSONArray
@@ -86,7 +87,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     override fun getLastUpdated(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
-    open fun getHtmlValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String) =
+    override fun getHtmlValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String) =
         jiraRestClient.getHtmlRenderingRestClient().getRenderedHtml(internalIssue.key, fieldName)
 
     override fun getValue(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, fieldName: String): Any? {
@@ -118,6 +119,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 }
             }
         }
+    }
+
+    override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
+        val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(htmlString)
+        setValue(internalIssueBuilder, issue, fieldName, convertedValue);
     }
 
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {

@@ -102,6 +102,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return "$endpoint/web/projects/$encodedProjectName#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
     }
 
+    override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String) = getValue(internalIssue, fieldName)
+
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
         val internalValue = if (beanWrapper.isReadableProperty(fieldName))
@@ -136,6 +138,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             workItem.setValue(attribute, it)
         }
     }
+
+    override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) =
+        setValue(internalIssueBuilder, issue, fieldName, htmlString)
 
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
         return when (fieldName) {
@@ -288,14 +293,15 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         )
     }
 
-    override fun getComments(internalIssue: IWorkItem): List<Comment> =
-        internalIssue.comments.contents.map { rtcComment ->
+    override fun getComments(internalIssue: IWorkItem): List<Comment> {
+        return internalIssue.comments.contents.map { rtcComment ->
             Comment(
                 rtcComment.creator.toString(),
                 rtcComment.creationDate.toLocalDateTime(),
                 rtcComment.htmlContent.plainText
             )
         }
+    }
 
     override fun addComment(internalIssue: IWorkItem, comment: Comment) {
         doWithWorkingCopy(internalIssue) {

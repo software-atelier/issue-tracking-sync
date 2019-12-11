@@ -1,6 +1,8 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -53,6 +55,13 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
     override fun getIssueUrl(internalIssue: Issue): String =
         "${setup.endpoint}/browse/${internalIssue.key}".replace("//", "/")
 
+    override fun getHtmlValue(propriataryIssue: Issue, fieldName: String): Any? {
+        return when (fieldName) {
+            "fromOne" -> "text should have no title\n<h4>text2</h4>\n Some Solution\n<h4>text3</h4>\n Some Solution"
+            else -> "<h4>someOtherStuff</h4>\n hot other stuff"
+        }
+    }
+
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
         return when (fieldName) {
             "priorityId" -> "12"
@@ -67,6 +76,9 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         fieldName: String,
         value: Any?
     ) {
+    }
+
+    override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
     }
 
     override fun createOrUpdateTargetIssue(
