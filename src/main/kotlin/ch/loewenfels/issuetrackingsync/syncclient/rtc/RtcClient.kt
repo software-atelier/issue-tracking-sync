@@ -34,11 +34,12 @@ import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
-    private val teamRepository: ITeamRepository = TeamPlatform.getTeamRepositoryService().getTeamRepository(setup.endpoint)
+    private val teamRepository: ITeamRepository
     private val workItemClient: IWorkItemClient
     private val projectArea: IProjectArea
 
     init {
+        teamRepository = TeamPlatform.getTeamRepositoryService().getTeamRepository(setup.endpoint)
         teamRepository.registerLoginHandler(LoginHandler())
         teamRepository.login(NullProgressMonitor())
         workItemClient = teamRepository.getClientLibrary(IWorkItemClient::class.java) as IWorkItemClient
@@ -326,7 +327,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     IAttachment.DEFAULT_PROFILE, null
                 ) as IAttachment
                 val baos = ByteArrayOutputStream()
-                teamRepository.contentManager().retrieveContent(attachment.content, baos, null)
+                teamRepository.contentManager().retrieveContent(attachment.content, baos, null);
                 Attachment(attachment.name, baos.toByteArray())
             }
     }

@@ -8,7 +8,7 @@ import javax.jms.TextMessage
 
 internal class SyncRequestConsumerTest : AbstractSpringTest() {
     @Autowired
-    lateinit var syncRequestConsumer: SyncRequestConsumer
+    lateinit var syncRequestConsumer: SyncRequestConsumer;
 
     @Test
     fun onMessage_validTextMessage_acknowledged() {

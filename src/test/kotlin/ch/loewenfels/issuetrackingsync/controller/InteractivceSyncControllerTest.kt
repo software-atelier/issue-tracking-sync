@@ -24,7 +24,7 @@ internal class InteractivceSyncControllerTest : AbstractSpringTest() {
             MockMvcRequestBuilders.get("/definedSystems")
                 .accept(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.status().isOk())
     }
 
     @Test
@@ -39,7 +39,7 @@ internal class InteractivceSyncControllerTest : AbstractSpringTest() {
                 .content(requestBody.toString())
                 .accept(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(jsonPath(HTTP_PARAMNAME_RESPONSEMESSAGE, containsString("Failed to locate issue")))
     }
 

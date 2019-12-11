@@ -13,7 +13,7 @@ internal class FieldMappingFactoryTest {
         // act
         val mapperInstance = FieldMappingFactory.getMapping(directMapping)
         // assert
-        assertNotNull(mapperInstance)
+        assertNotNull(mapperInstance);
     }
 
     @Test

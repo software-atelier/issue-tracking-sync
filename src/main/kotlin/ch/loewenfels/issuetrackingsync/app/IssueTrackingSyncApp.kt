@@ -31,7 +31,7 @@ import javax.annotation.PreDestroy
 @ImportResource("classpath:activemq.xml")
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     @Autowired
-    lateinit var syncApplicationProperties: SyncApplicationProperties
+    lateinit var syncApplicationProperties: SyncApplicationProperties;
 
     @Bean
     open fun settings(@Autowired objectMapper: ObjectMapper): Settings {

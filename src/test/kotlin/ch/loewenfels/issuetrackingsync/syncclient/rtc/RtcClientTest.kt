@@ -15,7 +15,7 @@ internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun getIssue_validKey_issueFound() {
         // arrange
-        val testee = RtcClient(buildSetup())
+        val testee = RtcClient(buildSetup());
         // act
         val issue = testee.getIssue("53883")
         // assert
@@ -26,7 +26,7 @@ internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun changedIssuesSince_updatedTwoDaysAgo_issuesCollectionNotNull() {
         // arrange
-        val testee = RtcClient(buildSetup())
+        val testee = RtcClient(buildSetup());
         val lastUpdated = LocalDateTime.now().minusDays(2)
         // act
         val issues = testee.changedIssuesSince(lastUpdated)
@@ -38,7 +38,7 @@ internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun getComments_validKey_commentsLoaded() {
         // arrange
-        val testee = RtcClient(buildSetup())
+        val testee = RtcClient(buildSetup());
         val issue = testee.getProprietaryIssue("53883") ?: throw IllegalArgumentException("Unknown issue")
         // act
         val comments = testee.getComments(issue)
@@ -50,7 +50,7 @@ internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun getAttachments_validKey_attachmentsLoaded() {
         // arrange
-        val testee = RtcClient(buildSetup())
+        val testee = RtcClient(buildSetup());
         val issue = testee.getProprietaryIssue("53883") ?: throw IllegalArgumentException("Unknown issue")
         // act
         val attachments = testee.getAttachments(issue)
@@ -62,7 +62,7 @@ internal class RtcClientTest : AbstractSpringTest() {
     @Test
     fun listMetadata_sysout() {
         // arrange
-        val testee = RtcClient(buildSetup())
+        val testee = RtcClient(buildSetup());
         // act
         testee.listMetadata().forEach { attr ->
             println("${attr.identifier} = ${attr.displayName}")

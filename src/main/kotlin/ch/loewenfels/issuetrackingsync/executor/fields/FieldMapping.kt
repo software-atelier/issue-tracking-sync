@@ -4,8 +4,8 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 open class FieldMapping(
-    val targetName: String,
     private val sourceName: String,
+    public val targetName: String,
     private val mapper: FieldMapper
 ) {
     protected var sourceValue: Any? = null

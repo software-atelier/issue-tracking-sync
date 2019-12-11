@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 internal class SettingsTest : AbstractSpringTest() {
     @Autowired
-    lateinit var objectMapper: ObjectMapper
+    lateinit var objectMapper: ObjectMapper;
 
     @Test
     fun loadFromFile_validParameters_fileProperlyLoaded() {
@@ -19,7 +19,7 @@ internal class SettingsTest : AbstractSpringTest() {
         val classpathResource = javaClass.getResource("/settings.json")
         assertNotNull(classpathResource, "Failed to locate settings.json")
         // act
-        val result = Settings.loadFromFile(classpathResource.path, objectMapper)
+        val result = Settings.loadFromFile(classpathResource.getPath(), objectMapper)
         // assert
         assertEquals(2, result.trackingApplications.size, "Count of configured tracking applications")
         assertEquals(3, result.actionDefinitions.size, "Count of configured actions")
@@ -56,14 +56,14 @@ internal class SettingsTest : AbstractSpringTest() {
     @Test
     fun serialize_validSettingsDataStructure_fileProperlyLoaded() {
         // arrange
-        val jira = IssueTrackingApplication()
-        jira.name = "JIRA"
-        jira.username = "foobar"
-        val settings = Settings()
-        settings.trackingApplications.add(jira)
+        val jira = IssueTrackingApplication();
+        jira.name = "JIRA";
+        jira.username = "foobar";
+        val settings = Settings();
+        settings.trackingApplications.add(jira);
         // act
-        val serialized = objectMapper.writeValueAsString(settings)
+        val serialized = objectMapper.writeValueAsString(settings);
         // assert
-        assertThat(serialized, containsString("foobar"))
+        assertThat(serialized, containsString("foobar"));
     }
 }
