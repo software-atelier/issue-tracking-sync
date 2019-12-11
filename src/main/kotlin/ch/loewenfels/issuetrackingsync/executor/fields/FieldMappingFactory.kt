@@ -48,7 +48,7 @@ object FieldMappingFactory {
         } catch (e: Exception) {
             null;
         } ?: try {
-            mapperClass.newInstance()
+            mapperClass.getDeclaredConstructor().newInstance()
         } catch (e: Exception) {
             throw IllegalArgumentException("Failed to instantiate mapper class $mapperClass", e)
         }

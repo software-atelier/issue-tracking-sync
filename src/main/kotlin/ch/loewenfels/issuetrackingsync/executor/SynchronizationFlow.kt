@@ -37,7 +37,7 @@ class SynchronizationFlow(
         issueFilter = syncFlowDefinition.filterClassname?.let {
             @Suppress("UNCHECKED_CAST")
             val filterClass = Class.forName(it) as Class<IssueFilter>
-            filterClass.newInstance()
+            filterClass.getDeclaredConstructor().newInstance()
         }
         defaultsForNewIssue = syncFlowDefinition.defaultsForNewIssue
     }
@@ -49,7 +49,7 @@ class SynchronizationFlow(
     ): SynchronizationAction {
         val actionDefinition = actionDefinitions.first { it.name.equals(actionName, ignoreCase = true) }
         val actionClass = Class.forName(actionDefinition.classname) as Class<SynchronizationAction>
-        return actionClass.newInstance()
+        return actionClass.getDeclaredConstructor().newInstance()
     }
 
     fun applies(source: TrackingApplicationName, issue: Issue): Boolean {
