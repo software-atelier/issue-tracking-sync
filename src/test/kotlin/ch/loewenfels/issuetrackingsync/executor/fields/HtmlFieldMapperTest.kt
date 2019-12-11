@@ -11,14 +11,14 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class HtmlToWikiFieldMapperTest : AbstractSpringTest() {
+internal class HtmlFieldMapperTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
 
     @Test
     fun getValue_readFromJiraCallsHtmlRendering() {
         // arrange
-        val testee = HtmlToWikiFieldMapper()
+        val testee = HtmlFieldMapper()
         val issue = Mockito.mock(Issue::class.java)
         val sourceClient = Mockito.mock(JiraClient::class.java)
         Mockito.`when`(sourceClient.getHtmlValue(issue, "description")).thenReturn("<h4>My HTML</h4>")
@@ -31,7 +31,7 @@ internal class HtmlToWikiFieldMapperTest : AbstractSpringTest() {
     @Test
     fun setValue_convertRtcXhtmlToJiraWiki() {
         // arrange
-        val testee = HtmlToWikiFieldMapper()
+        val testee = HtmlFieldMapper()
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
         val targetClient =
@@ -40,6 +40,7 @@ internal class HtmlToWikiFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(issue, "summary", issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient).setValue(issue, issue, "summary", "This is *really* important\\!")
+        Mockito.verify(targetClient)
+            .setHtmlValue(issue, issue, "summary", "<p>This is <strong>really</strong> important!</p>")
     }
 }

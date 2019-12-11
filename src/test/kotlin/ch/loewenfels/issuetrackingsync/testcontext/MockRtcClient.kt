@@ -1,6 +1,8 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -42,11 +44,13 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         "${setup.endpoint}/web/projects/${setup.project}#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.key}"
             .replace("//", "/")
 
+    override fun getHtmlValue(internalIssue: Issue, fieldName: String): Any? = getValue(internalIssue, fieldName)
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
         return when (fieldName) {
             "severity" -> "com.ibm.team.workitem.common.model.ISeverity:severity.s2"
             "priority" -> "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12"
             "comments" -> "<b>Important stuff</b>"
+            "text" -> "text should have no title"
             else -> "foobar"
         }
     }
@@ -57,6 +61,10 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         fieldName: String,
         value: Any?
     ) {
+    }
+
+    override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
+        
     }
 
     override fun createOrUpdateTargetIssue(

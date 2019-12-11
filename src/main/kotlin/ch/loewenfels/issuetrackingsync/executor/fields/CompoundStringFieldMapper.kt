@@ -14,7 +14,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * fields, using the same [associations] mechanism. Note that the order of properties matters;
  * the 'catch-all' property must be listed last
  */
-class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : HtmlToWikiFieldMapper(), Logging {
+class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : HtmlFieldMapper(), Logging {
     private val associations: Map<String, String> = fieldMappingDefinition.associations
 
     override fun <T> getValue(
@@ -27,9 +27,9 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
             val contentPartHtml = super.getValue(proprietaryIssue, propertyName, issueTrackingClient)?.toString() ?: ""
             if (contentPartHtml.isNotEmpty()) {
                 associations[propertyName]?.let {
-                    stringBuilder.append(it).append("\n")
+                    stringBuilder.append(it).append("<br>")
                 }
-                stringBuilder.append(contentPartHtml).append("\n")
+                stringBuilder.append(contentPartHtml).append("<br>")
             }
         }
         return stringBuilder.toString().trim()
