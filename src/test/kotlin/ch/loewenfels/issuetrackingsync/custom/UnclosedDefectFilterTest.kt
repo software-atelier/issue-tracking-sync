@@ -9,5 +9,5 @@ internal class UnclosedDefectFilterTest : UnclosedFilterTest() {
 
     override fun getIssueTypeNotPassingFilterJira() = "IGS Change"
 
-    override fun getIssueTypePassingFilterJira() = "IGS Defect"
+    override fun getIssueTypePassingFilterJira() = "Defekt"
 }
