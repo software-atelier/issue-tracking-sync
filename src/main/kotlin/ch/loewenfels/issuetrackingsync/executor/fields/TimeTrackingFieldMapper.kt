@@ -36,10 +36,10 @@ class TimeTrackingFieldMapper : FieldMapper {
         proprietaryIssue: com.atlassian.jira.rest.client.api.domain.Issue,
         issueTrackingClient: JiraClient
     ): TimeTracking {
-        val timeSpent = issueTrackingClient.getValue(proprietaryIssue, "timeTracking.timeSpentMinutes") ?: 0;
+        val timeSpent = issueTrackingClient.getValue(proprietaryIssue, "timeTracking.timeSpentMinutes") ?: 0
         val originalEstimate =
-            issueTrackingClient.getValue(proprietaryIssue, "timeTracking.originalEstimateMinutes") ?: 0;
-        val remaining = issueTrackingClient.getValue(proprietaryIssue, "timeTracking.remainingEstimateMinutes") ?: 0;
+            issueTrackingClient.getValue(proprietaryIssue, "timeTracking.originalEstimateMinutes") ?: 0
+        val remaining = issueTrackingClient.getValue(proprietaryIssue, "timeTracking.remainingEstimateMinutes") ?: 0
         return TimeTracking(timeSpent as Number, originalEstimate as Number, remaining as Number)
     }
 
@@ -47,11 +47,11 @@ class TimeTrackingFieldMapper : FieldMapper {
         proprietaryIssue: IWorkItem,
         issueTrackingClient: RtcClient
     ): TimeTracking {
-        val timeSpent = (issueTrackingClient.getValue(proprietaryIssue, "timeSpent") ?: 0) as Long;
+        val timeSpent = (issueTrackingClient.getValue(proprietaryIssue, "timeSpent") ?: 0) as Long
         val duration =
-            (issueTrackingClient.getValue(proprietaryIssue, "duration") ?: 0) as Long;
+            (issueTrackingClient.getValue(proprietaryIssue, "duration") ?: 0) as Long
         val correctedEstimate =
-            (issueTrackingClient.getValue(proprietaryIssue, "correctedEstimate") ?: 0) as Long;
+            (issueTrackingClient.getValue(proprietaryIssue, "correctedEstimate") ?: 0) as Long
         return TimeTracking(
             timeSpent / millisToMinutes,
             duration / millisToMinutes,
@@ -130,5 +130,5 @@ class TimeTrackingFieldMapper : FieldMapper {
         // correctedEstimate is read-only
     }
 
-    data class TimeTracking(val timeSpent: Number, val originalEstimate: Number, val remaining: Number);
+    data class TimeTracking(val timeSpent: Number, val originalEstimate: Number, val remaining: Number)
 }

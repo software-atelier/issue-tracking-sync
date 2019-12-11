@@ -17,18 +17,14 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
     private val timeoutInSeconds = 10
     private val objectMapper = ObjectMapper()
     private val requestConfig: RequestConfig
-    private val webhookUrl: String
-    private val channel: String
-    private val username: String
-    private val emoji: String
+    private val webhookUrl: String = properties.endpoint
+    private val channel: String = properties.subject
+    private val username: String = properties.username
+    private val emoji: String = properties.avatar
     // added to allow for testing
     var injectedHttpClient: CloseableHttpClient? = null
 
     init {
-        webhookUrl = properties.endpoint
-        username = properties.username
-        channel = properties.subject
-        emoji = properties.avatar
         requestConfig = RequestConfig.custom()
             .setConnectTimeout(timeoutInSeconds * 1000)
             .setConnectionRequestTimeout(timeoutInSeconds * 1000)

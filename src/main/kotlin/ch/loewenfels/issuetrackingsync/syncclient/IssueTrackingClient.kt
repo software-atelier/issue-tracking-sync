@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.syncclient;
+package ch.loewenfels.issuetrackingsync.syncclient
 
 import ch.loewenfels.issuetrackingsync.Attachment
 import ch.loewenfels.issuetrackingsync.Comment

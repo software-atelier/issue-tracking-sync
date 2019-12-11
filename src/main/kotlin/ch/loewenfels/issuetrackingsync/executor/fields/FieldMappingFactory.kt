@@ -46,7 +46,7 @@ object FieldMappingFactory {
         return try {
             mapperClass.getConstructor(FieldMappingDefinition::class.java).newInstance(fieldMappingDefinition)
         } catch (e: Exception) {
-            null;
+            null
         } ?: try {
             mapperClass.getDeclaredConstructor().newInstance()
         } catch (e: Exception) {
