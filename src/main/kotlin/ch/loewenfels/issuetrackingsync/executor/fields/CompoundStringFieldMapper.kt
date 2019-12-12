@@ -7,7 +7,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
 /**
  * This class can take several text-based properties and map them to a single field, creating
- * sections using [associations]. For each property field, this class epxects an association
+ * sections using [associations]. For each property field, this class expects an association
  * with the fieldName as key and a section header as value.
  *
  * This class can also take a single text-based property and split the content into multiple

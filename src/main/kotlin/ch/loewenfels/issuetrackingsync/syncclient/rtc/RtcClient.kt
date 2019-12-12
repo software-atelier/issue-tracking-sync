@@ -18,7 +18,10 @@ import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.*
+import com.ibm.team.workitem.common.expression.AttributeExpression
+import com.ibm.team.workitem.common.expression.IQueryableAttribute
+import com.ibm.team.workitem.common.expression.QueryableAttributes
+import com.ibm.team.workitem.common.expression.Term
 import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
@@ -31,7 +34,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.LinkedList
+import java.util.*
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -344,6 +347,15 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             val reference = WorkItemLinkTypes.createAttachmentReference(newAttachment)
             it.references.add(WorkItemEndPoints.ATTACHMENT, reference)
         }
+    }
+
+    override fun getMultiSelectEnumeration(internalIssue: IWorkItem, fieldName: String): List<String> {
+        val enumeration = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+        val fieldValues = (getValue(internalIssue, fieldName) as ArrayList<*>).filterIsInstance<Identifier<ILiteral>>()
+        val stringIdentifiers = fieldValues.map { it.stringIdentifier }
+        return enumeration.enumerationLiterals//
+            .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }//
+            .map { it.name }
     }
 
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {

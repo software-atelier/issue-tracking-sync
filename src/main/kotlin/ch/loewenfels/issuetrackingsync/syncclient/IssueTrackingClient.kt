@@ -55,6 +55,8 @@ interface IssueTrackingClient<T> {
 
     fun addAttachment(internalIssue: T, attachment: Attachment)
 
+    fun getMultiSelectEnumeration(internalIssue: T, fieldName: String) : List<String>
+
     fun createOrUpdateTargetIssue(issue: Issue, defaultsForNewIssue: DefaultsForNewIssue?)
 
     /**

@@ -66,6 +66,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         return when (fieldName) {
             "priorityId" -> "12"
             "comments" -> "h4. Important stuff"
+            "multiSelectCustomFieldJira" -> arrayOf("fooJira", "barJira")
             else -> "foobar"
         }
     }
@@ -120,5 +121,9 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
 
     override fun addAttachment(internalIssue: Issue, attachment: Attachment) {
         // no-op
+    }
+
+    override fun getMultiSelectEnumeration(internalIssue: Issue, fieldName: String): List<String> {
+        return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
 }

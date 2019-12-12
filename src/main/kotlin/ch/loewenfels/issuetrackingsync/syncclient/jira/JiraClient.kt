@@ -254,6 +254,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         ).claim()
     }
 
+    override fun getMultiSelectEnumeration(
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        fieldName: String
+    ): List<String> {
+        return (getValue(internalIssue, fieldName) as ArrayList<*>).filterIsInstance<String>()
+    }
+
     fun verifySetup(): String {
         return jiraRestClient.metadataClient.serverInfo.claim().serverTitle
     }
@@ -291,6 +298,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         when (fldType) {
             // Text custom field
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
+            "array" -> {
+                val complexValues = (value as ArrayList<*>).filterIsInstance<String>()//
+                    .map { ComplexIssueInputFieldValue.with("value", it) }
+                internalIssueBuilder.setFieldValue(fld.id, complexValues)
+            }
             "option" -> {
                 val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())
                 setInternalFieldValue(internalIssueBuilder, fld.id, complexValue)
@@ -302,7 +314,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
         fieldName: String
     ): Any? {
-        var field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
+        val field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
         val value: Any = field.value
         val result: MutableList<String> = getArrayForJsonArrayValue(value)
         return if (result.isEmpty()) value else result

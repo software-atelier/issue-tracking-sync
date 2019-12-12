@@ -51,6 +51,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
             "priority" -> "com.ibm.team.workitem.common.model.IPriority:priority.literal.I12"
             "comments" -> "<b>Important stuff</b>"
             "text" -> "text should have no title"
+            "multiSelectCustomFieldRtc" -> listOf("fooRtc", "barRtc")
             else -> "foobar"
         }
     }
@@ -64,7 +65,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
     }
 
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
-        
+
     }
 
     override fun createOrUpdateTargetIssue(
@@ -105,5 +106,9 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
 
     override fun addAttachment(internalIssue: Issue, attachment: Attachment) {
         // no-op
+    }
+
+    override fun getMultiSelectEnumeration(internalIssue: Issue, fieldName: String): List<String> {
+        return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
 }
