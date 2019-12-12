@@ -71,6 +71,6 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
         // "Incoming Webhook" app, which you can install from the Slack App Directory.
         payload.put("icon_emoji", emoji)
         payload.put("channel", "#$channel")
-        return StringEntity(objectMapper.writeValueAsString(payload))
+        return StringEntity(objectMapper.writeValueAsString(payload), ContentType.APPLICATION_JSON)
     }
 }
