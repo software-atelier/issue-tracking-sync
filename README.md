@@ -27,8 +27,7 @@ The application will look for a file named application.properties or application
 
     * /config 
 
-subdirectory of the current directory
-
+subdirectory of the current directory.
 
 Place a file in either of the two locations, and define the path to your settings JSON along with application-wide properties:
 
@@ -51,7 +50,7 @@ sync:
 
 Beware that setting username, subject and avatar only works on legacy Slack webhooks.
 
-Finally, define the settings.json. An example file can be found [here](https://github.com/loewenfels/issue-tracking-sync/blob/master/src/test/resources/settings.json)
+Finally, define the settings.json. An example file can be found [here](https://github.com/loewenfels/issue-tracking-sync/blob/master/src/test/resources/settings.json).
 
 ### settings.json
 
@@ -141,9 +140,9 @@ Fields available in RTC
 | duration | duration | duration |
 | workItemType | workItemType | - |
 
-Additionally on RTC, custom fields can be read/written using the internal FQN (eg. `ch.loewenfels.team.workitem.attribute.defectdescription`)
+Additionally on RTC, custom fields can be read/written using the internal FQN (eg. `ch.loewenfels.team.workitem.attribute.defectdescription`).
 
-Fields available in JIRA
+Fields available in JIRA:
 
 | Property | Read as | Write as |
 | -------- | ------- | -------- |
@@ -169,7 +168,7 @@ Fields available in JIRA
 | timeTracking.timeSpentMinutes | timeTracking.timeSpentMinutes | timeTracking.timeSpentMinutes |
 
 Additionally on JIRA, custom field can be read/written using the internal name (like `customfield_123456`) or the display name 
-(like `Customer reference`)
+(like `Customer reference`).
 
 ##### Field mappers
 
@@ -181,7 +180,7 @@ markup in JIRA, and/or HTML in RTC (eg. RTC 'description').
 
 `ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper` extends `HtmlToWikiFieldMapper` and can be 
 used to map multiple text fields onto a single text field, and split it back. This mapper expects `associations` for 
-each field definition except one (which will hold "the rest")
+each field definition except one (which will hold "the rest").
 
 To merge multiple fields:
 ```json
@@ -275,7 +274,7 @@ actions separately, they can be re-used in multiple flows.
 }
 ```
 
-- `ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction` reads a list of `fieldMappingDefinitions` (see below).
+- `ch.loewenfels.issuetrackingsync.executor.SimpleSynchronizationAction` reads a list of `fieldMappingDefinitions` (see below)
 - `ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction` adds all comments present in the source 
   client but missing on the target (equality is based on source comment text being found in target comment text or vice versa)
 - `ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction` adds all attachments present in the source 
@@ -331,7 +330,7 @@ in field `ch.loewenfels.team.workitem.attribute.external_refid`.
 The optional `defaultsForNewIssue` defines defaults for new issues. If missing, and no target issue is found using
 `keyFieldMappingDefinition`, synchronization will abort.
 
-Finally, the list of `actions` refers to the `name` attribute of the [actionDefinitions](#actionDefinitions)
+Finally, the list of `actions` refers to the `name` attribute of the [actionDefinitions](#actionDefinitions).
 
 ### Processing queue
 
@@ -349,11 +348,11 @@ define an issue filter, and must define a collection of [actionDefinitions](#act
 
 1. Load the source issue along with the key (=unique identifier) mapping. This step also verifies that the 
    "last updated" timestamp of the synchronization request matches that of the loaded issue (if not, a 
-   SynchronizationAbortedException is thrown)
+   SynchronizationAbortedException is thrown).
 2. Locate a fitting sync flow, applying filters where defined.
 3. If one (1) sync flow is found, call that flow with the loaded issue.
     1. If the flow cannot locate a target issue, and the flow doesn't define `defaultsForNewIssue`, a 
-       SynchronizationAbortedException is thrown
+       SynchronizationAbortedException is thrown.
 
 ### Custom classes
 
