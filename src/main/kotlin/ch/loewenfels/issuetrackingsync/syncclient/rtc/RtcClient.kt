@@ -143,12 +143,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
             when (value) {
-                is ArrayList<*> -> {
-                    workItem.setValue(attribute, getEnumerationValues(fieldName, value))
-                }
-                else -> {
-                    workItem.setValue(attribute, it)
-                }
+                is ArrayList<*> -> workItem.setValue(attribute, getEnumerationValues(fieldName, value))
+                else -> workItem.setValue(attribute, it)
             }
         }
     }
