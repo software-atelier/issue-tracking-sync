@@ -35,10 +35,12 @@ import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
+import kotlin.collections.ArrayList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
-    private val teamRepository: ITeamRepository = TeamPlatform.getTeamRepositoryService().getTeamRepository(setup.endpoint)
+    private val teamRepository: ITeamRepository =
+        TeamPlatform.getTeamRepositoryService().getTeamRepository(setup.endpoint)
     private val workItemClient: IWorkItemClient
     private val auditableClient: IAuditableClient
     private val projectArea: IProjectArea
@@ -137,10 +139,17 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         fieldName: String,
         value: Any?
     ) {
+        val workItem = internalIssueBuilder as IWorkItem
+        val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
-            val workItem = internalIssueBuilder as IWorkItem
-            val attribute = getAttribute(fieldName)
-            workItem.setValue(attribute, it)
+            when (value) {
+                is ArrayList<*> -> {
+                    workItem.setValue(attribute, getEnumerationValues(fieldName, value))
+                }
+                else -> {
+                    workItem.setValue(attribute, it)
+                }
+            }
         }
     }
 
@@ -161,6 +170,16 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             )
             else -> value
         }
+    }
+
+    private fun getEnumerationValues(
+        fieldName: String,
+        value: ArrayList<*>
+    ): List<Identifier<out ILiteral>> {
+        val enumerations = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+        return enumerations.enumerationLiterals//
+            .filter { value.contains(it.name) }//
+            .map { it.identifier2 }
     }
 
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
@@ -299,7 +318,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     override fun getComments(internalIssue: IWorkItem): List<Comment> {
         return internalIssue.comments.contents.map { rtcComment ->
             Comment(
-                (auditableClient.resolveAuditable(rtcComment.creator, ItemProfile.CONTRIBUTOR_DEFAULT, null) as IContributor).name,
+                (auditableClient.resolveAuditable(
+                    rtcComment.creator,
+                    ItemProfile.CONTRIBUTOR_DEFAULT,
+                    null
+                ) as IContributor).name,
                 rtcComment.creationDate.toLocalDateTime(),
                 rtcComment.htmlContent.plainText
             )
