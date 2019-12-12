@@ -23,10 +23,12 @@ APPLICATIONFILE=<PATH_TO_APPLICATIONFILE>
 
 ## Configuration
 
-The application will look for a file named application.properties or application.yml in
+The application will look for a file named application.properties or application.yml in a
 
-    * a /config subdirectory of the current directory
-    * the current directory
+    * /config 
+
+subdirectory of the current directory
+
 
 Place a file in either of the two locations, and define the path to your settings JSON along with application-wide properties:
 
@@ -331,12 +333,6 @@ The optional `defaultsForNewIssue` defines defaults for new issues. If missing, 
 
 Finally, the list of `actions` refers to the `name` attribute of the [actionDefinitions](#actionDefinitions)
 
-## For contributors
-
-This project aims at allowing for simple issue synchronization using a purely configurative approach, while also embracing 
-proprietary extensions. The latter can be defined using class FQNs in the settings.json, and making sure the application
-finds the class on the classpath (but possibly outside of this project's fat JAR).
-
 ### Processing queue
 
 Individual synchronization requests are processed in a queue (backed by ActiveMQ) with concurrency of one. This ensures 
@@ -364,3 +360,9 @@ define an issue filter, and must define a collection of [actionDefinitions](#act
 The `settings.json` works with class FQNs, which must be present on the classpath, but not necessarily in this
 project. If custom field mappers, filters etc. are needed, they can be provided in a separate JAR. If those implementations
 might be of value to others, add them to this project in the `ch.loewenfels.issuetrackingsync.custom` package.   
+
+## For contributors
+
+This project aims at allowing for simple issue synchronization using a purely configurative approach, while also embracing 
+proprietary extensions. The latter can be defined using class FQNs in the settings.json, and making sure the application
+finds the class on the classpath (but possibly outside of this project's fat JAR).
