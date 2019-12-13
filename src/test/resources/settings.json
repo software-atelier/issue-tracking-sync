@@ -59,10 +59,13 @@
         "sourceName": "key",
         "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
       },
-      "additionalFields": {
+      "defaultsForNewIssue": {
         "issueType": "10302",
         "project": "TST",
-        "category": ""
+        "category": "",
+        "additionalFields": {
+          "description": "Default value"
+        }
       },
       "actions": [
         "SimpleFieldsRtcToJira",
