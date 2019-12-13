@@ -5,6 +5,7 @@ bin/
 build/
 target/
 tmp/
+out/
 *.tmp
 *.bak
 *.swp
