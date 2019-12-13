@@ -23,5 +23,5 @@ data class DefaultsForNewIssue(
     /**
      * CustomFields which have to be entered to create a new JIRA issue. (Entry.Key inside the Map contains the FQN)
      */
-    var customFields: MutableMap<String, String> = mutableMapOf()
+    var additionalFields: MutableMap<String, String> = mutableMapOf()
 )

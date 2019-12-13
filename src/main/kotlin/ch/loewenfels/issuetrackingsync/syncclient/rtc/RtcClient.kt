@@ -219,12 +219,28 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             workItemClient.findWorkItemType(projectArea, defaultsForNewIssue.issueType, progressMonitor)
         val path = defaultsForNewIssue.category.split("/")
         val category: ICategoryHandle = workItemClient.findCategoryByNamePath(projectArea, path, progressMonitor)
-        val operation = WorkItemInitialization("creating new issue", category)
+        val operation = getInitialisedIssue(category, defaultsForNewIssue)
         val handle: IWorkItemHandle = operation.run(workItemType, progressMonitor)
         operation.workItem?.let { mapNewIssueValues(it, issue) }
         val workItem: IWorkItem = auditableClient.resolveAuditable(handle, IWorkItem.FULL_PROFILE, progressMonitor)
         logger().info("Created new RTC issue ${workItem.id}")
         return workItem
+    }
+
+    private fun getInitialisedIssue(
+        category: ICategoryHandle,
+        defaultsForNewIssue: DefaultsForNewIssue
+    ): WorkItemInitialization {
+        return WorkItemInitialization(
+            "creating new issue",
+            category,
+            defaultsForNewIssue.additionalFields.mapValues {
+                convertToMetadataId(
+                    it.key,
+                    it.value
+                )
+            }.mapKeys { getAttribute(it.key) }
+        )
     }
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {

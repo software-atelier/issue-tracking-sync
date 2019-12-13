@@ -59,7 +59,7 @@
         "sourceName": "key",
         "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
       },
-      "defaultsForNewIssue": {
+      "additionalFields": {
         "issueType": "10302",
         "project": "TST",
         "category": ""

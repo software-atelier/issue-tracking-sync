@@ -185,7 +185,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .forEach {
                 it.setTargetValue(issueBuilder, issue, this)
             }
-        defaultsForNewIssue.customFields.forEach {
+        defaultsForNewIssue.additionalFields.forEach {
             val value = ComplexIssueInputFieldValue.with("value", it.value)
             issueBuilder.setFieldValue(it.key, Collections.singletonList(value))
         }
