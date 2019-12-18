@@ -384,13 +384,17 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    override fun getMultiSelectEnumeration(internalIssue: IWorkItem, fieldName: String): List<String> {
+    override fun getMultiSelectValues(internalIssue: IWorkItem, fieldName: String): List<String> {
         val enumeration = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
-        val fieldValues = (getValue(internalIssue, fieldName) as ArrayList<*>).filterIsInstance<Identifier<ILiteral>>()
-        val stringIdentifiers = fieldValues.map { it.stringIdentifier }
-        return enumeration.enumerationLiterals//
-            .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }//
-            .map { it.name }
+        val values = getValue(internalIssue, fieldName)
+        if (values is List<*>) {
+            val fieldValues = values.filterIsInstance<Identifier<ILiteral>>()
+            val stringIdentifiers = fieldValues.map { it.stringIdentifier }
+            return enumeration.enumerationLiterals//
+                .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }//
+                .map { it.name }
+        }
+        throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {

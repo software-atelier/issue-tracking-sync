@@ -123,7 +123,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         // no-op
     }
 
-    override fun getMultiSelectEnumeration(internalIssue: Issue, fieldName: String): List<String> {
+    override fun getMultiSelectValues(internalIssue: Issue, fieldName: String): List<String> {
         return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
 }

@@ -1,6 +1,11 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -19,9 +24,12 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.*
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Collections
+import java.util.*
 
 
 /**
@@ -254,11 +262,15 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         ).claim()
     }
 
-    override fun getMultiSelectEnumeration(
+    override fun getMultiSelectValues(
         internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
         fieldName: String
     ): List<String> {
-        return (getValue(internalIssue, fieldName) as ArrayList<*>).filterIsInstance<String>()
+        val value = getValue(internalIssue, fieldName)
+        if (value is List<*>) {
+            return value.filterIsInstance<String>()
+        }
+        throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
     fun verifySetup(): String {
@@ -299,9 +311,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             // Text custom field
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
             "array" -> {
-                val complexValues = (value as ArrayList<*>).filterIsInstance<String>()//
-                    .map { ComplexIssueInputFieldValue.with("value", it) }
-                internalIssueBuilder.setFieldValue(fld.id, complexValues)
+                if (value is List<*>) {
+                    val complexValues = value//
+                        .map { ComplexIssueInputFieldValue.with("value", it) }
+                    internalIssueBuilder.setFieldValue(fld.id, complexValues)
+                } else {
+                    throw IllegalArgumentException("The field $fieldName was expected to receive an array, but was of type ${value::class.simpleName}")
+                }
             }
             "option" -> {
                 val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())

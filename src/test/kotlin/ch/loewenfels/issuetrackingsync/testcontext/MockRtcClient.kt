@@ -108,7 +108,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         // no-op
     }
 
-    override fun getMultiSelectEnumeration(internalIssue: Issue, fieldName: String): List<String> {
+    override fun getMultiSelectValues(internalIssue: Issue, fieldName: String): List<String> {
         return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
 }

@@ -4,6 +4,14 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
+/**
+ *  This class matches properties of a multi-select field from the source client to the target client
+ *  via the [associations].
+ *
+ *  [associations] contains the source property-name as key and the target property-name as value and must be
+ *  configured for both clients. This implies that both client-configuration are a mirrored version of each other.
+ */
+
 class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
     private val associations: Map<String, String> = fieldMappingDefinition.associations
 
@@ -12,7 +20,7 @@ class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
     ): Any? {
-        val values = issueTrackingClient.getMultiSelectEnumeration(proprietaryIssue, fieldname)
+        val values = issueTrackingClient.getMultiSelectValues(proprietaryIssue, fieldname)
         return values.filter { associations.containsKey(it) }
     }
 
