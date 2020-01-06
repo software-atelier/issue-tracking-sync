@@ -1,7 +1,9 @@
 package ch.loewenfels.issuetrackingsync.notification
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
+import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.apache.http.HttpEntity
@@ -12,11 +14,14 @@ import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.ssl.SSLContextBuilder
+import javax.net.ssl.SSLContext
 
 class SlackChannel(properties: NotificationChannelProperties) : NotificationChannel, Logging {
     private val timeoutInSeconds = 10
     private val objectMapper = ObjectMapper()
     private val requestConfig: RequestConfig
+    private val sslContext: SSLContext
     private val webhookUrl: String = properties.endpoint
     private val channel: String = properties.subject
     private val username: String = properties.username
@@ -30,6 +35,7 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
             .setConnectionRequestTimeout(timeoutInSeconds * 1000)
             .setSocketTimeout(timeoutInSeconds * 1000)
             .build()
+        sslContext = SSLContextBuilder.create().setProtocol("TLSv1.2").build()
     }
 
     override fun onSuccessfulSync(issue: Issue) {
@@ -55,8 +61,10 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
                 setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.mimeType)
                 setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
             }
-            val client =
-                injectedHttpClient ?: HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()
+            val client = injectedHttpClient ?: HttpClientBuilder.create()
+                    .setDefaultRequestConfig(requestConfig)
+                    .setSSLContext(sslContext)
+                    .build()
             client.use { it.execute(httpPost) }
         } catch (ex: Exception) {
             logger().error("Failed to notify Slack", ex)
