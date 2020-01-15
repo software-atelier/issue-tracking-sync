@@ -296,7 +296,11 @@ actions separately, they can be re-used in multiple flows.
     },
     {
       "name": "SynchronizeComments",
-      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction",
+      "additionalProperties": {
+        "preComment": "on ${time} ${date} someone wrote the following text: \n",
+        "postComment": "\n ${author} was the author"
+      }
     }
   ]
 }

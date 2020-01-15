@@ -55,7 +55,7 @@ interface IssueTrackingClient<T> {
 
     fun addAttachment(internalIssue: T, attachment: Attachment)
 
-    fun getMultiSelectValues(internalIssue: T, fieldName: String) : List<String>
+    fun getMultiSelectValues(internalIssue: T, fieldName: String): List<String>
 
     fun createOrUpdateTargetIssue(issue: Issue, defaultsForNewIssue: DefaultsForNewIssue?)
 
@@ -68,7 +68,7 @@ interface IssueTrackingClient<T> {
      */
     fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue>
 
-    fun getHtmlValue(internalIssue: T, fieldName: String): Any?
+    fun getHtmlValue(internalIssue: T, fieldName: String): String?
 
     fun setHtmlValue(
         internalIssueBuilder: Any,

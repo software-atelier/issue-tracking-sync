@@ -55,7 +55,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
     override fun getIssueUrl(internalIssue: Issue): String =
         "${setup.endpoint}/browse/${internalIssue.key}".replace("//", "/")
 
-    override fun getHtmlValue(internalIssue: Issue, fieldName: String): Any? {
+    override fun getHtmlValue(internalIssue: Issue, fieldName: String): String? {
         return when (fieldName) {
             "fromOne" -> "text should have no title\n<h4>text2</h4>\n Some Solution\n<h4>text3</h4>\n Some Solution"
             else -> "<h4>someOtherStuff</h4>\n hot other stuff"

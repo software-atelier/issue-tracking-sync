@@ -18,10 +18,7 @@ import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.AttributeExpression
-import com.ibm.team.workitem.common.expression.IQueryableAttribute
-import com.ibm.team.workitem.common.expression.QueryableAttributes
-import com.ibm.team.workitem.common.expression.Term
+import com.ibm.team.workitem.common.expression.*
 import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
@@ -34,8 +31,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -109,7 +105,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return "$endpoint/web/projects/$encodedProjectName#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
     }
 
-    override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String) = getValue(internalIssue, fieldName)
+    override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String): String? {
+        return when (val value = getValue(internalIssue, fieldName)) {
+            is XMLString -> value?.xmlText
+            else -> value?.toString()
+        }
+    }
 
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)

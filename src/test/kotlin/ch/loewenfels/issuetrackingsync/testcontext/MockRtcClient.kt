@@ -44,7 +44,9 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         "${setup.endpoint}/web/projects/${setup.project}#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.key}"
             .replace("//", "/")
 
-    override fun getHtmlValue(internalIssue: Issue, fieldName: String): Any? = getValue(internalIssue, fieldName)
+    override fun getHtmlValue(internalIssue: Issue, fieldName: String): String? =
+        getValue(internalIssue, fieldName)?.toString()
+
     override fun getValue(internalIssue: Issue, fieldName: String): Any? {
         return when (fieldName) {
             "severity" -> "com.ibm.team.workitem.common.model.ISeverity:severity.s2"

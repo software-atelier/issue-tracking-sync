@@ -8,7 +8,7 @@ import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Objects
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -86,7 +86,14 @@ class SynchronizationFlow(
     private fun execute(syncActionEntry: Map.Entry<SyncActionName, SynchronizationAction>, issue: Issue) {
         val actionDefinition = actionDefinitions.first { it.name.equals(syncActionEntry.key, ignoreCase = true) }
         val fieldMappings = actionDefinition.fieldMappingDefinitions.map { FieldMappingFactory.getMapping(it) }.toList()
-        syncActionEntry.value.execute(sourceClient, targetClient, issue, fieldMappings, defaultsForNewIssue)
+        syncActionEntry.value.execute(
+            sourceClient,
+            targetClient,
+            issue,
+            fieldMappings,
+            defaultsForNewIssue,
+            actionDefinition.additionalProperties
+        )
         issue.fieldMappings.clear()
     }
 
