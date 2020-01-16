@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatter
 
 class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     SynchronizationAction, Logging {
-    val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm")
-    val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm")
+    private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,
