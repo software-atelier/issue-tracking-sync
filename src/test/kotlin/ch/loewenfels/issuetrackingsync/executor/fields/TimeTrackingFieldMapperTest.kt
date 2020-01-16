@@ -5,10 +5,7 @@ import ch.loewenfels.issuetrackingsync.safeEq
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
-import com.atlassian.jira.rest.client.api.domain.TimeTracking
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,13 +21,11 @@ internal class TimeTrackingFieldMapperTest : AbstractSpringTest() {
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
         val targetClient = Mockito.mock(JiraClient::class.java)
-        val value = TimeTrackingFieldMapper.TimeTracking(0, 480, 0)
+        val value = 0 as Number
+        val fieldName = "timeTracking"
         // act
-        testee.setValue(issue, "", issue, targetClient, value)
+        testee.setValue(issue, fieldName, issue, targetClient, value)
         // assert
-        val captor = ArgumentCaptor.forClass(Any::class.java)
-        verify(targetClient).setValue(safeEq(issue), safeEq(issue), safeEq("timeTracking"), captor.capture())
-        val jiraTimeTracking = captor.value as TimeTracking
-        assertNull(jiraTimeTracking.remainingEstimateMinutes)
+        verify(targetClient).setTimeValue(safeEq(issue), safeEq(issue), safeEq(fieldName), safeEq(value))
     }
 }

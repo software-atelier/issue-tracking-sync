@@ -40,6 +40,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private val workItemClient: IWorkItemClient
     private val auditableClient: IAuditableClient
     private val projectArea: IProjectArea
+    private val millisToMinutes = 1000 * 60
 
     init {
         teamRepository.registerLoginHandler(LoginHandler())
@@ -148,6 +149,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 else -> workItem.setValue(attribute, it)
             }
         }
+    }
+
+    override fun getTimeValueInMinutes(internalIssue: IWorkItem, fieldName: String): Number {
+        val time = (getValue(internalIssue, fieldName) ?: 0) as Long
+        return time / millisToMinutes
     }
 
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) =
@@ -428,5 +434,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         override fun challenge(repository: ITeamRepository?): ITeamRepository.ILoginHandler.ILoginInfo {
             return this
         }
+    }
+
+    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
+        setValue(internalIssueBuilder, issue, fieldName, timeInMinutes?.toLong() ?: 0 * millisToMinutes)
     }
 }

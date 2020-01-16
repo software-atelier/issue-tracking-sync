@@ -113,4 +113,12 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
     override fun getMultiSelectValues(internalIssue: Issue, fieldName: String): List<String> {
         return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
+
+    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
+        // no-op
+    }
+
+    override fun getTimeValueInMinutes(internalIssue: Issue, fieldName: String): Number {
+        return 15
+    }
 }

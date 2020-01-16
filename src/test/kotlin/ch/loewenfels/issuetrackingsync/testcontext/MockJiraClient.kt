@@ -126,4 +126,12 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
     override fun getMultiSelectValues(internalIssue: Issue, fieldName: String): List<String> {
         return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
+
+    override fun getTimeValueInMinutes(internalIssue: Issue, fieldName: String): Number {
+        return 16
+    }
+
+    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
+        // no-op
+    }
 }

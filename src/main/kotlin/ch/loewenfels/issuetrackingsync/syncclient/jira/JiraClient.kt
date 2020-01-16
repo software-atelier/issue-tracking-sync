@@ -1,11 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -24,12 +19,9 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 
 
 /**
@@ -366,4 +358,17 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     private fun toLocalDateTime(jodaDateTime: DateTime): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(jodaDateTime.toInstant().millis), ZoneId.systemDefault())
+
+    override fun getTimeValueInMinutes(
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        fieldName: String
+    ): Number {
+        return (getValue(internalIssue, fieldName) ?: 0) as Number
+    }
+
+    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
+        val timeInInt = timeInMinutes?.toInt() ?: 0
+        val timeNullable = if (timeInInt > 0) timeInInt else null
+        setValue(internalIssueBuilder, issue, fieldName, timeNullable)
+    }
 }
