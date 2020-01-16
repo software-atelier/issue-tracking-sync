@@ -107,7 +107,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String): String? {
         return when (val value = getValue(internalIssue, fieldName)) {
-            is XMLString -> value?.xmlText
+            is XMLString -> value.xmlText
             else -> value?.toString()
         }
     }
