@@ -22,7 +22,7 @@ internal class SettingsTest : AbstractSpringTest() {
         val result = Settings.loadFromFile(classpathResource.path, objectMapper)
         // assert
         assertEquals(2, result.trackingApplications.size, "Count of configured tracking applications")
-        assertEquals(3, result.actionDefinitions.size, "Count of configured actions")
+        assertEquals(4, result.actionDefinitions.size, "Count of configured actions")
         val actionDefinition = result.actionDefinitions[0]
         assertEquals(2, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
         assertEquals(
