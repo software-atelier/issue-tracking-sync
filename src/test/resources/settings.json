@@ -37,6 +37,17 @@
       ]
     },
     {
+      "name": "SynchronizeTime",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction",
+      "fieldMappingDefinitions": [
+        {
+          "sourceName": "spentTime",
+          "targetName": "spentTime",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.TimeTrackingFieldMapper"
+        }
+      ]
+    },
+    {
       "name": "SynchronizeComments",
       "classname": "ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction"
     },

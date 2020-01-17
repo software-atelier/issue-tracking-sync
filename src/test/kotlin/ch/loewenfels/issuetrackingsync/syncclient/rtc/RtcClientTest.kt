@@ -1,26 +1,34 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 /**
  * These tests rely on a valid RTC setup. To run, remove the @Disabled and edit buildSetup()
+ * Further you have to create a valid RTC Issue
+ * due the configurability of rtc there is still a chance some tests won't work.
  */
 @Disabled
 internal class RtcClientTest : AbstractSpringTest() {
+    private val issueId = "????"
+
     @Test
     fun getIssue_validKey_issueFound() {
         // arrange
         val testee = RtcClient(buildSetup())
         // act
-        val issue = testee.getIssue("53883")
+        val issue = testee.getIssue(issueId)
         // assert
         assertNotNull(issue)
-        assertEquals("53883", issue?.key)
+        assertEquals(issueId, issue?.key)
     }
 
     @Test
@@ -39,24 +47,28 @@ internal class RtcClientTest : AbstractSpringTest() {
     fun getComments_validKey_commentsLoaded() {
         // arrange
         val testee = RtcClient(buildSetup())
-        val issue = testee.getProprietaryIssue("53883") ?: throw IllegalArgumentException("Unknown issue")
+        val issue = testee.getProprietaryIssue(issueId) ?: throw IllegalArgumentException("Unknown issue")
+        val previousExistingComments = testee.getComments(issue).size
+        testee.addComment(issue, Comment("someAuthor", LocalDateTime.now(), "Some Content"))
         // act
         val comments = testee.getComments(issue)
         // assert
         assertNotNull(comments)
-        assertEquals(2, comments.size)
+        assertEquals(1, comments.count() - previousExistingComments)
     }
 
     @Test
     fun getAttachments_validKey_attachmentsLoaded() {
         // arrange
         val testee = RtcClient(buildSetup())
-        val issue = testee.getProprietaryIssue("53883") ?: throw IllegalArgumentException("Unknown issue")
+        val issue = testee.getProprietaryIssue(issueId) ?: throw IllegalArgumentException("Unknown issue")
+        val previousAttachments = testee.getAttachments(issue).size
+        testee.addAttachment(issue, Attachment("newFile", ByteArray(1)))
         // act
         val attachments = testee.getAttachments(issue)
         // assert
         assertNotNull(attachments)
-        assertEquals(1, attachments.size)
+        assertEquals(1, attachments.size - previousAttachments)
     }
 
     @Test

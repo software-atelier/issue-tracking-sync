@@ -437,6 +437,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
-        setValue(internalIssueBuilder, issue, fieldName, timeInMinutes?.toLong() ?: 0 * millisToMinutes)
+        setValue(internalIssueBuilder, issue, fieldName, (timeInMinutes?.toLong() ?: 0) * millisToMinutes)
     }
 }
