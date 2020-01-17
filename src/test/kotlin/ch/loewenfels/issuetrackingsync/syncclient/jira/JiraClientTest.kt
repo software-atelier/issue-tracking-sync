@@ -60,6 +60,18 @@ internal class JiraClientTest : AbstractSpringTest() {
         testee.listFields()
     }
 
+    @Test
+    fun getComments_validKey_commentsLoaded() {
+        // arrange
+        val testee = JiraClient(buildSetup())
+        val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
+        // act
+        val comments = testee.getComments(issue)
+        // assert
+        assertNotNull(comments)
+        assertEquals(2, comments.size)
+    }
+
     private fun buildSetup(): IssueTrackingApplication {
         return IssueTrackingApplication(
             "ch.loewenfels.issuetrackingsync.client.jira.JiraClient",
