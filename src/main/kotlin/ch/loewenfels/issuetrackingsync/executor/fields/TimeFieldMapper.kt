@@ -11,13 +11,13 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
  * - time spent (JIRA) = time spent (RTC)
  * - original estimate (JIRA) = duration (RTC)
  */
-class TimeTrackingFieldMapper : FieldMapper {
+open class TimeFieldMapper : FieldMapper {
 
     override fun <T> getValue(
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
+    ): Number? {
         return issueTrackingClient.getTimeValueInMinutes(proprietaryIssue, fieldname)
     }
 
@@ -30,6 +30,4 @@ class TimeTrackingFieldMapper : FieldMapper {
     ) {
         issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, fieldname, value as Number)
     }
-
-    data class TimeTracking(val timeSpent: Number, val originalEstimate: Number, val remaining: Number)
 }
