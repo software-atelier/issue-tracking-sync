@@ -8,8 +8,10 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
+import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
+import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
@@ -21,6 +23,9 @@ import java.io.ByteArrayInputStream
 import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.stream.Collectors.toList
+import java.util.stream.StreamSupport
 import java.util.Collections
 
 
@@ -274,6 +279,66 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             return value.filterIsInstance<String>()
         }
         throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
+    }
+
+    override fun getState(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String {
+        return internalIssue.status.id.toString()
+    }
+
+    override fun setState(
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        targetState: String,
+        additionalInformation: List<Any>
+    ) {
+        // This feature is experimental, that's why we use here a terminal condition to prevent endless iterations
+        var counter = 0
+        val maxCounter = 10
+        while ((getState(internalIssue) != targetState) && counter < maxCounter) {
+            val transitionIterable = jiraRestClient.issueClient.getTransitions(internalIssue).claim()
+            val currentActions = getActionsFrom(transitionIterable)
+            val targetStateActions = getActionsFrom(targetState, additionalInformation[0])
+            if (isActionIncluded(currentActions, targetStateActions)) {
+                setState(currentActions, targetStateActions, internalIssue)
+                break
+            }
+            val happyPath = (additionalInformation[1] as List<*>).filterIsInstance<String>()
+            if (isActionIncluded(currentActions, happyPath)) {
+                setState(currentActions, happyPath, internalIssue)
+            }
+            counter++
+        }
+    }
+
+    private fun getActionsFrom(transitionIterable: Iterable<Transition>): List<String> {
+        return StreamSupport.stream(transitionIterable.spliterator(), false)//
+            .map { it.id.toString() }//
+            .collect(toList())
+    }
+
+    private fun getActionsFrom(state: String, allTransitions: Any): List<String> {
+        @Suppress("UNCHECKED_CAST")
+        return (allTransitions as Map<String, List<String>>)[state] ?: listOf()
+    }
+
+    private fun isActionIncluded(source: List<String>, target: List<String>): Boolean {
+        return source.stream().anyMatch { state -> target.contains(state) }
+    }
+
+    private fun setState(
+        currentActions: List<String>,
+        stateActions: List<String>,
+        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue
+    ) {
+        val transition = currentActions.stream()//
+            .filter { action -> stateActions.contains(action) }//
+            .findFirst()//
+            .get()
+        val transitionId = TransitionInput(transition.toInt())
+        try {
+            jiraRestClient.issueClient.transition(internalIssue, transitionId).claim()
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Failed to transition Issue ${internalIssue.key} with action $transition", e)
+        }
     }
 
     fun verifySetup(): String {

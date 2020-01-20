@@ -57,6 +57,10 @@ interface IssueTrackingClient<T> {
 
     fun getMultiSelectValues(internalIssue: T, fieldName: String): List<String>
 
+    fun getState(internalIssue: T): String
+
+    fun setState(internalIssue: T, targetState: String, additionalInformation: List<Any>)
+
     fun createOrUpdateTargetIssue(issue: Issue, defaultsForNewIssue: DefaultsForNewIssue?)
 
     /**

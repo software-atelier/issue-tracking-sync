@@ -121,4 +121,12 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
     override fun getTimeValueInMinutes(internalIssue: Issue, fieldName: String): Number {
         return 15
     }
+
+    override fun getState(internalIssue: Issue): String {
+        return "In work"
+    }
+
+    override fun setState(internalIssue: Issue, targetState: String, additionalInformation: List<Any>) {
+        // no-op
+    }
 }

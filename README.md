@@ -311,6 +311,9 @@ actions separately, they can be re-used in multiple flows.
   client but missing on the target (equality is based on source comment text being found in target comment text or vice versa)
 - `ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction` adds all attachments present in the source 
   client but missing on the target (equality is based on content hash)
+- **Experimental feature**: `ch.loewenfels.issuetrackingsync.executor.actions.StateSynchronizationAction` updates the state 
+  of the given Issue/WorkItem. Master is the client with the newest changes. Currently only Jira-Issues will be synchronized. 
+  RTC WorkItems will be synchronized in future releases.
 
 Hint: if comment visibility is an issue, make sure the users defined in `trackingApplications` have access only to the 
 comments which should by synchronized.

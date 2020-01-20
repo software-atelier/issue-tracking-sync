@@ -134,4 +134,12 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
         // no-op
     }
+
+    override fun getState(internalIssue: Issue): String {
+        return "In work"
+    }
+
+    override fun setState(internalIssue: Issue, targetState: String, additionalInformation: List<Any>) {
+        // no-op
+    }
 }
