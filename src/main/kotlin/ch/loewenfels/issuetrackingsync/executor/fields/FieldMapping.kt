@@ -6,7 +6,8 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 open class FieldMapping(
     private val sourceName: String,
     val targetName: String,
-    private val mapper: FieldMapper
+    private val mapper: FieldMapper,
+    private val fieldSkipEvalutors: List<FieldSkippingEvaluator> = mutableListOf()
 ) {
     protected var sourceValue: Any? = null
     @Suppress("UNCHECKED_CAST")
@@ -18,6 +19,8 @@ open class FieldMapping(
     }
 
     fun <T> setTargetValue(issueBuilder: Any, issue: Issue, targetClient: IssueTrackingClient<in T>) {
-        mapper.setValue(issueBuilder, targetName, issue, targetClient, sourceValue)
+        if (!fieldSkipEvalutors.any { it.hasFieldToBeSkipped(targetClient, issueBuilder, issue, targetName) }) {
+            mapper.setValue(issueBuilder, targetName, issue, targetClient, sourceValue)
+        }
     }
 }
