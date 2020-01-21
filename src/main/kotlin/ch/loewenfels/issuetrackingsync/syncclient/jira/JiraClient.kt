@@ -1,14 +1,14 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import com.atlassian.jira.rest.client.api.domain.IssueField
-import com.atlassian.jira.rest.client.api.domain.IssueFieldId
-import com.atlassian.jira.rest.client.api.domain.TimeTracking
-import com.atlassian.jira.rest.client.api.domain.Transition
+import com.atlassian.jira.rest.client.api.domain.*
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
@@ -23,10 +23,9 @@ import java.io.ByteArrayInputStream
 import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 import java.util.stream.Collectors.toList
 import java.util.stream.StreamSupport
-import java.util.Collections
 
 
 /**
@@ -190,14 +189,22 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .forEach {
                 it.setTargetValue(issueBuilder, issue, this)
             }
-        defaultsForNewIssue.additionalFields.forEach {
+        defaultsForNewIssue.additionalFields.multiselectFields.forEach {
             val value = ComplexIssueInputFieldValue.with("value", it.value)
             issueBuilder.setFieldValue(it.key, Collections.singletonList(value))
+        }
+        defaultsForNewIssue.additionalFields.enumerationFields.forEach {
+            val value = ComplexIssueInputFieldValue.with("value", it.value)
+            issueBuilder.setFieldValue(it.key, value)
+        }
+        defaultsForNewIssue.additionalFields.simpleTextFields.forEach {
+            issueBuilder.setFieldValue(it.key, it.value)
         }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
         val targetIssue =
             getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
+
         updateTargetIssue(targetIssue, issue)
         return targetIssue
     }

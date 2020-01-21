@@ -1,11 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -23,23 +18,8 @@ import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.AttributeExpression
-import com.ibm.team.workitem.common.expression.IQueryableAttribute
-import com.ibm.team.workitem.common.expression.QueryableAttributes
-import com.ibm.team.workitem.common.expression.Term
-import com.ibm.team.workitem.common.model.AttributeOperation
-import com.ibm.team.workitem.common.model.IAttachment
-import com.ibm.team.workitem.common.model.IAttachmentHandle
-import com.ibm.team.workitem.common.model.IAttribute
-import com.ibm.team.workitem.common.model.ICategoryHandle
-import com.ibm.team.workitem.common.model.ILiteral
-import com.ibm.team.workitem.common.model.IWorkItem
-import com.ibm.team.workitem.common.model.IWorkItemHandle
-import com.ibm.team.workitem.common.model.IWorkItemType
-import com.ibm.team.workitem.common.model.Identifier
-import com.ibm.team.workitem.common.model.ItemProfile
-import com.ibm.team.workitem.common.model.WorkItemEndPoints
-import com.ibm.team.workitem.common.model.WorkItemLinkTypes
+import com.ibm.team.workitem.common.expression.*
+import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
 import org.eclipse.core.runtime.NullProgressMonitor
@@ -51,7 +31,8 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.ArrayList
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -258,10 +239,16 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         category: ICategoryHandle,
         defaultsForNewIssue: DefaultsForNewIssue
     ): WorkItemInitialization {
+        defaultsForNewIssue.additionalFields.enumerationFields.forEach {
+            defaultsForNewIssue.additionalFields.multiselectFields.set(
+                it.key,
+                it.value
+            )
+        }
         return WorkItemInitialization(
             "creating new issue",
             category,
-            defaultsForNewIssue.additionalFields.mapValues {
+            defaultsForNewIssue.additionalFields.multiselectFields.mapValues {
                 convertToMetadataId(
                     it.key,
                     it.value
