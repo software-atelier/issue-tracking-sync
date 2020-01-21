@@ -2,6 +2,7 @@ package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.custom.SkipDurationFieldOnRtcInIllegalStatus
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.FieldSkippingEvaluatorDefinition
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -31,6 +32,11 @@ class FieldSkippingEvaluatorFactoryTest {
     }
 
     private fun buildFieldMappingDefinition(evaluatorClassNames: MutableList<String>) =
-        FieldMappingDefinition("", "", "", fieldSkipEvalutors = evaluatorClassNames)
+        FieldMappingDefinition(
+            "",
+            "",
+            "",
+            fieldSkipEvalutors = evaluatorClassNames.map { FieldSkippingEvaluatorDefinition(className = it) }.toMutableList()
+        )
 
 }
