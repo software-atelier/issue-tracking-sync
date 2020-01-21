@@ -1,5 +1,7 @@
 package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluator
+import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluatorFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
 object FieldMappingFactory {

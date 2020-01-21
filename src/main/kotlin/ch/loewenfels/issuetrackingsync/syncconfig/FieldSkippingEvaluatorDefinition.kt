@@ -4,7 +4,7 @@ data class FieldSkippingEvaluatorDefinition(
     /**
      * FQN of the fieldSkippingEvaluator
      */
-    var className: String = "",
+    var classname: String = "",
     /**
      * The class can hold some Properties
      */

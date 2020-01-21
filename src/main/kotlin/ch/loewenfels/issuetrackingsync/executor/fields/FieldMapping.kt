@@ -1,6 +1,7 @@
 package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluator
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 open class FieldMapping(

@@ -1,4 +1,4 @@
-package ch.loewenfels.issuetrackingsync.executor.fields
+package ch.loewenfels.issuetrackingsync.executor.fields.skipping
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
