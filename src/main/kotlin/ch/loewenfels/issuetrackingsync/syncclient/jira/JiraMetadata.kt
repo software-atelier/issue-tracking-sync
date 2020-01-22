@@ -9,13 +9,57 @@ object JiraMetadata {
     private val fieldTypes: MutableMap<String, String> = mutableMapOf()
 
     fun getIssueTypeId(name: String, jiraRestClient: JiraRestClient): Long {
-        var result = name.toLongOrNull() ?: issueTypes[name]
+        return getId(issueTypes, "issue type", name, jiraRestClient)
+    }
+
+    fun getPriorityId(name: String, jiraRestClient: JiraRestClient): Long {
+        return getId(priorities, "priority", name, jiraRestClient)
+    }
+
+    private fun getId(
+        collection: MutableMap<String, Long>,
+        property: String,
+        name: String,
+        jiraRestClient: JiraRestClient
+    ): Long {
+        val result = name.toLongOrNull() ?: collection[name]
         return if (result == null) {
             loadIssueTypes(jiraRestClient)
-            name.toLongOrNull() ?: issueTypes[name]
-            ?: throw IssueClientException("Unknown issue type $name")
+            loadPriorities(jiraRestClient)
+            name.toLongOrNull() ?: collection[name]
+            ?: throw IssueClientException("Unknown $property $name")
         } else {
             result
+        }
+    }
+
+    fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String {
+        return getName(priorities, "priority", null, internalId, jiraRestClient)
+    }
+
+    fun getFieldType(internalId: String, jiraRestClient: JiraRestClient): String {
+        return getName(fieldTypes, "field", internalId, null, jiraRestClient)
+    }
+
+    private fun getName(
+        collection: MutableMap<*, *>,
+        property: String,
+        internalName: String?,
+        internalId: Long?,
+        jiraRestClient: JiraRestClient
+    ): String {
+        val result = if (internalName != null) {
+            collection[internalName]
+        } else {
+            collection.filterValues { it == internalId }.keys.firstOrNull()
+        }
+        return if (result == null) {
+            loadPriorities(jiraRestClient)
+            loadFieldTypes(jiraRestClient)
+            collection.filterValues { it == internalId }.keys.firstOrNull() as String?
+                ?: throw IssueClientException("Unknown $property $internalId")
+        } else {
+            result as String
         }
     }
 
@@ -26,42 +70,10 @@ object JiraMetadata {
         }
     }
 
-    fun getPriorityId(name: String, jiraRestClient: JiraRestClient): Long {
-        var result = name.toLongOrNull() ?: priorities[name]
-        return if (result == null) {
-            loadPriorities(jiraRestClient)
-            name.toLongOrNull() ?: priorities[name]
-            ?: throw IssueClientException("Unknown priority $name")
-        } else {
-            result
-        }
-    }
-
-    fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String {
-        var result = priorities.filterValues { it == internalId }.keys.firstOrNull()
-        return if (result == null) {
-            loadPriorities(jiraRestClient)
-            priorities.filterValues { it == internalId }.keys.firstOrNull()
-                ?: throw IssueClientException("Unknown priority $internalId")
-        } else {
-            result
-        }
-    }
-
     @kotlin.jvm.Synchronized
     private fun loadPriorities(jiraRestClient: JiraRestClient) {
         jiraRestClient.metadataClient.priorities.claim().forEach {
             priorities[it.name] = it.id ?: 0L
-        }
-    }
-
-    fun getFieldType(internalId: String, jiraRestClient: JiraRestClient): String {
-        var result = fieldTypes[internalId]
-        return if (result == null) {
-            loadFieldTypes(jiraRestClient)
-            fieldTypes[internalId] ?: throw IssueClientException("Unknown field $internalId")
-        } else {
-            result
         }
     }
 

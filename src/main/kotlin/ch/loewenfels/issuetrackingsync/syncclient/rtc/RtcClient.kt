@@ -217,7 +217,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.PRIORITY_PROPERTY),
                 workItemClient
             )
-            "severity", "internalSeverity" -> RtcMetadata.getSeverity(
+            "severity", "internalSeverity" -> RtcMetadata.getSeverityName(
                 value.toString(),
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient

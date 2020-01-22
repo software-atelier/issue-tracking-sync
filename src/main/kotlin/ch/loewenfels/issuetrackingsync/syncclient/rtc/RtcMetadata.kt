@@ -9,64 +9,67 @@ object RtcMetadata {
     private val priorities: MutableMap<String, Identifier<out ILiteral>> = mutableMapOf()
 
     fun getSeverityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? {
-        val result = priorities[name]
-        return if (result == null) {
-            loadSeverities(attribute, workItemClient)
-            severities[name]
-                ?: throw IssueClientException("Unknown priority $name")
-        } else {
-            result
-        }
-    }
-
-    fun getSeverity(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        val result = severities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }
-            .keys.firstOrNull()
-        return if (result == null) {
-            loadSeverities(attribute, workItemClient)
-            severities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }.keys.firstOrNull()
-                ?: throw IssueClientException("Unknown priority $internalId")
-        } else {
-            result
-        }
-    }
-
-    @kotlin.jvm.Synchronized
-    private fun loadSeverities(attribute: IAttribute, workItemClient: IWorkItemClient) {
-        workItemClient.resolveEnumeration(attribute, null)
-            .enumerationLiterals.forEach {
-            severities[it.name] = it.identifier2
-        }
+        return getId(severities, "severity", name, attribute, workItemClient)
     }
 
     fun getPriorityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? {
-        val result = priorities[name]
+        return getId(priorities, "priority", name, attribute, workItemClient)
+    }
+
+    private fun getId(
+        collection: MutableMap<String, Identifier<out ILiteral>>,
+        property: String,
+        name: String,
+        attribute: IAttribute,
+        workItemClient: IWorkItemClient
+    ): Identifier<out ILiteral>? {
+        val result = collection[name]
         return if (result == null) {
-            loadPriorities(attribute, workItemClient)
-            priorities[name]
-                ?: throw IssueClientException("Unknown priority $name")
+            loadEnumeration(attribute, workItemClient, collection)
+            collection[name] ?: throw IssueClientException("Unknown $property $name")
         } else {
             result
         }
+    }
+
+    fun getSeverityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
+        return getName(severities, "severity", internalId, attribute, workItemClient)
     }
 
     fun getPriorityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        val result = priorities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }
-            .keys.firstOrNull()
+        return getName(priorities, "priority", internalId, attribute, workItemClient)
+    }
+
+    private fun getName(
+        collection: MutableMap<String, Identifier<out ILiteral>>,
+        property: String,
+        internalId: String,
+        attribute: IAttribute,
+        workItemClient: IWorkItemClient
+    ): Any {
+        val result = getRelevantId(collection, internalId)
         return if (result == null) {
-            loadPriorities(attribute, workItemClient)
-            priorities.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }.keys.firstOrNull()
-                ?: throw IssueClientException("Unknown priority $internalId")
+            loadEnumeration(attribute, workItemClient, collection)
+            getRelevantId(collection, internalId) ?: throw IssueClientException("Unknown $property $internalId")
         } else {
             result
         }
     }
 
+    private fun getRelevantId(collection: MutableMap<String, Identifier<out ILiteral>>, internalId: String): String? {
+        return collection.filterValues { it.toString() == internalId || it.stringIdentifier == internalId }
+            .keys.firstOrNull()
+    }
+
     @kotlin.jvm.Synchronized
-    private fun loadPriorities(attribute: IAttribute, workItemClient: IWorkItemClient) {
+    private fun loadEnumeration(
+        attribute: IAttribute,
+        workItemClient: IWorkItemClient,
+        collection: MutableMap<String, Identifier<out ILiteral>>
+    ) {
         workItemClient.resolveEnumeration(attribute, null)
             .enumerationLiterals.forEach {
-            priorities[it.name] = it.identifier2
+            collection[it.name] = it.identifier2
         }
     }
 
