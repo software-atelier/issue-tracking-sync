@@ -1,6 +1,11 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -21,12 +26,14 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.*
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 import java.util.stream.Collectors.toList
 import java.util.stream.StreamSupport
-import java.util.Collections
 
 
 /**
@@ -190,14 +197,22 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .forEach {
                 it.setTargetValue(issueBuilder, issue, this)
             }
-        defaultsForNewIssue.additionalFields.forEach {
+        defaultsForNewIssue.additionalFields.multiselectFields.forEach {
             val value = ComplexIssueInputFieldValue.with("value", it.value)
             issueBuilder.setFieldValue(it.key, Collections.singletonList(value))
+        }
+        defaultsForNewIssue.additionalFields.enumerationFields.forEach {
+            val value = ComplexIssueInputFieldValue.with("value", it.value)
+            issueBuilder.setFieldValue(it.key, value)
+        }
+        defaultsForNewIssue.additionalFields.simpleTextFields.forEach {
+            issueBuilder.setFieldValue(it.key, it.value)
         }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
         val targetIssue =
             getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
+
         updateTargetIssue(targetIssue, issue)
         return targetIssue
     }
@@ -439,10 +454,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         LocalDateTime.ofInstant(Instant.ofEpochMilli(jodaDateTime.toInstant().millis), ZoneId.systemDefault())
 
     override fun getTimeValueInMinutes(
-        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        internalIssue: Any,
         fieldName: String
     ): Number {
-        return (getValue(internalIssue, fieldName) ?: 0) as Number
+        return (getValue(internalIssue as com.atlassian.jira.rest.client.api.domain.Issue, fieldName) ?: 0) as Number
     }
 
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {

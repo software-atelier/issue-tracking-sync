@@ -14,6 +14,8 @@ fun <T> any(type: Class<T>): T {
     return null as T
 }
 
+fun <T> any(): T = Mockito.any<T>()
+
 fun <T : Any> safeEq(value: T): T = eq(value) ?: value
 
 fun <T : Any> safeNot(value: T): T = not(value) ?: value

@@ -10,14 +10,14 @@ import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class TimeTrackingFieldMapperTest : AbstractSpringTest() {
+internal class TimeFieldMapperTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
 
     @Test
     fun setValue_jira() {
         // arrange
-        val testee = TimeTrackingFieldMapper()
+        val testee = TimeFieldMapper()
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
         val targetClient = Mockito.mock(JiraClient::class.java)

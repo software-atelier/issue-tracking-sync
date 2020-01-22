@@ -1,5 +1,7 @@
 package ch.loewenfels.issuetrackingsync.executor.fields
 
+import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluator
+import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluatorFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
 object FieldMappingFactory {
@@ -9,7 +11,8 @@ object FieldMappingFactory {
         FieldMapping(
             fieldMappingDefinition.sourceName,
             fieldMappingDefinition.targetName,
-            getMapper(fieldMappingDefinition)
+            getMapper(fieldMappingDefinition),
+            getFieldSkippingEvaluator(fieldMappingDefinition)
         )
 
     fun getKeyMapping(fieldMappingDefinition: FieldMappingDefinition): KeyFieldMapping =
@@ -23,6 +26,11 @@ object FieldMappingFactory {
         return mapperInstances[fieldMappingDefinition.mapperClassname] ?: buildMapperAndCacheIfReusable(
             fieldMappingDefinition
         )
+    }
+
+
+    private fun getFieldSkippingEvaluator(fieldMappingDefinition: FieldMappingDefinition): List<FieldSkippingEvaluator> {
+        return FieldSkippingEvaluatorFactory.getEvaluators(fieldMappingDefinition)
     }
 
     private fun buildMapperAndCacheIfReusable(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {

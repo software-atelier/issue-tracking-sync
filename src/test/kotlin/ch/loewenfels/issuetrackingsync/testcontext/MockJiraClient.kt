@@ -127,7 +127,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
     }
 
-    override fun getTimeValueInMinutes(internalIssue: Issue, fieldName: String): Number {
+    override fun getTimeValueInMinutes(internalIssue: Any, fieldName: String): Number {
         return 16
     }
 

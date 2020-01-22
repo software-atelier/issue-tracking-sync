@@ -51,7 +51,8 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.ArrayList
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -171,8 +172,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    override fun getTimeValueInMinutes(internalIssue: IWorkItem, fieldName: String): Number {
-        val time = (getValue(internalIssue, fieldName) ?: 0) as Long
+    override fun getTimeValueInMinutes(internalIssue: Any, fieldName: String): Number {
+        val time = (getValue(internalIssue as IWorkItem, fieldName) ?: 0) as Long
         return time / millisToMinutes
     }
 
@@ -263,10 +264,16 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         category: ICategoryHandle,
         defaultsForNewIssue: DefaultsForNewIssue
     ): WorkItemInitialization {
+        defaultsForNewIssue.additionalFields.enumerationFields.forEach {
+            defaultsForNewIssue.additionalFields.multiselectFields.set(
+                it.key,
+                it.value
+            )
+        }
         return WorkItemInitialization(
             "creating new issue",
             category,
-            defaultsForNewIssue.additionalFields.mapValues {
+            defaultsForNewIssue.additionalFields.multiselectFields.mapValues {
                 convertToMetadataId(
                     it.key,
                     it.value
