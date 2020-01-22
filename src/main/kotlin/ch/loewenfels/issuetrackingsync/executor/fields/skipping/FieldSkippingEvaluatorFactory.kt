@@ -18,6 +18,7 @@ object FieldSkippingEvaluatorFactory : Logging {
         return evaluators[fieldMappingDefinition] ?: mutableListOf()
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun createFieldSkippingEvaluator(fieldSkippingEvaluatorDefinition: FieldSkippingEvaluatorDefinition): FieldSkippingEvaluator? {
         val clazz: Class<FieldSkippingEvaluator>?
         try {
