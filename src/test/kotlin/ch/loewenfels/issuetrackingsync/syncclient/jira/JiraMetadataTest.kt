@@ -18,10 +18,7 @@ internal class JiraMetadataTest {
     fun getIssueTypeId() {
         // arrange
         val issueType = listOf(IssueType(someUri, 123L, "Defect", false, "", someUri))
-        val issueTypesPromise: Promise<Iterable<IssueType>> = genericMock()
-        Mockito.`when`(issueTypesPromise.claim()).thenReturn(issueType)
-        val metadataClient = Mockito.mock(MetadataRestClient::class.java)
-        Mockito.`when`(metadataClient.issueTypes).thenReturn(issueTypesPromise)
+        val metadataClient = buildMetadataClient(issueType)
         val mockClient = Mockito.mock(JiraRestClient::class.java)
         Mockito.`when`(mockClient.metadataClient).thenReturn(metadataClient)
         // act
@@ -34,10 +31,7 @@ internal class JiraMetadataTest {
     fun getPriorityId() {
         // arrange
         val priorities = listOf(Priority(someUri, 123L, "Hoch", "Orange", "", someUri))
-        val prioritiesPromise: Promise<Iterable<Priority>> = genericMock()
-        Mockito.`when`(prioritiesPromise.claim()).thenReturn(priorities)
-        val metadataClient = Mockito.mock(MetadataRestClient::class.java)
-        Mockito.`when`(metadataClient.priorities).thenReturn(prioritiesPromise)
+        val metadataClient = buildMetadataClient(priorities)
         val mockClient = Mockito.mock(JiraRestClient::class.java)
         Mockito.`when`(mockClient.metadataClient).thenReturn(metadataClient)
         // act
@@ -50,16 +44,26 @@ internal class JiraMetadataTest {
     fun getPriorityName() {
         // arrange
         val priorities = listOf(Priority(someUri, 123L, "Hoch", "Orange", "", someUri))
-        val prioritiesPromise: Promise<Iterable<Priority>> = genericMock()
-        Mockito.`when`(prioritiesPromise.claim()).thenReturn(priorities)
-        val metadataClient = Mockito.mock(MetadataRestClient::class.java)
-        Mockito.`when`(metadataClient.priorities).thenReturn(prioritiesPromise)
+        val metadataClient = buildMetadataClient(priorities)
         val mockClient = Mockito.mock(JiraRestClient::class.java)
         Mockito.`when`(mockClient.metadataClient).thenReturn(metadataClient)
         // act
         val result = JiraMetadata.getPriorityName(123L, mockClient)
         // assert
         assertEquals("Hoch", result)
+    }
+
+    private fun buildMetadataClient(collection: List<*>): MetadataRestClient? {
+        val issueTypesPromise: Promise<Iterable<IssueType>> = genericMock()
+        val prioritiesPromise: Promise<Iterable<Priority>> = genericMock()
+        val issueTypes = (collection).filterIsInstance(IssueType::class.java)
+        val priorities = (collection).filterIsInstance(Priority::class.java)
+        Mockito.`when`(issueTypesPromise.claim()).thenReturn(issueTypes)
+        Mockito.`when`(prioritiesPromise.claim()).thenReturn(priorities)
+        val metadataClient = Mockito.mock(MetadataRestClient::class.java)
+        Mockito.`when`(metadataClient.issueTypes).thenReturn(issueTypesPromise)
+        Mockito.`when`(metadataClient.priorities).thenReturn(prioritiesPromise)
+        return metadataClient
     }
 }
 
