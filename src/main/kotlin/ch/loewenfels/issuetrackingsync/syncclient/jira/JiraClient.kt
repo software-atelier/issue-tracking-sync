@@ -278,6 +278,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         if (value is List<*>) {
             return value.filterIsInstance<String>()
         }
+        if (value is JSONObject) {
+            return listOf(value["value"].toString())
+        }
         throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 

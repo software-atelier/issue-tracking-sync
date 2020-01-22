@@ -69,4 +69,13 @@ object RtcMetadata {
             priorities[it.name] = it.identifier2
         }
     }
+
+    fun getAttributeLiteral(
+        name: String,
+        attribute: IAttribute,
+        workItemClient: IWorkItemClient
+    ): Identifier<out ILiteral>? {
+        return workItemClient.resolveEnumeration(attribute, null)//
+            .enumerationLiterals.find { it.name == name }?.identifier2
+    }
 }

@@ -191,6 +191,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
+            "ch.igs.team.workitem.attribut.project" -> RtcMetadata.getAttributeLiteral(
+                    value?.toString() ?: "",
+                    getAttribute(fieldName),
+                    workItemClient
+                )
             else -> value
         }
     }
@@ -419,6 +424,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             val stringIdentifiers = fieldValues.map { it.stringIdentifier }
             return enumeration.enumerationLiterals//
                 .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }//
+                .map { it.name }
+        }
+        if (values is Identifier<*>) {
+            val stringIdentifier = values.stringIdentifier
+            return enumeration.enumerationLiterals//
+                .filter { it.identifier2.stringIdentifier == stringIdentifier }//
                 .map { it.name }
         }
         throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")

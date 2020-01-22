@@ -54,6 +54,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
             "comments" -> "<b>Important stuff</b>"
             "text" -> "text should have no title"
             "multiSelectCustomFieldRtc" -> listOf("fooRtc", "barRtc")
+            "singleSelectCustomFieldRtc" -> "fooRtc"
             else -> "foobar"
         }
     }
@@ -111,7 +112,11 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
     }
 
     override fun getMultiSelectValues(internalIssue: Issue, fieldName: String): List<String> {
-        return (getValue(internalIssue, fieldName) as List<*>).filterIsInstance<String>()
+        return when (val value = getValue(internalIssue, fieldName)) {
+            is String -> listOf(value)
+            is List<*> -> value.filterIsInstance<String>()
+            else -> listOf()
+        }
     }
 
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {

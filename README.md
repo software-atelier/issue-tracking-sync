@@ -275,6 +275,10 @@ The opposite way, from Jira to RTC, would be as follows:
         }
 ```
 
+The `ch.loewenfels.issuetrackingsync.executor.fields.SingleSelectionFieldMapper` is similar like the above 
+MultiSelectionFieldMapper: it also uses an `associations` matrix for mapping single selection fields between both clients.
+The `association` matrix shall have the same structure as the above MultiSelectionFieldMapper.
+
 #### actionDefinitions
 
 An action definition represents a synchronization sequence, similar to a macro. Typically, multiple field mappers are
