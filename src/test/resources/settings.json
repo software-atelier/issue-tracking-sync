@@ -37,13 +37,21 @@
       ]
     },
     {
-      "name": "SynchronizeTime",
+      "name": "SynchronizeTimeJiraToRtc",
       "classname": "ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction",
       "fieldMappingDefinitions": [
         {
-          "sourceName": "spentTime",
-          "targetName": "spentTime",
-          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.TimeTrackingFieldMapper"
+          "sourceName": "timeTracking.originalEstimateMinutes",
+          "targetName": "duration",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.TimeFieldMapper",
+          "fieldSkipEvaluators": [
+            {
+              "classname": "ch.loewenfels.issuetrackingsync.executor.fields.skipping.SkipFieldOnStatus",
+              "properties": {
+                "allowedStates": "ch.igs.team.workitem.workflow.change.state.s1,ch.igs.team.workitem.workflow.change.state.s2,ch.igs.team.workitem.workflow.change.state.s3"
+              }
+            }
+          ]
         }
       ]
     },
