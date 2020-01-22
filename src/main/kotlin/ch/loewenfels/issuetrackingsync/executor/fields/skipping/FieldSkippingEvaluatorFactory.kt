@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldSkippingEvaluatorDefinition
 
 object FieldSkippingEvaluatorFactory : Logging {
-    val evaluators: MutableMap<FieldMappingDefinition, MutableList<FieldSkippingEvaluator>> = mutableMapOf()
+    private val evaluators: MutableMap<FieldMappingDefinition, MutableList<FieldSkippingEvaluator>> = mutableMapOf()
 
     fun getEvaluators(fieldMappingDefinition: FieldMappingDefinition): MutableList<FieldSkippingEvaluator> {
         return evaluators[fieldMappingDefinition] ?: createFieldSkippEvaluators(fieldMappingDefinition)
