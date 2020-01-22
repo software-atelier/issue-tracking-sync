@@ -57,7 +57,8 @@ object JiraMetadata {
             loadPriorities(jiraRestClient)
             loadFieldTypes(jiraRestClient)
             collection.filterValues { it == internalId }.keys.firstOrNull() as String?
-                ?: throw IssueClientException("Unknown $property $internalId")
+                ?: collection[internalName] as String?
+                ?: throw IssueClientException("Unknown $property ${internalId ?: internalName}")
         } else {
             result as String
         }
