@@ -18,7 +18,7 @@ open class TimeFieldMapper : FieldMapper {
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
     ): Number? {
-        return issueTrackingClient.getTimeValueInMinutes(proprietaryIssue, fieldname)
+        return issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, fieldname)
     }
 
     override fun <T> setValue(

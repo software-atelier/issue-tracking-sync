@@ -81,7 +81,7 @@ interface IssueTrackingClient<T> {
         htmlString: String
     )
 
-    fun getTimeValueInMinutes(internalIssue: T, fieldName: String): Number
+    fun getTimeValueInMinutes(internalIssue: Any, fieldName: String): Number
 
     fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?)
 }

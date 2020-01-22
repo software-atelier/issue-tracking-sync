@@ -118,7 +118,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         // no-op
     }
 
-    override fun getTimeValueInMinutes(internalIssue: Issue, fieldName: String): Number {
+    override fun getTimeValueInMinutes(internalIssue: Any, fieldName: String): Number {
         return 15
     }
 

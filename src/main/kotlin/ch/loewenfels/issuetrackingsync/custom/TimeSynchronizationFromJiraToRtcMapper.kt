@@ -3,7 +3,6 @@ package ch.loewenfels.issuetrackingsync.custom
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.executor.fields.TimeFieldMapper
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import com.ibm.team.workitem.common.model.IWorkItem
 
 class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
 
@@ -32,8 +31,6 @@ class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
         when (splittedFieldName.size) {
             2 -> {
                 val newEstimatedTime = value as Number
-                issueTrackingClient as IssueTrackingClient<IWorkItem>
-                proprietaryIssueBuilder as IWorkItem
                 val originalEstimate =
                     issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[0])
                 val oldCorrectedEstimatedTime =

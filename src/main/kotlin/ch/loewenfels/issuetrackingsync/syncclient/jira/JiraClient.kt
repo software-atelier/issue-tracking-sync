@@ -1,14 +1,19 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.Attachment
 import ch.loewenfels.issuetrackingsync.Comment
 import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import com.atlassian.jira.rest.client.api.domain.*
+import com.atlassian.jira.rest.client.api.domain.IssueField
+import com.atlassian.jira.rest.client.api.domain.IssueFieldId
+import com.atlassian.jira.rest.client.api.domain.TimeTracking
+import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
@@ -21,7 +26,10 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.*
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Collections
 import java.util.stream.Collectors.toList
@@ -443,10 +451,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         LocalDateTime.ofInstant(Instant.ofEpochMilli(jodaDateTime.toInstant().millis), ZoneId.systemDefault())
 
     override fun getTimeValueInMinutes(
-        internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        internalIssue: Any,
         fieldName: String
     ): Number {
-        return (getValue(internalIssue, fieldName) ?: 0) as Number
+        return (getValue(internalIssue as com.atlassian.jira.rest.client.api.domain.Issue, fieldName) ?: 0) as Number
     }
 
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
