@@ -72,6 +72,17 @@ internal class RtcClientTest : AbstractSpringTest() {
     }
 
     @Test
+    fun getValue_internalTags_tagsLoaded() {
+        // arrange
+        val testee = RtcClient(buildSetup())
+        val issue = testee.getProprietaryIssue(issueId) ?: throw IllegalArgumentException("Unknown issue")
+        // act
+        val tags = testee.getValue(issue, "internalTags")
+        // assert
+        assertNotNull(tags)
+    }
+
+    @Test
     fun listMetadata_sysout() {
         // arrange
         val testee = RtcClient(buildSetup())

@@ -24,7 +24,7 @@ internal class SynchronizationFlowFactoryTest : AbstractSpringTest() {
     }
 
     @Test
-    fun getSynchronizationFlow_unknownSourec_returnsNull() {
+    fun getSynchronizationFlow_unknownSource_returnsNull() {
         // arrange
         val sourceApp = "FOOBAR"
         val issue = Issue("", "JIRA", LocalDateTime.now())

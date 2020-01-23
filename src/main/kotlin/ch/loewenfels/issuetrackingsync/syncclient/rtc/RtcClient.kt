@@ -223,6 +223,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
+            "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
             else -> value
         }
     }

@@ -13,7 +13,8 @@ import org.mockito.Mockito.spy
 import java.time.LocalDateTime
 
 object TestObjects {
-    private val simpleActionName = "foobar"
+    private const val simpleActionName = "foobar"
+
     fun buildSyncFlowDefinition(source: TrackingApplicationName, target: TrackingApplicationName): SyncFlowDefinition {
         val syncFlowDefinition = SyncFlowDefinition()
         syncFlowDefinition.source = source
@@ -33,40 +34,35 @@ object TestObjects {
         return syncActionDefinition
     }
 
-    fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
+    private fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
         FieldMappingDefinition(
             "id",
             "custom_field_10244"
         )
 
-    fun buildWriteBackFieldMappingDefinition(): FieldMappingDefinition =
+    private fun buildWriteBackFieldMappingDefinition(): FieldMappingDefinition =
         FieldMappingDefinition(
             "key",
             "ch.foobar.team.workitem.attribute.external_refid"
         )
 
-    fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
+    private fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
         mutableListOf(buildFieldMappingDefinition())
 
-    fun buildFieldMappingDefinition(): FieldMappingDefinition =
+    private fun buildFieldMappingDefinition(): FieldMappingDefinition =
         FieldMappingDefinition("title", "summary")
 
-    fun buildKeyFieldMapping(): KeyFieldMapping =
-        KeyFieldMapping(
-            "key",
-            "id",
-            DirectFieldMapper()
-        )
-
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
-    fun buildFieldMapping(): FieldMapping =
+
+    private fun buildFieldMapping(): FieldMapping =
         FieldMapping(
             "title",
             "summary",
             DirectFieldMapper()
         )
 
-    fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
+    private fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
+
     fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
         val issueTrackingApplication = IssueTrackingApplication()
         issueTrackingApplication.className = simpleClassName
@@ -88,10 +84,6 @@ object TestObjects {
 
     fun buildIssue(key: String = "MK-1") =
         Issue(key, "", LocalDateTime.now())
-}
-
-class AlwaysTrueIssueFilter : IssueFilter {
-    override fun test(client: IssueTrackingClient<out Any>, issue: Issue): Boolean = true
 }
 
 class AlwaysFalseIssueFilter : IssueFilter {

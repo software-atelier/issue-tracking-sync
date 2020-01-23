@@ -126,6 +126,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
+                } else if(fieldName == "labels" && value is ArrayList<*>) {
+                    if(value.isNotEmpty()) {
+                        setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
+                    }
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
@@ -392,8 +396,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         // you might be tempted to query [metadataClient] directly here. However, JIRA setup allows to map fields
         // to certain projects only, and so finding a field in the metadataClient does NOT mean it is available
         // in the project the issue is assigned to
-        val fldType = JiraMetadata.getFieldType(fld.id, jiraRestClient)
-        when (fldType) {
+        when (JiraMetadata.getFieldType(fld.id, jiraRestClient)) {
             // Text custom field
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
             "array" -> {
