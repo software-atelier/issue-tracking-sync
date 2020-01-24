@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 
 class SingleSelectionFieldMapperTest : AbstractSpringTest() {
@@ -47,16 +51,16 @@ class SingleSelectionFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    fun setValue_unknownValue_exception() {
+    internal fun setValue_nullValue_noInteraction() {
         // arrange
         val testee = buildTestee()
         val issue = TestObjects.buildIssue("MK-1")
         val targetClient =
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val value = "invalidValue"
         // act
+        testee.setValue(issue, jiraFieldname, issue, targetClient, null)
         // assert
-        assertThrows<NoSuchElementException> { testee.setValue(issue, jiraFieldname, issue, targetClient, value) }
+        verifyNoInteractions(targetClient)
     }
 
     private fun buildTestee(): SingleSelectionFieldMapper {
