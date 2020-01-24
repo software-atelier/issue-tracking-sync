@@ -10,6 +10,8 @@ class DebugController(
 ) {
     @GetMapping("/config")
     fun getSettingsFile(): Settings {
-        return settings
+        val modifiedSettings = settings
+        modifiedSettings.trackingApplications.forEach { it.password = "*********"}
+        return modifiedSettings
     }
 }
