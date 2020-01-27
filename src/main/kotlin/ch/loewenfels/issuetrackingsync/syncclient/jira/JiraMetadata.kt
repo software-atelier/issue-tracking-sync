@@ -22,15 +22,14 @@ object JiraMetadata {
         name: String,
         jiraRestClient: JiraRestClient
     ): Long {
-        val result = name.toLongOrNull() ?: collection[name]
-        return if (result == null) {
-            loadIssueTypes(jiraRestClient)
-            loadPriorities(jiraRestClient)
-            name.toLongOrNull() ?: collection[name]
-            ?: throw IssueClientException("Unknown $property $name")
-        } else {
-            result
-        }
+        return name.toLongOrNull() //
+            ?: collection[name] //
+            ?: run {
+                loadIssueTypes(jiraRestClient)
+                loadPriorities(jiraRestClient)
+                name.toLongOrNull() ?: collection[name]
+                ?: throw IssueClientException("Unknown $property $name")
+            }
     }
 
     fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String {
@@ -48,20 +47,15 @@ object JiraMetadata {
         internalId: Long?,
         jiraRestClient: JiraRestClient
     ): String {
-        val result = if (internalName != null) {
-            collection[internalName]
-        } else {
-            collection.filterValues { it == internalId }.keys.firstOrNull()
-        }
-        return if (result == null) {
-            loadPriorities(jiraRestClient)
-            loadFieldTypes(jiraRestClient)
-            collection.filterValues { it == internalId }.keys.firstOrNull() as String?
-                ?: collection[internalName] as String?
-                ?: throw IssueClientException("Unknown $property ${internalId ?: internalName}")
-        } else {
-            result as String
-        }
+        return collection[internalName] as String? //
+            ?: collection.filterValues { it == internalId }.keys.firstOrNull() as String?
+            ?: run {
+                loadPriorities(jiraRestClient)
+                loadFieldTypes(jiraRestClient)
+                collection.filterValues { it == internalId }.keys.firstOrNull() as String?
+                    ?: collection[internalName] as String?
+                    ?: throw IssueClientException("Unknown $property ${internalId ?: internalName}")
+            }
     }
 
     @kotlin.jvm.Synchronized

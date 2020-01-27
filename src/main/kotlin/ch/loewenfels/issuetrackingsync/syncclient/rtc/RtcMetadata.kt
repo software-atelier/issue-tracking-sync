@@ -23,13 +23,11 @@ object RtcMetadata {
         attribute: IAttribute,
         workItemClient: IWorkItemClient
     ): Identifier<out ILiteral>? {
-        val result = collection[name]
-        return if (result == null) {
+        return collection[name] ?: run {
             loadEnumeration(attribute, workItemClient, collection)
             collection[name] ?: throw IssueClientException("Unknown $property $name")
-        } else {
-            result
         }
+
     }
 
     fun getSeverityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
@@ -47,12 +45,9 @@ object RtcMetadata {
         attribute: IAttribute,
         workItemClient: IWorkItemClient
     ): Any {
-        val result = getRelevantId(collection, internalId)
-        return if (result == null) {
+        return getRelevantId(collection, internalId) ?: run {
             loadEnumeration(attribute, workItemClient, collection)
             getRelevantId(collection, internalId) ?: throw IssueClientException("Unknown $property $internalId")
-        } else {
-            result
         }
     }
 
