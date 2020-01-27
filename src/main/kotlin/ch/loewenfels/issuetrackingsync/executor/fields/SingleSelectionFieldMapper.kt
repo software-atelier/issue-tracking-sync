@@ -20,7 +20,8 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
     ): Any? {
-        return issueTrackingClient.getMultiSelectValues(proprietaryIssue, fieldname).firstOrNull() { associations.containsKey(it)}
+        return issueTrackingClient.getMultiSelectValues(proprietaryIssue, fieldname)
+            .firstOrNull() { associations.containsKey(it) }
     }
 
     override fun <T> setValue(
@@ -30,8 +31,8 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        if (value != null) {
-            val result = associations[value as String]
+        value?.let {
+            val result = associations[it as String]
             issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
         }
     }
