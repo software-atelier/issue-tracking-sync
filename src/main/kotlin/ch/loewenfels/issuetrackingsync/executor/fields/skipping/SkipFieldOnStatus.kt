@@ -12,6 +12,7 @@ open class SkipFieldOnStatus(fieldSkippingEvaluatorDefinition: FieldSkippingEval
         issue: Issue,
         fieldname: String
     ): Boolean {
+        @Suppress("UNCHECKED_CAST")
         val propIssue = issue.proprietaryTargetInstance as? T
         val status = propIssue?.let { issueClient.getState(it) } ?: ""
         return when (status) {
