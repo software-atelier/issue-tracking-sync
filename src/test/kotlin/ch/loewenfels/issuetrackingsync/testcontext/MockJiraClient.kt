@@ -77,9 +77,11 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         fieldName: String,
         value: Any?
     ) {
+        // no-op
     }
 
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) {
+        // no-op
     }
 
     override fun createOrUpdateTargetIssue(
