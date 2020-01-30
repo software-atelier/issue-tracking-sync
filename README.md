@@ -1,3 +1,5 @@
+[![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=loewenfels_issue-tracking-sync&metric=alert_status)](https://sonarcloud.io/dashboard?id=loewenfels_issue-tracking-sync)
+
 # Synchronizing issues between multiple tracking platforms
 
 This tool synchronizes issues between [Atlassian JIRA](https://www.atlassian.com/software/jira) and [IBM RTC](https://jazz.net/products/rational-team-concert/). 
