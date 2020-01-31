@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct
 open class SyncApplicationProperties {
     lateinit var settingsLocation: String
     lateinit var pollingCron: String
+    var title: String = "Issue tracking synchronisation"
     var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
     var notificationChannels = ArrayList<NotificationChannel>()
         private set

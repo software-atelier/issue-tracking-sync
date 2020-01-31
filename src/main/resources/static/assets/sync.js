@@ -1,9 +1,21 @@
 var sync = {
     init: function () {
         sync._loadDefinedTrackingApplications();
+        sync.readSystemName();
         sync.readInfo();
         sync.updateStatistics();
         setInterval(sync.updateStatistics, 10000);
+    },
+
+    readSystemName: function () {
+        $.get('/systeminfo')
+            .done(function (response) {
+                if (response["title"] && response["title"] !== "") {
+                    var title = $('.sync-system-name');
+                    title.empty();
+                    title.append(response["title"]);
+                }
+            });
     },
 
     readInfo: function () {
@@ -15,7 +27,7 @@ var sync = {
                     var row = $("<div class='row'/>");
                     var labelCell = $("<div class='col-sm-3'>" + key + "</div>");
                     var valueCell = $("<div class='col-sm-3'>" + response[key] + "</div>");
-                    row.append(labelCell).append(valueCell)
+                    row.append(labelCell).append(valueCell);
                     container.append(row);
                 });
             });

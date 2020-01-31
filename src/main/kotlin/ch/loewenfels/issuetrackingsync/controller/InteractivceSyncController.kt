@@ -21,6 +21,14 @@ class InteractivceSyncController(
     private val syncApplicationProperties: SyncApplicationProperties,
     private val appState: AppState
 ) {
+
+    @GetMapping("/systeminfo")
+    fun getSystemInfo(): Map<String, Any> {
+        return mapOf(
+            "title" to syncApplicationProperties.title
+        )
+    }
+
     @GetMapping("/info")
     fun getSettings(): Map<String, String> {
         val dateFormat = "dd. MMM. yyyy HH:mm:ss"
