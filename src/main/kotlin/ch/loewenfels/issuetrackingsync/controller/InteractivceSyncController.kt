@@ -57,12 +57,10 @@ class InteractivceSyncController(
         } ?: "Failed to locate issue with key $key in ${trackingApplication.name}"
     }
 
-    private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? {
-        return clientFactory.getClient(trackingApplication).getIssue(key)
-    }
+    private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? =
+        clientFactory.getClient(trackingApplication).getIssue(key)
 
     @GetMapping("/definedSystems")
-    fun definedSystems(): List<String> {
-        return settings.trackingApplications.map { app -> app.name }.toList()
-    }
+    fun definedSystems(): List<String> =
+        settings.trackingApplications.map { app -> app.name }.toList()
 }

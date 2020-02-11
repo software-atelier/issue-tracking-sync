@@ -34,9 +34,8 @@ class WebhookController(
         }
     }
 
-    private fun retrieveIssue(body: JsonNode, trackingApplication: IssueTrackingApplication): Issue {
-        return clientFactory.getClient(trackingApplication).getIssueFromWebhookBody(body)
-    }
+    private fun retrieveIssue(body: JsonNode, trackingApplication: IssueTrackingApplication): Issue =
+        clientFactory.getClient(trackingApplication).getIssueFromWebhookBody(body)
 
     @ExceptionHandler(UnsupportedOperationException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST, reason = "Invalid webhook call")

@@ -19,7 +19,6 @@ class ExtendedAsynchronousJiraRestClientFactory : AsynchronousJiraRestClientFact
         serverUri: URI,
         username: String,
         password: String
-    ): ExtendedAsynchronousJiraRestClient {
-        return create(serverUri, BasicHttpAuthenticationHandler(username, password))
-    }
+    ): ExtendedAsynchronousJiraRestClient =
+        create(serverUri, BasicHttpAuthenticationHandler(username, password))
 }

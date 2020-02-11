@@ -32,7 +32,6 @@ class AppState {
         objectMapper.writeValue(backingFile, this)
     }
 
-    override fun toString(): String {
-        return this.javaClass.simpleName + "{lastPollingTimestamp=$lastPollingTimestamp}"
-    }
+    override fun toString(): String =
+        this.javaClass.simpleName + "{lastPollingTimestamp=$lastPollingTimestamp}"
 }

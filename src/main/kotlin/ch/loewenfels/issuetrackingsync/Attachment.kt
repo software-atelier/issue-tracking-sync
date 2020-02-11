@@ -8,7 +8,6 @@ data class Attachment(val filename: String, val content: ByteArray) {
         return content.contentHashCode() == other.content.contentHashCode()
     }
 
-    override fun hashCode(): Int {
-        return content.contentHashCode()
-    }
+    override fun hashCode(): Int =
+        content.contentHashCode()
 }

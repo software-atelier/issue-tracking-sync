@@ -1,5 +1,5 @@
 build:
-  maxIssues: 60
+  maxIssues: 40
   weights:
     complexity: 2
     style: 1

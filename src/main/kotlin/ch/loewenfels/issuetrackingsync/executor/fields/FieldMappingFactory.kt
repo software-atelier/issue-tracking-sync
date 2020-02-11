@@ -29,9 +29,8 @@ object FieldMappingFactory {
     }
 
 
-    private fun getFieldSkippingEvaluator(fieldMappingDefinition: FieldMappingDefinition): List<FieldSkippingEvaluator> {
-        return FieldSkippingEvaluatorFactory.getEvaluators(fieldMappingDefinition)
-    }
+    private fun getFieldSkippingEvaluator(fieldMappingDefinition: FieldMappingDefinition): List<FieldSkippingEvaluator> =
+        FieldSkippingEvaluatorFactory.getEvaluators(fieldMappingDefinition)
 
     private fun buildMapperAndCacheIfReusable(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
         val mapper = buildMapper(fieldMappingDefinition)
