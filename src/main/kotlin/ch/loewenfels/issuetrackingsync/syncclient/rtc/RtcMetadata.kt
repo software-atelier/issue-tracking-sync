@@ -2,7 +2,9 @@ package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import com.ibm.team.workitem.client.IWorkItemClient
-import com.ibm.team.workitem.common.model.*
+import com.ibm.team.workitem.common.model.IAttribute
+import com.ibm.team.workitem.common.model.ILiteral
+import com.ibm.team.workitem.common.model.Identifier
 
 object RtcMetadata {
     private val severities: MutableMap<String, Identifier<out ILiteral>> = mutableMapOf()

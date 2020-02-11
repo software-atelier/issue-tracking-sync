@@ -1,5 +1,5 @@
 build:
-  maxIssues: 40
+  maxIssues: 25
   weights:
     complexity: 2
     style: 1
@@ -54,7 +54,7 @@ style:
     active: false
   MaxLineLength:
     active: true
-    maxLineLength: 130
+    maxLineLength: 135
   OptionalWhenBraces:
     active: false
   OptionalUnit:

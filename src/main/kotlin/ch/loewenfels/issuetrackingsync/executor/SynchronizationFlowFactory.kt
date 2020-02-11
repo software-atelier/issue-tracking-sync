@@ -1,6 +1,8 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
