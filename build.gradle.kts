@@ -7,6 +7,7 @@ plugins {
     id("org.springframework.boot") version "2.2.2.RELEASE"
     id("io.spring.dependency-management") version "1.0.8.RELEASE"
     id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("io.gitlab.arturbosch.detekt") version "1.5.1"
 }
 
 group = "ch.loewenfels.issuetrackingsync"
@@ -50,6 +51,16 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
 }
 
+detekt {
+    failFast = true
+    config = files("$projectDir/detekt-config.yml")
+
+    reports {
+        html.enabled = true // observe findings in your browser with structure and code snippets
+        xml.enabled = true // checkstyle like format mainly for integrations like Jenkins, Sonar etc.
+    }
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
@@ -65,4 +76,9 @@ tasks.withType<ShadowJar> {
     archiveBaseName.set("app")
     archiveClassifier.set("")
     archiveVersion.set("")
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt> {
+    // Target version of the generated JVM bytecode. It is used for type resolution.
+    this.jvmTarget = "1.8"
 }
