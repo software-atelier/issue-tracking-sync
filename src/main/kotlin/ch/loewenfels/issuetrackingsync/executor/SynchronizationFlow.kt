@@ -14,7 +14,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Objects
 import kotlin.math.abs
 
 typealias SyncActionName = String
