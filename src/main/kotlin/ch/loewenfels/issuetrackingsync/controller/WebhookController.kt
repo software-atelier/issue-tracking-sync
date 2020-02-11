@@ -4,9 +4,7 @@ import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_RESPONSEMESSAGE
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.scheduling.SyncRequestProducer
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
-import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import ch.loewenfels.issuetrackingsync.syncconfig.Settings
-import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import ch.loewenfels.issuetrackingsync.syncconfig.*
 import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -43,5 +41,6 @@ class WebhookController(
     @ExceptionHandler(UnsupportedOperationException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST, reason = "Invalid webhook call")
     fun onUnsupportedOperationException() {
+        // no implementation, response is defined by annotation
     }
 }
