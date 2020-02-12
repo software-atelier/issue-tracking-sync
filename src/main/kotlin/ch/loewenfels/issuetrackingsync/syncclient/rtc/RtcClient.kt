@@ -8,6 +8,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.foundation.common.text.XMLString
 import com.ibm.team.process.client.IProcessClientService
+import com.ibm.team.process.common.IIterationHandle
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
@@ -165,28 +166,26 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
      */
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
         //
-        return when (fieldName) {
-            "priority", "internalPriority" -> RtcMetadata.getPriorityId(
+        val attribute = getAttribute(fieldName);
+        return when {
+            attribute.attributeType == "priority" -> RtcMetadata.getPriorityId(
                 value?.toString() ?: "",
                 getAttribute(IWorkItem.PRIORITY_PROPERTY),
                 workItemClient
             )
-            "severity", "internalSeverity" -> RtcMetadata.getSeverityId(
+            fieldName == "severity" || fieldName == "internalSeverity" -> RtcMetadata.getSeverityId(
                 value?.toString() ?: "",
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
-            "category" -> getCategoryIdentifier(value as String?)
+            attribute.attributeType == "category" -> getCategoryIdentifier(value as String?)
+            attribute.attributeType == "interval" -> getIntervalIdentifier(attribute, value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
-            "internalTags" -> value
-            else -> {
-                val attribute = getAttribute(fieldName);
-                if (AttributeTypes.isListAttributeType(attribute.attributeType) || //
+            fieldName == "internalTags" -> value
+            AttributeTypes.isListAttributeType(attribute.attributeType) ||
                     AttributeTypes.isEnumerationAttributeType(attribute.attributeType)
-                )
-                    getEnumerationIdentifier(fieldName, value) else
-                    value
-            }
+            -> getEnumerationIdentifier(fieldName, value)
+            else -> value
         }
     }
 
@@ -227,21 +226,36 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
+    private fun getIterationName(handle: IIterationHandle): String {
+        return auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null).name
+    }
+
+    private fun getIntervalIdentifier(attr: IAttribute, intervalName: String?): IIterationHandle? {
+        return auditableClient.resolveAuditable(
+            projectArea.projectDevelopmentLine,
+            ItemProfile.DEVELOPMENT_LINE_DEFAULT,
+            null
+        )
+            .iterations.firstOrNull { getIterationName(it) == intervalName }
+    }
+
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
-        return when (fieldName) {
-            "priority", "internalPriority" -> RtcMetadata.getPriorityName(
+        return when {
+            fieldName == "priority" || fieldName == "internalPriority" -> RtcMetadata.getPriorityName(
                 value.toString(),
                 getAttribute(IWorkItem.PRIORITY_PROPERTY),
                 workItemClient
             )
-            "severity", "internalSeverity" -> RtcMetadata.getSeverityName(
+            fieldName == "severity" || fieldName == "internalSeverity" -> RtcMetadata.getSeverityName(
                 value.toString(),
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
-            "category" -> getCategoryName(value as ICategoryHandle)
-            "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
-            else -> if (value is Identifier<*>) getEnumerationName(fieldName, value) else value
+            fieldName == "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
+            value is ICategoryHandle -> getCategoryName(value)
+            value is Identifier<*> -> getEnumerationName(fieldName, value)
+            value is IIterationHandle -> getIterationName(value)
+            else -> value
         }
     }
 
@@ -450,7 +464,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 attribute.attributeType
             )
         ) {
-            throw IllegalArgumentException("Attribute {fieldName} has no list")
+            throw IllegalArgumentException("Attribute $fieldName has no list")
         }
         val enumeration = workItemClient.resolveEnumeration(attribute, null)
         val values = getValue(internalIssue, fieldName)
