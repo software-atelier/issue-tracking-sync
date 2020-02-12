@@ -19,9 +19,7 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
-        return issueTrackingClient.getValue(proprietaryIssue, fieldname)
-    }
+    ): Any? = issueTrackingClient.getValue(proprietaryIssue, fieldname)
 
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,

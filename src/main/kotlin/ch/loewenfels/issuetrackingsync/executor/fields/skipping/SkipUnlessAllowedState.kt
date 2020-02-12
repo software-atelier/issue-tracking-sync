@@ -22,6 +22,6 @@ open class SkipUnlessAllowedState(fieldSkippingEvaluatorDefinition: FieldSkippin
         if (allowedStates is List<*>) {
             return !allowedStates.contains(status)
         }
-        throw  IllegalStateException("This class expects a property 'allowedStates' as a list of state IDs")
+        error("This class expects a property 'allowedStates' as a list of state IDs")
     }
 }
