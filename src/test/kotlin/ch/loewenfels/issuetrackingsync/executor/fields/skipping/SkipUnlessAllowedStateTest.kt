@@ -8,22 +8,22 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class SkipFieldOnStatusTest : AbstractSpringTest() {
+internal class SkipUnlessAllowedStateTest : AbstractSpringTest() {
     @Autowired
     private lateinit var clientFactory: ClientFactory
 
     @Test
     fun hasFieldToBeSkipped_allowedState_fieldShouldNotBeSkipped() {
         val fieldSkipDefinition = FieldSkippingEvaluatorDefinition(
-            SkipFieldOnStatus::class.java.name,
-            mutableMapOf("allowedStates" to "In work")
+            SkipUnlessAllowedState::class.java.name,
+            mutableMapOf("allowedStates" to mutableListOf("In work"))
         )
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
         issue.proprietaryTargetInstance = issue
         val targetClient =
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val testee = SkipFieldOnStatus(fieldSkipDefinition)
+        val testee = SkipUnlessAllowedState(fieldSkipDefinition)
         // act
         val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne")
         // assert
@@ -33,7 +33,25 @@ internal class SkipFieldOnStatusTest : AbstractSpringTest() {
     @Test
     fun hasFieldToBeSkipped_notAllowedState_fieldShouldNotBeSkipped() {
         val fieldSkipDefinition = FieldSkippingEvaluatorDefinition(
-            SkipFieldOnStatus::class.java.name,
+            SkipUnlessAllowedState::class.java.name,
+            mutableMapOf("allowedStates" to mutableListOf("someOtherState"))
+        )
+        val issue = TestObjects.buildIssue("MK-1")
+        issue.sourceUrl = "http://localhost/issues/MK-1"
+        issue.proprietaryTargetInstance = issue
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val testee = SkipUnlessAllowedState(fieldSkipDefinition)
+        // act
+        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne")
+        // assert
+        Assertions.assertTrue(result)
+    }
+
+    @Test
+    fun hasFieldToBeSkipped_allowedStatesIsNotList_illegalStateException() {
+        val fieldSkipDefinition = FieldSkippingEvaluatorDefinition(
+            SkipUnlessAllowedState::class.java.name,
             mutableMapOf("allowedStates" to "someOtherState")
         )
         val issue = TestObjects.buildIssue("MK-1")
@@ -41,10 +59,15 @@ internal class SkipFieldOnStatusTest : AbstractSpringTest() {
         issue.proprietaryTargetInstance = issue
         val targetClient =
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val testee = SkipFieldOnStatus(fieldSkipDefinition)
+        val testee = SkipUnlessAllowedState(fieldSkipDefinition)
         // act
-        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne")
-        // assert
-        Assertions.assertTrue(result)
+        Assertions.assertThrows(IllegalStateException::class.java) {
+            testee.hasFieldToBeSkipped(
+                targetClient,
+                issue,
+                issue,
+                "wayne"
+            )
+        }
     }
 }

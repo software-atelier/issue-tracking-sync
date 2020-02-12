@@ -8,7 +8,5 @@ data class FieldSkippingEvaluatorDefinition(
     /**
      * The class can hold some Properties
      */
-    var properties: Map<String, String> = mutableMapOf()
-
-
+    var properties: Map<String, Any> = mutableMapOf()
 )

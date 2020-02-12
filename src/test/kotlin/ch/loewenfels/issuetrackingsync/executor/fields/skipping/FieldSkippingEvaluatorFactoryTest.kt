@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class FieldSkippingEvaluatorFactoryTest {
-
     @Test
     fun getEvaluator_validClass_classLoaded() {
         // arrange
-        val mapping = buildFieldMappingDefinition(mutableListOf(SkipFieldOnStatus::class.java.name))
+        val mapping = buildFieldMappingDefinition(mutableListOf(SkipUnlessAllowedState::class.java.name))
         // act
         val evaluator = FieldSkippingEvaluatorFactory.getEvaluators(mapping)
         // assert
@@ -37,5 +36,4 @@ class FieldSkippingEvaluatorFactoryTest {
             "",
             fieldSkipEvalutors = evaluatorClassNames.map { FieldSkippingEvaluatorDefinition(classname = it) }.toMutableList()
         )
-
 }
