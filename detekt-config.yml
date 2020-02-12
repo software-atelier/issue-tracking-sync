@@ -1,0 +1,67 @@
+build:
+  maxIssues: 25
+  weights:
+    complexity: 2
+    style: 1
+
+comments:
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+  EndOfSentenceFormat:
+    active: false
+  UndocumentedPublicProperty:
+    active: false
+
+complexity:
+  ComplexInterface:
+    threshold: 15
+  ComplexMethod:
+    ignoreSingleWhenExpression: true
+    ignoreSimpleWhenEntries: true
+  LongParameterList:
+    threshold: 6
+  StringLiteralDuplication:
+    excludes: "**/src/test/**"
+  TooManyFunctions:
+    ignorePrivate: true
+
+exceptions:
+  NotImplementedDeclaration:
+    excludes: "**/src/test/**"
+
+naming:
+  FunctionMinLength:
+    excludes: "**/src/test/**"
+  FunctionMaxLength:
+    active: false
+
+performance:
+  ArrayPrimitive:
+    excludes: "**/src/test/**"
+
+potential-bugs:
+  UnsafeCast:
+    active: false
+  LateinitUsage:
+    excludes: "**/src/test/**"
+
+style:
+  DataClassShouldBeImmutable:
+    active: false
+  MandatoryBracesIfStatements:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 135
+  OptionalWhenBraces:
+    active: false
+  OptionalUnit:
+    active: false
+  UnnecessaryParentheses:
+    active: false
+  WildcardImport:
+    active: true
+  NewLineAtEndOfFile:
+    active: false

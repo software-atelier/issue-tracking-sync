@@ -1,7 +1,13 @@
 package ch.loewenfels.issuetrackingsync.scheduling
 
 import org.springframework.stereotype.Component
-import javax.jms.*
+import javax.jms.ConnectionFactory
+import javax.jms.JMSException
+import javax.jms.MapMessage
+import javax.jms.Message
+import javax.jms.MessageConsumer
+import javax.jms.MessageProducer
+import javax.jms.Session
 
 typealias QueueName = String
 

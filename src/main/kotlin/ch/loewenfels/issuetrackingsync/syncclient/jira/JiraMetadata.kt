@@ -8,13 +8,11 @@ object JiraMetadata {
     private val priorities: MutableMap<String, Long> = mutableMapOf()
     private val fieldTypes: MutableMap<String, String> = mutableMapOf()
 
-    fun getIssueTypeId(name: String, jiraRestClient: JiraRestClient): Long {
-        return getId(issueTypes, "issue type", name, jiraRestClient)
-    }
+    fun getIssueTypeId(name: String, jiraRestClient: JiraRestClient): Long =
+        getId(issueTypes, "issue type", name, jiraRestClient)
 
-    fun getPriorityId(name: String, jiraRestClient: JiraRestClient): Long {
-        return getId(priorities, "priority", name, jiraRestClient)
-    }
+    fun getPriorityId(name: String, jiraRestClient: JiraRestClient): Long =
+        getId(priorities, "priority", name, jiraRestClient)
 
     private fun getId(
         collection: MutableMap<String, Long>,
@@ -32,13 +30,11 @@ object JiraMetadata {
             }
     }
 
-    fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String {
-        return getName(priorities, "priority", null, internalId, jiraRestClient)
-    }
+    fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String =
+        getName(priorities, "priority", null, internalId, jiraRestClient)
 
-    fun getFieldType(internalId: String, jiraRestClient: JiraRestClient): String {
-        return getName(fieldTypes, "field", internalId, null, jiraRestClient)
-    }
+    fun getFieldType(internalId: String, jiraRestClient: JiraRestClient): String =
+        getName(fieldTypes, "field", internalId, null, jiraRestClient)
 
     private fun getName(
         collection: MutableMap<*, *>,

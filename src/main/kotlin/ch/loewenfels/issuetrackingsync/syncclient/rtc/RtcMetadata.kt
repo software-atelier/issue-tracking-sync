@@ -2,19 +2,19 @@ package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import com.ibm.team.workitem.client.IWorkItemClient
-import com.ibm.team.workitem.common.model.*
+import com.ibm.team.workitem.common.model.IAttribute
+import com.ibm.team.workitem.common.model.ILiteral
+import com.ibm.team.workitem.common.model.Identifier
 
 object RtcMetadata {
     private val severities: MutableMap<String, Identifier<out ILiteral>> = mutableMapOf()
     private val priorities: MutableMap<String, Identifier<out ILiteral>> = mutableMapOf()
 
-    fun getSeverityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? {
-        return getId(severities, "severity", name, attribute, workItemClient)
-    }
+    fun getSeverityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? =
+        getId(severities, "severity", name, attribute, workItemClient)
 
-    fun getPriorityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? {
-        return getId(priorities, "priority", name, attribute, workItemClient)
-    }
+    fun getPriorityId(name: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any? =
+        getId(priorities, "priority", name, attribute, workItemClient)
 
     private fun getId(
         collection: MutableMap<String, Identifier<out ILiteral>>,
@@ -29,13 +29,11 @@ object RtcMetadata {
         }
     }
 
-    fun getSeverityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        return getName(severities, "severity", internalId, attribute, workItemClient)
-    }
+    fun getSeverityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any =
+        getName(severities, "severity", internalId, attribute, workItemClient)
 
-    fun getPriorityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
-        return getName(priorities, "priority", internalId, attribute, workItemClient)
-    }
+    fun getPriorityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any =
+        getName(priorities, "priority", internalId, attribute, workItemClient)
 
     private fun getName(
         collection: MutableMap<String, Identifier<out ILiteral>>,

@@ -67,17 +67,16 @@ open class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDe
         }
     }
 
-    protected fun merge(priorityAndSeverity: Pair<*, *>): Any? {
+    private fun merge(priorityAndSeverity: Pair<*, *>): Any? {
         val keyFirstSecond = "${priorityAndSeverity.first},${priorityAndSeverity.second}"
         val keySecondFirst = "${priorityAndSeverity.second},${priorityAndSeverity.first}"
         return associations[keyFirstSecond] ?: associations[keySecondFirst] ?: associations[keyFallback]
         ?: throw IssueClientException("No association found for $priorityAndSeverity")
     }
 
-    protected fun split(priorityAndSeverity: Pair<*, *>): List<String> {
+    private fun split(priorityAndSeverity: Pair<*, *>): List<String> {
         val keyFirst = "${priorityAndSeverity.first}"
-        return (associations[keyFirst] ?: associations["*"])?.let {
-            it.split(",")
-        } ?: throw IssueClientException("No association found for $keyFirst")
+        return (associations[keyFirst] ?: associations["*"])?.split(",")
+            ?: throw IssueClientException("No association found for $keyFirst")
     }
 }

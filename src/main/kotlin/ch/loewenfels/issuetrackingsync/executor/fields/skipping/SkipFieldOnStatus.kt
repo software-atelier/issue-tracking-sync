@@ -15,10 +15,10 @@ open class SkipFieldOnStatus(fieldSkippingEvaluatorDefinition: FieldSkippingEval
         @Suppress("UNCHECKED_CAST")
         val propIssue = issue.proprietaryTargetInstance as? T
         val status = propIssue?.let { issueClient.getState(it) } ?: ""
-        return when (status) {
-            "" -> false
-            else -> fieldSkippingEvaluatorDefinition.properties["allowedStates"]?.split(",")?.contains(status)?.not()
-                ?: false
+        if(status == "") {
+            return false
         }
+        return fieldSkippingEvaluatorDefinition.properties["allowedStates"]?.split(",")
+            ?.contains(status)?.not()?: false
     }
 }

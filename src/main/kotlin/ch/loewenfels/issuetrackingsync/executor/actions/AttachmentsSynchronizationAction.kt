@@ -1,7 +1,10 @@
 package ch.loewenfels.issuetrackingsync.executor.actions
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
@@ -25,7 +28,8 @@ class AttachmentsSynchronizationAction : AbstractSynchronizationAction(),
                 issue.workLog.add("Added attachment ${it.filename}")
             }
         } else {
-            logger().warn("This action relies on a previous action loading source and target issues. Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action")
+            logger().warn("This action relies on a previous action loading source and target issues." +
+                    " Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action.")
         }
     }
 

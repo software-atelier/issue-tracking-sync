@@ -14,7 +14,5 @@ class ExtendedAsynchronousJiraRestClient(serverUri: URI, httpClient: DisposableH
         delegateForHtmlRendering = AsynchronousHtmlRenderingRestClient(baseUri, httpClient)
     }
 
-    fun getHtmlRenderingRestClient(): HtmlRenderingRestClient {
-        return delegateForHtmlRendering
-    }
+    fun getHtmlRenderingRestClient(): HtmlRenderingRestClient = delegateForHtmlRendering
 }

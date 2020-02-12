@@ -8,9 +8,7 @@ open class LinkToIssueFieldMapper : FieldMapper {
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
-        return ""
-    }
+    ): Any? = ""
 
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
