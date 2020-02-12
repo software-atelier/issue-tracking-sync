@@ -226,7 +226,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         val lastPollingTimestampAsString =
             lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
-        setup.project.let { jql += " AND project = '$it'" }
+        setup.project?.let { jql += " AND project = '$it'" }
         return jiraRestClient.searchClient
             .searchJql("$jql ORDER BY key")
             .claim()
