@@ -27,7 +27,6 @@ object RtcMetadata {
             loadEnumeration(attribute, workItemClient, collection)
             collection[name] ?: throw IssueClientException("Unknown $property $name")
         }
-
     }
 
     fun getSeverityName(internalId: String, attribute: IAttribute, workItemClient: IWorkItemClient): Any {
@@ -66,14 +65,5 @@ object RtcMetadata {
             .enumerationLiterals.forEach {
             collection[it.name] = it.identifier2
         }
-    }
-
-    fun getAttributeLiteral(
-        name: String,
-        attribute: IAttribute,
-        workItemClient: IWorkItemClient
-    ): Identifier<out ILiteral>? {
-        return workItemClient.resolveEnumeration(attribute, null)//
-            .enumerationLiterals.find { it.name == name }?.identifier2
     }
 }

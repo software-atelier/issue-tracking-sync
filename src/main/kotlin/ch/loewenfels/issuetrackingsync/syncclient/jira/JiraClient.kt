@@ -1,22 +1,15 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.Attachment
 import ch.loewenfels.issuetrackingsync.Comment
 import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import com.atlassian.jira.rest.client.api.domain.IssueField
-import com.atlassian.jira.rest.client.api.domain.IssueFieldId
-import com.atlassian.jira.rest.client.api.domain.TimeTracking
-import com.atlassian.jira.rest.client.api.domain.Transition
-import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
-import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
-import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
+import com.atlassian.jira.rest.client.api.domain.*
+import com.atlassian.jira.rest.client.api.domain.input.*
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
@@ -26,15 +19,11 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Collections
+import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.StreamSupport
-
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
@@ -117,6 +106,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String,
         value: Any?
     ) {
+        logger().debug("Setting value $value on $fieldName")
         convertToMetadataId(fieldName, value)?.let {
             val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
             if (beanWrapper.isWritableProperty(fieldName))
@@ -126,8 +116,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
-                } else if(fieldName == "labels" && value is ArrayList<*>) {
-                    if(value.isNotEmpty()) {
+                } else if (fieldName == "labels" && value is ArrayList<*>) {
+                    if (value.isNotEmpty()) {
                         setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
                     }
                 } else {
@@ -151,8 +141,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
-        return when (fieldName) {
-            "priorityId" -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
+        return when {
+            "priorityId" == fieldName -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
+            value is JSONObject -> value.get("value")
             else -> value
         }
     }
@@ -420,9 +411,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String
     ): Any? {
         val field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
-        val value: Any = field.value
-        val result: MutableList<String> = getArrayForJsonArrayValue(value)
-        return if (result.isEmpty()) value else result
+        return field.value?.let { getArrayForJsonArrayValue(it) }?.takeIf { !it.isEmpty() } ?: field.value
     }
 
     private fun getIssueFieldByNameOrId(

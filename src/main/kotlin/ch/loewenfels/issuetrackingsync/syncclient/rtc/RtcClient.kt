@@ -1,11 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -18,30 +13,14 @@ import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.IContent
 import com.ibm.team.repository.common.IContributor
-import com.ibm.team.workitem.client.IAuditableClient
-import com.ibm.team.workitem.client.IWorkItemClient
-import com.ibm.team.workitem.client.WorkItemWorkingCopy
+import com.ibm.team.workitem.client.*
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.AttributeExpression
-import com.ibm.team.workitem.common.expression.IQueryableAttribute
-import com.ibm.team.workitem.common.expression.QueryableAttributes
-import com.ibm.team.workitem.common.expression.Term
-import com.ibm.team.workitem.common.model.AttributeOperation
-import com.ibm.team.workitem.common.model.IAttachment
-import com.ibm.team.workitem.common.model.IAttachmentHandle
-import com.ibm.team.workitem.common.model.IAttribute
-import com.ibm.team.workitem.common.model.ICategoryHandle
-import com.ibm.team.workitem.common.model.ILiteral
-import com.ibm.team.workitem.common.model.IWorkItem
-import com.ibm.team.workitem.common.model.IWorkItemHandle
-import com.ibm.team.workitem.common.model.IWorkItemType
-import com.ibm.team.workitem.common.model.Identifier
-import com.ibm.team.workitem.common.model.ItemProfile
-import com.ibm.team.workitem.common.model.WorkItemEndPoints
-import com.ibm.team.workitem.common.model.WorkItemLinkTypes
+import com.ibm.team.workitem.common.expression.*
+import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
+import org.eclipse.core.runtime.AssertionFailedException
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
@@ -51,8 +30,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.ArrayList
-import java.util.LinkedList
+import java.util.*
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -162,6 +140,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         fieldName: String,
         value: Any?
     ) {
+        logger().debug("Setting value $value on $fieldName")
         val workItem = internalIssueBuilder as IWorkItem
         val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
@@ -180,7 +159,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) =
         setValue(internalIssueBuilder, issue, fieldName, htmlString)
 
+    /**
+     * Given a field and value, attempt to map the value to an RTC internal (metadata) ID. A value of
+     * "Needs analysis" might thus become "com.foobar.rtc.process_state.1"
+     */
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
+        //
         return when (fieldName) {
             "priority", "internalPriority" -> RtcMetadata.getPriorityId(
                 value?.toString() ?: "",
@@ -192,23 +176,55 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
-            "ch.igs.team.workitem.attribut.project" -> RtcMetadata.getAttributeLiteral(
-                    value?.toString() ?: "",
-                    getAttribute(fieldName),
-                    workItemClient
+            "category" -> getCategoryIdentifier(value as String?)
+            // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
+            "internalTags" -> value
+            else -> {
+                val attribute = getAttribute(fieldName);
+                if (AttributeTypes.isListAttributeType(attribute.attributeType) || //
+                    AttributeTypes.isEnumerationAttributeType(attribute.attributeType)
                 )
-            else -> value
+                    getEnumerationIdentifier(fieldName, value) else
+                    value
+            }
         }
     }
 
-    private fun getEnumerationValues(
-        fieldName: String,
-        value: ArrayList<*>
-    ): List<Identifier<out ILiteral>> {
+    private fun getEnumerationIdentifier(fieldName: String, value: Any?): Identifier<out ILiteral>? {
+        try {
+            return workItemClient.resolveEnumeration(
+                getAttribute(fieldName),
+                null
+            ).enumerationLiterals//
+                .find { it.name == value?.toString() ?: "" }?.identifier2
+        } catch (ex: AssertionFailedException) {
+            throw IllegalArgumentException("Attempted to enumerate field $fieldName, which isn't an enumeration", ex)
+        }
+    }
+
+    private fun getEnumerationName(fieldName: String, identifier: Identifier<*>): String {
+        return workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+            .findEnumerationLiteral(identifier as Identifier<out ILiteral>?)
+            .name
+    }
+
+    private fun getEnumerationValues(fieldName: String, value: ArrayList<*>): List<Identifier<out ILiteral>> {
         val enumerations = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
         return enumerations.enumerationLiterals//
             .filter { value.contains(it.name) }//
             .map { it.identifier2 }
+    }
+
+    private fun getCategoryName(value: ICategoryHandle): String {
+        val common = teamRepository.getClientLibrary(IWorkItemCommon::class.java) as IWorkItemCommon
+        return common.resolveHierarchicalName(value, progressMonitor)
+    }
+
+    private fun getCategoryIdentifier(categoryName: String?): ICategoryHandle? {
+        return categoryName?.let {
+            val common = teamRepository.getClientLibrary(IWorkItemCommon::class.java) as IWorkItemCommon
+            return common.findCategoryByNamePath(projectArea, it.split("/"), null)
+        }
     }
 
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
@@ -223,8 +239,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
+            "category" -> getCategoryName(value as ICategoryHandle)
             "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
-            else -> value
+            else -> if (value is Identifier<*>) getEnumerationName(fieldName, value) else value
         }
     }
 
@@ -345,11 +362,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun getAttribute(attributeName: String): IAttribute =
+        getAttributeNullable(attributeName) ?: throw IllegalArgumentException("Unknown attribute $attributeName")
+
+    private fun getAttributeNullable(attributeName: String): IAttribute? =
         workItemClient.findAttribute(
             projectArea,
             attributeName,
             progressMonitor
-        ) ?: throw IllegalArgumentException("Unknown attribute $attributeName")
+        )
 
     private fun toWorkItems(resolvedResults: IQueryResult<IResolvedResult<IWorkItem>>): List<IWorkItem> {
         val result = LinkedList<IWorkItem>()
@@ -425,7 +445,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getMultiSelectValues(internalIssue: IWorkItem, fieldName: String): List<String> {
-        val enumeration = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+        val attribute = getAttribute(fieldName)
+        if (!AttributeTypes.isListAttributeType(attribute.attributeType) && !AttributeTypes.isEnumerationAttributeType(
+                attribute.attributeType
+            )
+        ) {
+            throw IllegalArgumentException("Attribute {fieldName} has no list")
+        }
+        val enumeration = workItemClient.resolveEnumeration(attribute, null)
         val values = getValue(internalIssue, fieldName)
         if (values is List<*>) {
             val fieldValues = values.filterIsInstance<Identifier<ILiteral>>()
