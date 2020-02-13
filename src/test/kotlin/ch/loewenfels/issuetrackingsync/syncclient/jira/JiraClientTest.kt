@@ -84,7 +84,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val targetIssue = Mockito.mock(Issue::class.java)
         sourceIssue.proprietaryTargetInstance = targetIssue
         val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
-        val listOfLabels = arrayListOf("nextSprint","bug")
+        val listOfLabels = arrayListOf("nextSprint", "bug")
         val testee = JiraClient(buildSetup())
         // act
         testee.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels)
@@ -113,6 +113,7 @@ internal class JiraClientTest : AbstractSpringTest() {
             "myusername",
             "mysecret",
             "https://jira.foobar.com/jira",
+            "",
             false
         )
     }

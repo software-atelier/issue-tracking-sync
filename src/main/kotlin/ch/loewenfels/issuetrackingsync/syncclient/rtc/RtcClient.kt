@@ -328,7 +328,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
+    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
         val queryClient = workItemClient.queryClient
         val searchTerms = buildSearchTermForChangedIssues(lastPollingTimestamp)
         val resolvedResultOfWorkItems =

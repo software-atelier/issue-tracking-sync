@@ -99,6 +99,7 @@ internal class RtcClientTest : AbstractSpringTest() {
             "myusername",
             "mysecret",
             "https://rtc.foobar.com/rtc",
+            "",
             false,
             "Playground Löwenfels (RTC)"
         )

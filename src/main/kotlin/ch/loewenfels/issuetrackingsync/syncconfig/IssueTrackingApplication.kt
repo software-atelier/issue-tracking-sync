@@ -11,6 +11,7 @@ data class IssueTrackingApplication(
      */
     var password: String = "",
     var endpoint: String = "",
+    var pollingJqlFilter: String? = null,
     var polling: Boolean = false,
     /**
      * The [project] can be a JIRA project reference (eg. 'DEV') or an RTC project area name (eg. 'Development')

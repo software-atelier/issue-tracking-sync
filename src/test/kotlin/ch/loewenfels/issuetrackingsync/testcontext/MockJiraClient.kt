@@ -1,8 +1,6 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -94,7 +92,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         testIssues.add(issue)
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
+    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
         return testIssues
     }
 

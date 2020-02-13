@@ -1,8 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncclient
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.workitem.common.model.IWorkItem
@@ -70,7 +68,7 @@ interface IssueTrackingClient<T> {
      * - were updated since [lastPollingTimestamp] and [settings.json] defines no reference fields
      *     for this tracking application
      */
-    fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue>
+    fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String = "50"): Collection<Issue>
 
     fun getHtmlValue(internalIssue: T, fieldName: String): String?
 

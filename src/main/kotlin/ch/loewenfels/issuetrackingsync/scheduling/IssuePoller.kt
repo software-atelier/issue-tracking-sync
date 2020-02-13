@@ -38,7 +38,10 @@ class IssuePoller @Autowired constructor(
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
             val issueTrackingClient = clientFactory.getClient(trackingApp)
-            issueTrackingClient.changedIssuesSince(appState.lastPollingTimestamp ?: LocalDateTime.now())
+            issueTrackingClient.changedIssuesSince(
+                appState.lastPollingTimestamp ?: LocalDateTime.now(),
+                syncApplicationProperties.pollingMaxResults
+            )
                 .forEach { ticket ->
                     if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, ticket) != null) {
                         scheduleSync(ticket)

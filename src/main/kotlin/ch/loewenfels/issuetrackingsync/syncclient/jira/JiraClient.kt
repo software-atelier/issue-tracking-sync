@@ -22,8 +22,8 @@ import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.stream.Collectors.toList
-import java.util.stream.StreamSupport
+import java.util.stream.*
+import java.util.stream.Collectors.*
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
@@ -222,13 +222,14 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime): Collection<Issue> {
+    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
         val lastPollingTimestampAsString =
             lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project?.let { jql += " AND project = '$it'" }
+        setup.pollingJqlFilter?.let { jql += " AND $it" }
         return jiraRestClient.searchClient
-            .searchJql("$jql ORDER BY key")
+            .searchJql("$jql ORDER BY key", maxResults.toInt(), 0, setOf("*all"))
             .claim()
             .issues
             .map { mapJiraIssue(it) }
