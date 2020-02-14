@@ -281,6 +281,22 @@ The `ch.loewenfels.issuetrackingsync.executor.fields.SingleSelectionFieldMapper`
 MultiSelectionFieldMapper: it also uses an `associations` matrix for mapping single selection fields between both clients.
 The `association` matrix shall have the same structure as the above MultiSelectionFieldMapper.
 
+
+The `ch.loewenfels.issuetrackingsync.executor.fields.StatusFieldMapper` synchronizes state transitions, assuming that 
+source and target client systems have a rough association between their resp. workflows
+
+1. Gets the current state of the source issue (`getValue`)
+2. Gets the state changelog for the source issue (`getValue`)
+
+Then, in `setValue` the source's changelog is used to
+1. Locate the changelog entry which has a state matching the target issue's current state (using  the fields association map to translate source states to target states)
+2. For each changelog entry later than the one found in (1), retrieve the target state, seek a transition leading to that state, and transition the target issue 
+
+There are a few twists
+* JRJC easily provides available transitions for an issue via `jiraRestClient.issueClient.getTransitions(myIssue)`, but this contains no information on the target state of the transition. Thus, the `AsynchronousHtmlRenderingRestClient` uses a JSON response from the API's /transitions response to find a suitable transition for a target state
+* If a source state changelog entry contains a state unknown in the target system, synchronization fails
+* If the target system has multiple transitions for a single one on the source side, the field association can define a comma-separated list of target states
+
 #### actionDefinitions
 
 An action definition represents a synchronization sequence, similar to a macro. Typically, multiple field mappers are

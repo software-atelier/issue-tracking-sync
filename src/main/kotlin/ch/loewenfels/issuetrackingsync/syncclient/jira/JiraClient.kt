@@ -22,8 +22,6 @@ import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.stream.*
-import java.util.stream.Collectors.*
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)

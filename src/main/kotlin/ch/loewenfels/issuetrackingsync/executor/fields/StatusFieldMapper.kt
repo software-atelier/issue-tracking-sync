@@ -78,6 +78,9 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
         (associations[sourceStateHistory.toState]
             ?: throw IllegalStateException("Unmapped state ${sourceStateHistory.toState}")).split("[,;/]".toRegex())
 
+    /**
+     * Add only entries not yet in list (half set, half list)
+     */
     private fun addMissingStates(states: Collection<String>, result: MutableList<String>) {
         states
             .filter { !result.contains(it) }
