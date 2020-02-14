@@ -12,8 +12,7 @@ import com.ibm.team.process.common.IIterationHandle
 import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
-import com.ibm.team.repository.common.IContent
-import com.ibm.team.repository.common.IContributor
+import com.ibm.team.repository.common.*
 import com.ibm.team.workitem.client.*
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
@@ -179,7 +178,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 workItemClient
             )
             attribute.attributeType == "category" -> getCategoryIdentifier(value as String?)
-            attribute.attributeType == "interval" -> getIntervalIdentifier(attribute, value as String?)
+            attribute.attributeType == "interval" -> getIntervalIdentifier(value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
             fieldName == "internalTags" -> value
             AttributeTypes.isListAttributeType(attribute.attributeType) ||
@@ -202,6 +201,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun getEnumerationName(fieldName: String, identifier: Identifier<*>): String {
+        @Suppress("UNCHECKED_CAST")
         return workItemClient.resolveEnumeration(getAttribute(fieldName), null)
             .findEnumerationLiteral(identifier as Identifier<out ILiteral>?)
             .name
@@ -230,7 +230,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null).name
     }
 
-    private fun getIntervalIdentifier(attr: IAttribute, intervalName: String?): IIterationHandle? {
+    private fun getIntervalIdentifier(intervalName: String?): IIterationHandle? {
         return auditableClient.resolveAuditable(
             projectArea.projectDevelopmentLine,
             ItemProfile.DEVELOPMENT_LINE_DEFAULT,
@@ -485,11 +485,50 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getState(internalIssue: IWorkItem): String {
-        return internalIssue.state2.stringIdentifier
+        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
+        return workflowInfo.getStateName(internalIssue.state2)
     }
 
-    override fun setState(internalIssue: IWorkItem, targetState: String, additionalInformation: List<Any>) {
-        // TODO: This feature is currently only available for synchronisation from RTC to Jira
+    fun listAllStates(internalIssue: IWorkItem): Map<String, String> {
+        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
+        return workflowInfo.allStateIds
+            .map { it.stringIdentifier to workflowInfo.getStateName(it) }
+            .toMap()
+    }
+
+    override fun getStateHistory(internalIssue: IWorkItem): List<StateHistory> {
+        var previousState: Identifier<IState>? = null
+        val result = mutableListOf<StateHistory>()
+        val itemManager = teamRepository.itemManager()
+        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
+        // note that RTC returns a history collection which is NOT sorted by change date
+        itemManager.fetchAllStateHandles(internalIssue.stateHandle as IAuditableHandle, null)
+            .map { itemManager.fetchCompleteState(it as IAuditableHandle, null) as IWorkItem }
+            .sortedBy { it.modified() }
+            .forEach {
+                if (previousState != null && it.state2 != previousState) {
+                    val updateTimestamp = LocalDateTime.ofInstant(it.modified().toInstant(), ZoneId.systemDefault())
+                    result.add(
+                        StateHistory(
+                            updateTimestamp,
+                            workflowInfo.getStateName(previousState),
+                            workflowInfo.getStateName(it.state2)
+                        )
+                    )
+                }
+                previousState = it.state2
+            }
+        return result;
+    }
+
+    override fun setState(internalIssue: IWorkItem, targetState: String) {
+        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
+        val workflowActionTowardsTargetState = workflowInfo.getActionIds(internalIssue.state2)
+            .first { workflowInfo.getStateName(workflowInfo.getActionResultState(it)) == targetState }
+            ?: throw IllegalArgumentException("No action found leading to state $targetState")
+        doWithWorkingCopy(internalIssue) {
+            it.workflowAction = workflowActionTowardsTargetState.stringIdentifier
+        }
     }
 
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {

@@ -136,10 +136,17 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
     }
 
     override fun getState(internalIssue: Issue): String {
-        return "In work"
+        return "In Work"
     }
 
-    override fun setState(internalIssue: Issue, targetState: String, additionalInformation: List<Any>) {
+    override fun getStateHistory(internalIssue: Issue): List<StateHistory> {
+        return listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Open", "Authorized"),
+            StateHistory(LocalDateTime.now(), "Authorized", "In Work")
+        );
+    }
+
+    override fun setState(internalIssue: Issue, targetState: String) {
         // no-op
     }
 }

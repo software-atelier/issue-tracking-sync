@@ -9,6 +9,8 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * This mapper splits or merges priority and severity. The direction is defined by the [fieldname], allowed
  * values are:
  * - priority [, severity]
+ *
+ * This mapper works with [Pair] values
  */
 open class PriorityAndSeverityFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
     private val keyFallback = "*,*"

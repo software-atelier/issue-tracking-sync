@@ -16,7 +16,7 @@ internal class SkipUnlessAllowedStateTest : AbstractSpringTest() {
     fun hasFieldToBeSkipped_allowedState_fieldShouldNotBeSkipped() {
         val fieldSkipDefinition = FieldSkippingEvaluatorDefinition(
             SkipUnlessAllowedState::class.java.name,
-            mutableMapOf("allowedStates" to mutableListOf("In work"))
+            mutableMapOf("allowedStates" to mutableListOf("In Work"))
         )
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"

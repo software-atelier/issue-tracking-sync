@@ -127,10 +127,18 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
     }
 
     override fun getState(internalIssue: Issue): String {
-        return "In work"
+        return "In Umsetzung"
     }
 
-    override fun setState(internalIssue: Issue, targetState: String, additionalInformation: List<Any>) {
+    override fun getStateHistory(internalIssue: Issue): List<StateHistory> {
+        return listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
+            StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
+            StateHistory(LocalDateTime.now(), "Bereit zur Umsetzung", "In Umsetzung")
+        )
+    }
+
+    override fun setState(internalIssue: Issue, targetState: String) {
         // no-op
     }
 }

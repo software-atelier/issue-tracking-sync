@@ -55,15 +55,29 @@ interface IssueTrackingClient<T> {
 
     fun getMultiSelectValues(internalIssue: T, fieldName: String): List<String>
 
+    /**
+     * Get the human-readable string representation of the current [internalIssue] state
+     */
     fun getState(internalIssue: T): String
 
-    fun setState(internalIssue: T, targetState: String, additionalInformation: List<Any>)
+    /**
+     * Get all state transitions. The last entry in the result will contain the transition to the
+     * current [getState]
+     */
+    fun getStateHistory(internalIssue: T): List<StateHistory>
+
+    /**
+     * Set the state on the [internalIssue]. It is in the callers responsibility to ensure that the [targetState]
+     * is available as transition from the current state of the [internalIssue]. If multiple transitions are
+     * required, call this method multiple times
+     */
+    fun setState(internalIssue: T, targetState: String)
 
     fun createOrUpdateTargetIssue(issue: Issue, defaultsForNewIssue: DefaultsForNewIssue?)
 
     /**
      * Get all issues which:
-     * - were created on a MASTER or PEER system since [lastPollingTimestamp]
+     * - were created since [lastPollingTimestamp]
      * - were updated since [lastPollingTimestamp] and have a reference to another tracking application
      * - were updated since [lastPollingTimestamp] and [settings.json] defines no reference fields
      *     for this tracking application
