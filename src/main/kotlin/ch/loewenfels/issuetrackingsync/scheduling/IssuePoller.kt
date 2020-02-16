@@ -5,6 +5,8 @@ import ch.loewenfels.issuetrackingsync.app.AppState
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowFactory
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
+import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,6 +25,8 @@ class IssuePoller @Autowired constructor(
     private val clientFactory: ClientFactory,
     private val synchronizationFlowFactory: SynchronizationFlowFactory
 ) : Logging {
+    private val batchSize = 200
+    
     @PostConstruct
     fun afterPropertiesSet() {
         logger().info("Polling set for {}", syncApplicationProperties.pollingCron)
@@ -38,18 +42,33 @@ class IssuePoller @Autowired constructor(
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
             val issueTrackingClient = clientFactory.getClient(trackingApp)
-            issueTrackingClient.changedIssuesSince(
+            pollIssuesInBatches(issueTrackingClient, trackingApp)
+
+        }
+        appState.lastPollingTimestamp = LocalDateTime.now()
+        appState.persist(objectMapper)
+    }
+
+    private fun pollIssuesInBatches(
+        issueTrackingClient: IssueTrackingClient<Any>,
+        trackingApp: IssueTrackingApplication
+    ) {
+        var offset = 0
+        do {
+            val changedIssues = issueTrackingClient.changedIssuesSince(
                 appState.lastPollingTimestamp ?: LocalDateTime.now(),
-                syncApplicationProperties.pollingMaxResults
+                batchSize,
+                offset
             )
+            changedIssues
                 .forEach { ticket ->
                     if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, ticket) != null) {
                         scheduleSync(ticket)
                     }
                 }
-        }
-        appState.lastPollingTimestamp = LocalDateTime.now()
-        appState.persist(objectMapper)
+            offset += batchSize
+
+        } while (changedIssues.size > 0)
     }
 
     private fun scheduleSync(issue: Issue) = syncRequestProducer.queue(issue)

@@ -82,7 +82,11 @@ interface IssueTrackingClient<T> {
      * - were updated since [lastPollingTimestamp] and [settings.json] defines no reference fields
      *     for this tracking application
      */
-    fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String = "50"): Collection<Issue>
+    fun changedIssuesSince(
+        lastPollingTimestamp: LocalDateTime,
+        batchSize: Int,
+        offset: Int
+    ): Collection<Issue>
 
     fun getHtmlValue(internalIssue: T, fieldName: String): String?
 

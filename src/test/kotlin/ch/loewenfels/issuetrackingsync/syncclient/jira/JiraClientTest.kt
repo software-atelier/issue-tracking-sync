@@ -51,7 +51,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         verifySetup(testee)
         val lastUpdated = LocalDateTime.now().minusDays(2)
         // act
-        val issues = testee.changedIssuesSince(lastUpdated)
+        val issues = testee.changedIssuesSince(lastUpdated, 0, 50)
         // assert
         assertNotNull(issues)
     }

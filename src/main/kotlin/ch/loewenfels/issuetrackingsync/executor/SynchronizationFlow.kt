@@ -1,20 +1,14 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import ch.loewenfels.issuetrackingsync.syncconfig.*
 import java.time.temporal.ChronoUnit
-import java.util.Objects
+import java.util.*
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -68,10 +62,10 @@ class SynchronizationFlow(
             loadInternalSourceIssue(issue)
             syncActions.forEach { execute(it, issue) }
             writeBackKeyReference(issue)
-            notificationObserver.notifySuccessfulSync(issue)
+            notificationObserver.notifySuccessfulSync(issue, syncActions)
         } catch (ex: Exception) {
             logger().debug(ex.message, ex)
-            notificationObserver.notifyException(issue, ex)
+            notificationObserver.notifyException(issue, ex, syncActions)
         }
     }
 

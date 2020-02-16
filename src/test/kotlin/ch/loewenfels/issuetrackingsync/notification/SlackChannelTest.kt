@@ -2,6 +2,9 @@ package ch.loewenfels.issuetrackingsync.notification
 
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
+import ch.loewenfels.issuetrackingsync.executor.SyncActionName
+import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpPost
@@ -25,8 +28,9 @@ internal class SlackChannelTest {
         val properties = defaultProperties()
         val testee = SlackChannel(properties)
         testee.injectedHttpClient = httpClient
+        val syncActions = createSyncActions()
         // act
-        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()))
+        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()), syncActions)
         // assert
         val captor = ArgumentCaptor.forClass(HttpPost::class.java)
         Mockito.verify(httpClient).execute(captor.capture())
@@ -44,8 +48,9 @@ internal class SlackChannelTest {
         val properties = defaultProperties()
         val testee = SlackChannel(properties)
         testee.injectedHttpClient = httpClient
+        val syncActions = createSyncActions()
         // act
-        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()))
+        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()), syncActions)
         // assert
         Mockito.verify(httpClient).execute(Mockito.any(HttpPost::class.java))
     }
@@ -54,5 +59,14 @@ internal class SlackChannelTest {
         val properties = NotificationChannelProperties()
         properties.endpoint = "http://localhost:8080/slack"
         return properties
+    }
+
+    private fun createSyncActions(): Map<SyncActionName, SynchronizationAction> {
+        return mapOf<SyncActionName, SynchronizationAction>(
+            Pair(
+                "SynchronizeTimeJiraToRtc",
+                SimpleSynchronizationAction()
+            )
+        )
     }
 }

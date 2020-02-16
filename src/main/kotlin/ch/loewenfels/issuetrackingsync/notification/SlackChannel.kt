@@ -1,9 +1,9 @@
 package ch.loewenfels.issuetrackingsync.notification
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
-import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.executor.SyncActionName
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.apache.http.HttpEntity
@@ -38,14 +38,21 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
         sslContext = SSLContextBuilder.create().setProtocol("TLSv1.2").build()
     }
 
-    override fun onSuccessfulSync(issue: Issue) {
+    override fun onSuccessfulSync(
+        issue: Issue,
+        syncActions: Map<SyncActionName, SynchronizationAction>
+    ) {
         val source = issue.sourceUrl?.let { "<$it|${issue.key}>" } ?: issue.key
         val target = issue.targetUrl?.let { "<$it|${issue.targetKey ?: "Issue"}>" } ?: issue.targetKey ?: "Issue"
         val message = "Synchronized issue $source to $target\n" + issue.workLog.joinToString(separator = "\n")
         sendMessage(message.trim())
     }
 
-    override fun onException(issue: Issue, ex: Exception) {
+    override fun onException(
+        issue: Issue,
+        ex: Exception,
+        syncActions: Map<SyncActionName, SynchronizationAction>
+    ) {
         sendMessage(
             "Failed to sync issue ${issue.key} triggered from ${issue.clientSourceName}\n" +
                     "Exception was: ${ex.message}"
@@ -62,9 +69,9 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
                 setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
             }
             val client = injectedHttpClient ?: HttpClientBuilder.create()
-                    .setDefaultRequestConfig(requestConfig)
-                    .setSSLContext(sslContext)
-                    .build()
+                .setDefaultRequestConfig(requestConfig)
+                .setSSLContext(sslContext)
+                .build()
             client.use { it.execute(httpPost) }
         } catch (ex: Exception) {
             logger().error("Failed to notify Slack", ex)

@@ -220,14 +220,18 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
+    override fun changedIssuesSince(
+        lastPollingTimestamp: LocalDateTime,
+        batchSize: Int,
+        offset: Int
+    ): Collection<Issue> {
         val lastPollingTimestampAsString =
             lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project?.let { jql += " AND project = '$it'" }
         setup.pollingJqlFilter?.let { jql += " AND $it" }
         return jiraRestClient.searchClient
-            .searchJql("$jql ORDER BY key", maxResults.toInt(), 0, setOf("*all"))
+            .searchJql("$jql ORDER BY key", batchSize, offset, setOf("*all"))
             .claim()
             .issues
             .map { mapJiraIssue(it) }

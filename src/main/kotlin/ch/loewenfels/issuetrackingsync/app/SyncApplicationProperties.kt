@@ -8,7 +8,6 @@ import javax.annotation.PostConstruct
 open class SyncApplicationProperties {
     lateinit var settingsLocation: String
     lateinit var pollingCron: String
-    lateinit var pollingMaxResults: String
     var title: String = "Issue tracking synchronisation"
     var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
     var notificationChannels = ArrayList<NotificationChannel>()
@@ -35,4 +34,8 @@ class NotificationChannelProperties {
     var username: String = ""
     var subject: String = ""
     var avatar: String = ""
+    var csvProtocolLocation: String = ""
 }
+
+
+

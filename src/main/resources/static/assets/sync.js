@@ -32,7 +32,23 @@ var sync = {
                 });
             });
     },
-
+    runManualTimetrackingSync: function () {
+        $.ajax({
+            url: '/manualTimetrackingSync',
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(""),
+            success: function (data) {
+                $('#manual-sync-error').text("").hide();
+                $('#manual-sync-status').text(data.message).show();
+            },
+            error: function (data) {
+                $('#manual-sync-error').text("An error occurred: " + data.message).show();
+                $('#manual-sync-status').text("").hide();
+            }
+        });
+    },
     updateStatistics: function () {
         $.get('/statistics')
             .done(function (response) {

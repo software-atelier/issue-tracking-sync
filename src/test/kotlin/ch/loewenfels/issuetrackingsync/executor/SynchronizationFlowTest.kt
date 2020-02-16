@@ -1,6 +1,7 @@
 package ch.loewenfels.issuetrackingsync.executor
 
 import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.notification.NotificationChannel
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -19,11 +20,18 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     companion object TestNotificationChannel : NotificationChannel {
         val successfulIssueKeys: MutableList<String> = mutableListOf()
         val erroneousIssueKeys: MutableList<String> = mutableListOf()
-        override fun onSuccessfulSync(issue: Issue) {
+        override fun onSuccessfulSync(
+            issue: Issue,
+            syncActions: Map<SyncActionName, SynchronizationAction>
+        ) {
             successfulIssueKeys.add(issue.key)
         }
 
-        override fun onException(issue: Issue, ex: Exception) {
+        override fun onException(
+            issue: Issue,
+            ex: Exception,
+            syncActions: Map<SyncActionName, SynchronizationAction>
+        ) {
             erroneousIssueKeys.add(issue.key)
         }
     }

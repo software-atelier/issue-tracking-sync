@@ -79,7 +79,11 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         issue.proprietaryTargetInstance = targetIssue
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
+    override fun changedIssuesSince(
+        lastPollingTimestamp: LocalDateTime,
+        batchSize: Int,
+        offset: Int
+    ): Collection<Issue> {
         return testIssues
     }
 

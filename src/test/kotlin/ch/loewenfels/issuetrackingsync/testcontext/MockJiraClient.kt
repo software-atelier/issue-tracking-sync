@@ -92,7 +92,11 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         testIssues.add(issue)
     }
 
-    override fun changedIssuesSince(lastPollingTimestamp: LocalDateTime, maxResults: String): Collection<Issue> {
+    override fun changedIssuesSince(
+        lastPollingTimestamp: LocalDateTime,
+        batchSize: Int,
+        offset: Int
+    ): Collection<Issue> {
         return testIssues
     }
 
