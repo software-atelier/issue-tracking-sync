@@ -136,8 +136,8 @@ class StatusFieldMapperTest : AbstractSpringTest() {
                 "In Umsetzung" to "In Work",
                 "In Umsetzung angehalten" to "Interrupted",
                 "Bereit zur Abnahme" to "In Test,Resolved",
-                "In Abnahme" to "In Test,Resolved",
-                "Abnahme angehalten" to "In Test,Resolved",
+                "In Abnahme" to "Resolved",
+                "Abnahme angehalten" to "Resolved",
                 "Abgeschlossen" to "Closed"
             )
         val fieldDefinition = FieldMappingDefinition(
