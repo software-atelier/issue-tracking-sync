@@ -37,7 +37,10 @@ class SynchronizationFlow(
     private val syncActions: Map<SyncActionName, SynchronizationAction>
     private val issueFilter: IssueFilter?
     private val defaultsForNewIssue: DefaultsForNewIssue?
-    private val syncAbortThreshold = 5
+
+    companion object {
+        val syncAbortThreshold = 5
+    }
 
     init {
         syncActions = syncFlowDefinition.actions.associateBy({ it }, { buildSyncAction(it, actionDefinitions) })
