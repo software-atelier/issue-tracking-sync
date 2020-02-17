@@ -53,10 +53,12 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
         ex: Exception,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ) {
-        sendMessage(
-            "Failed to sync issue ${issue.key} triggered from ${issue.clientSourceName}\n" +
-                    "Exception was: ${ex.message}"
-        )
+        val source = issue.sourceUrl?.let { "<$it|${issue.key}>" } ?: issue.key
+        val target = issue.targetUrl?.let { "<$it|${issue.targetKey ?: "Issue"}>" } ?: issue.targetKey ?: "Issue"
+        val message = ":warning: Something went wrong synchronizing issue $source to $target\n" +
+                "Exception was: ${ex.message}\n" +
+                issue.workLog.joinToString(separator = "\n")
+        sendMessage(message.trim())
     }
 
     private fun sendMessage(text: String) {

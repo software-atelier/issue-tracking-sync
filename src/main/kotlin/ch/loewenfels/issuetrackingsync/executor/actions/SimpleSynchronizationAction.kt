@@ -16,5 +16,6 @@ class SimpleSynchronizationAction : AbstractSynchronizationAction(),
     ) {
         buildTargetIssueValues(sourceClient, issue, fieldMappings)
         createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
+        issue.workLog.add("Synchronized fields for ${issue.key}")
     }
 }

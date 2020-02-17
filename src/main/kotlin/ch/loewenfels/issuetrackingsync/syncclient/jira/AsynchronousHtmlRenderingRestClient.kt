@@ -86,6 +86,6 @@ class AsynchronousHtmlRenderingRestClient(private val baseUri: URI, client: Http
         }
 
         private fun toLocalDateTime(s: String): LocalDateTime =
-            LocalDateTime.parse(s, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+            LocalDateTime.parse(s, DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"))
     }
 }

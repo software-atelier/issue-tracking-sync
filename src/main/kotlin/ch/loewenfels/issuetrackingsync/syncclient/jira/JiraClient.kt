@@ -204,6 +204,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
         val basicIssue = jiraRestClient.issueClient.createIssue(issueBuilder.build()).claim()
         logger().info("Created new JIRA issue ${basicIssue.key}")
+        issue.workLog.add("Created new JIRA issue ${basicIssue.key}")
         val targetIssue =
             getProprietaryIssue(basicIssue.key) ?: throw IssueClientException("Failed to locate newly created issue")
 

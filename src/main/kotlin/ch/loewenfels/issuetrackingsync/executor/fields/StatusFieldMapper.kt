@@ -76,14 +76,15 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
      */
     private fun getCorrespondingStatesInTargetWorld(sourceStateHistory: StateHistory): List<String> =
         (associations[sourceStateHistory.toState]
-            ?: throw IllegalStateException("Unmapped state ${sourceStateHistory.toState}")).split("[,;/]".toRegex())
+            ?: throw IllegalStateException("Unmapped source state ${sourceStateHistory.toState}")).split("[,;/]".toRegex())
 
     /**
-     * Add only entries not yet in list (half set, half list)
+     * Add entries while ensuring that there are no states immediately repeating themselves. Thus
+     * `'In Work', 'Interrupted', 'In Work'` is allowed, but `'In Work', 'In Work'` is not
      */
     private fun addMissingStates(states: Collection<String>, result: MutableList<String>) {
         states
-            .filter { !result.contains(it) }
+            .filter { result.isEmpty() || result.last() != it }
             .forEach { result.add(it) }
     }
 }

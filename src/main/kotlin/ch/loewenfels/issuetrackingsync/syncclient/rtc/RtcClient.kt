@@ -289,6 +289,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         operation.workItem?.let { mapNewIssueValues(it, issue) }
         val workItem: IWorkItem = auditableClient.resolveAuditable(handle, IWorkItem.FULL_PROFILE, progressMonitor)
         logger().info("Created new RTC issue ${workItem.id}")
+        issue.workLog.add("Created new RTC issue ${workItem.id}")
         return workItem
     }
 
@@ -315,6 +316,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {
+        issue.proprietaryTargetInstance = targetIssue
         doWithWorkingCopy(targetIssue) {
             val changeableWorkingItem = it.workItem
             mapNewIssueValues(changeableWorkingItem, issue)
