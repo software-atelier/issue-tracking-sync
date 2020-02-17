@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
-class SimpleSynchronizationAction : AbstractSynchronizationAction(),
+class SimpleSynchronizationAction(val actionName: String) : AbstractSynchronizationAction(),
     SynchronizationAction {
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,
@@ -16,6 +16,6 @@ class SimpleSynchronizationAction : AbstractSynchronizationAction(),
     ) {
         buildTargetIssueValues(sourceClient, issue, fieldMappings)
         createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
-        issue.workLog.add("Synchronized fields for ${issue.key}")
+        issue.workLog.add("Synchronized fields for ${issue.key} using $actionName")
     }
 }

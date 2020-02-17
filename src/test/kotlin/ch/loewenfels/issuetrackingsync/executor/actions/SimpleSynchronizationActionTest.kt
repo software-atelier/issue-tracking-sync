@@ -21,7 +21,7 @@ internal class SimpleSynchronizationActionTest : AbstractSpringTest() {
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
         val fieldMappings = TestObjects.buildFieldMappingList()
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
-        val testee = SimpleSynchronizationAction()
+        val testee = SimpleSynchronizationAction("foobar")
         issue.proprietarySourceInstance = issue
         // act
         testee.execute(sourceClient, targetClient, issue, fieldMappings, null)

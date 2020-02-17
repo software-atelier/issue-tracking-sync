@@ -164,14 +164,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             ) else null) as com.atlassian.jira.rest.client.api.domain.Issue?
         when {
             targetIssue != null -> {
-                issue.proprietaryTargetInstance = targetIssue
-                issue.targetUrl = getIssueUrl(targetIssue)
                 updateTargetIssue(targetIssue, issue)
             }
             defaultsForNewIssue != null -> {
-                targetIssue = createTargetIssue(defaultsForNewIssue, issue)
-                issue.proprietaryTargetInstance = targetIssue
-                issue.targetUrl = getIssueUrl(targetIssue)
+                createTargetIssue(defaultsForNewIssue, issue)
             }
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
@@ -214,12 +210,23 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
         val issueBuilder = IssueInputBuilder()
-        issue.proprietaryTargetInstance = targetIssue
+
+        setTargetPropertiesOnSyncIssue(targetIssue, issue)
+
         issue.fieldMappings.forEach {
             it.setTargetValue(issueBuilder, issue, this)
         }
         logger().info("Updating JIRA issue ${targetIssue.key}")
         jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
+    }
+
+    private fun setTargetPropertiesOnSyncIssue(
+        targetIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        issue: Issue
+    ) {
+        issue.proprietaryTargetInstance = targetIssue
+        issue.targetKey = getKey(targetIssue)
+        issue.targetUrl = getIssueUrl(targetIssue)
     }
 
     override fun changedIssuesSince(

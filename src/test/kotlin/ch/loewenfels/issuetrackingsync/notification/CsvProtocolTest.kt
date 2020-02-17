@@ -12,7 +12,6 @@ import java.io.File
 import java.time.LocalDateTime
 
 internal class CsvProtocolTest {
-
     @Test
     fun onSuccessfulSync_writeToCsvSuccess_noException() {
         // arrange
@@ -26,7 +25,6 @@ internal class CsvProtocolTest {
         assertCsvEntry(issue)
     }
 
-
     private fun defaultProperties(): NotificationChannelProperties {
         val properties = NotificationChannelProperties()
         properties.classname = "ch.loewenfels.issuetrackingsync.notification.CsvProtocol"
@@ -38,7 +36,7 @@ internal class CsvProtocolTest {
         return mapOf<SyncActionName, SynchronizationAction>(
             Pair(
                 "SynchronizeTimeJiraToRtc",
-                SimpleSynchronizationAction()
+                SimpleSynchronizationAction("CSV")
             )
         )
     }
@@ -48,6 +46,5 @@ internal class CsvProtocolTest {
         val lastLine = file.readLines()
             .findLast { line -> line.contains(issue.key) }
         assertThat(lastLine, containsString("SynchronizeTimeJiraToRtc"))
-
     }
 }

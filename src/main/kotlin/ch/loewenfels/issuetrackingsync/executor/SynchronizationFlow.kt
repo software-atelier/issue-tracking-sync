@@ -53,7 +53,16 @@ class SynchronizationFlow(
     ): SynchronizationAction {
         val actionDefinition = actionDefinitions.first { it.name.equals(actionName, ignoreCase = true) }
         val actionClass = Class.forName(actionDefinition.classname) as Class<SynchronizationAction>
-        return actionClass.getDeclaredConstructor().newInstance()
+        return try {
+            actionClass.getConstructor(String::class.java).newInstance(actionName)
+        } catch (e: Exception) {
+            // no ctor taking a FieldMappingDefinition, so look for empty ctor
+            try {
+                actionClass.getDeclaredConstructor().newInstance()
+            } catch (e2: Exception) {
+                throw IllegalArgumentException("Failed to instantiate action class ${actionDefinition.classname}", e2)
+            }
+        }
     }
 
     fun applies(source: TrackingApplicationName, issue: Issue): Boolean {
@@ -110,7 +119,7 @@ class SynchronizationFlow(
     private fun updateKeyReferenceOnTarget(issue: Issue) {
         issue.keyFieldMapping?.let {
             val fieldMappings = listOf(it)
-            SimpleSynchronizationAction().execute(
+            SimpleSynchronizationAction("SourceReferenceOnTarget").execute(
                 sourceClient,
                 targetClient,
                 issue,
@@ -132,7 +141,7 @@ class SynchronizationFlow(
                 invertedKeyMapping.loadSourceValue(invertedIssue, targetClient)
                 invertedIssue.keyFieldMapping = invertedKeyMapping
                 val fieldMappings = listOf(invertedKeyMapping)
-                SimpleSynchronizationAction().execute(
+                SimpleSynchronizationAction("ReferenceWriteBack").execute(
                     targetClient,
                     sourceClient,
                     invertedIssue,

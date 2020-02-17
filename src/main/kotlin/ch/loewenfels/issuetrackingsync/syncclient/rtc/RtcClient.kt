@@ -272,11 +272,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             ) else null) as IWorkItem?
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
-            defaultsForNewIssue != null -> targetIssue = createTargetIssue(defaultsForNewIssue, issue)
+            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
             else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
         }
-        issue.proprietaryTargetInstance = targetIssue
-        issue.targetUrl = getIssueUrl(targetIssue)
     }
 
     private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue): IWorkItem {
@@ -290,6 +288,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val workItem: IWorkItem = auditableClient.resolveAuditable(handle, IWorkItem.FULL_PROFILE, progressMonitor)
         logger().info("Created new RTC issue ${workItem.id}")
         issue.workLog.add("Created new RTC issue ${workItem.id}")
+        setTargetPropertiesOnSyncIssue(workItem, issue)
         return workItem
     }
 
@@ -316,12 +315,19 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {
-        issue.proprietaryTargetInstance = targetIssue
+        setTargetPropertiesOnSyncIssue(targetIssue, issue)
+
         doWithWorkingCopy(targetIssue) {
             val changeableWorkingItem = it.workItem
             mapNewIssueValues(changeableWorkingItem, issue)
             logger().info("Updating RTC issue ${targetIssue.id}")
         }
+    }
+
+    private fun setTargetPropertiesOnSyncIssue(targetIssue: IWorkItem, issue: Issue) {
+        issue.proprietaryTargetInstance = targetIssue
+        issue.targetKey = getKey(targetIssue)
+        issue.targetUrl = getIssueUrl(targetIssue)
     }
 
     private fun mapNewIssueValues(targetIssue: IWorkItem, issue: Issue) {

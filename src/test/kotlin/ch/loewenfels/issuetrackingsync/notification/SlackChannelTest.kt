@@ -65,7 +65,7 @@ internal class SlackChannelTest {
         return mapOf<SyncActionName, SynchronizationAction>(
             Pair(
                 "SynchronizeTimeJiraToRtc",
-                SimpleSynchronizationAction()
+                SimpleSynchronizationAction("Slack")
             )
         )
     }
