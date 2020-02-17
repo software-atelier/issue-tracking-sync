@@ -4,26 +4,16 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
-import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
-import java.io.OutputStreamWriter
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class CsvProtocol(properties: NotificationChannelProperties) : NotificationChannel {
     private val csvHeader = "Datum;Source Issue;Target Issue;Sync Actions;Status"
     private val csvLocation = properties.csvProtocolLocation
-    private val file = File(csvLocation)
-    private val fos = FileOutputStream(file, true);
-    private val bw = BufferedWriter(OutputStreamWriter(fos))
-
-    init {
-        if (file.readLines().size == 0) {
-            bw.appendln(csvHeader)
-            bw.flush()
-        }
-    }
+    val file = File(csvLocation)
 
     override fun onSuccessfulSync(
         issue: Issue,
@@ -45,12 +35,21 @@ class CsvProtocol(properties: NotificationChannelProperties) : NotificationChann
         syncActions: Map<SyncActionName, SynchronizationAction>,
         success: Boolean
     ) {
+        val fileHeaders = !file.exists()
         val source = issue.key
         val target = issue.targetKey ?: ""
         val status = if (success) "Erfolgreich" else "Fehler"
-        val entry = "${LocalDateTime.now()};${source};${target};${concatActions(syncActions)};$status"
-        bw.appendln(entry)
-        bw.flush()
+        val entry = "${currentTime()};${source};${target};${concatActions(syncActions)};$status"
+        FileOutputStream(file, true).bufferedWriter(Charsets.ISO_8859_1).use { out ->
+            if (fileHeaders) {
+                out.appendln(csvHeader)
+            }
+            out.appendln(entry)
+        }
+    }
+
+    private fun currentTime(): String {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     }
 
     private fun concatActions(syncActions: Map<SyncActionName, SynchronizationAction>) =
