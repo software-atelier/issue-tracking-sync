@@ -5,6 +5,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
+@Suppress("UnnecessaryAbstractClass")
 abstract class AbstractSynchronizationAction {
     protected fun buildTargetIssueValues(
         sourceClient: IssueTrackingClient<Any>,

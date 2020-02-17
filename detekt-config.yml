@@ -45,7 +45,7 @@ potential-bugs:
   UnsafeCast:
     active: false
   LateinitUsage:
-    excludes: "**/src/test/**"
+    active: false
 
 style:
   DataClassShouldBeImmutable:
@@ -64,4 +64,6 @@ style:
   WildcardImport:
     active: true
   NewLineAtEndOfFile:
+    active: false
+  MagicNumber:
     active: false

@@ -1,18 +1,12 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import ch.loewenfels.issuetrackingsync.syncconfig.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
@@ -67,6 +61,7 @@ class SynchronizationFlow(
                 issueFilter?.test(sourceClient, issue) ?: true
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun execute(issue: Issue) {
         try {
             loadInternalSourceIssue(issue)

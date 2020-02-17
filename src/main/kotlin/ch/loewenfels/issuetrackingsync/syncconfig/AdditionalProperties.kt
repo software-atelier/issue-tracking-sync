@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.syncconfig
 
-class AdditionalProperties(
+data class AdditionalProperties(
     var preComment: String = "",
     var postComment: String = "",
     var allTransitions: Map<String, List<String>> = mutableMapOf(),

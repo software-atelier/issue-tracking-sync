@@ -1,14 +1,12 @@
 package ch.loewenfels.issuetrackingsync.syncclient
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.StateHistory
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.workitem.common.model.IWorkItem
 import java.time.LocalDateTime
 
+@Suppress("ComplexInterface", "LongParameterList", "TooManyFunctions")
 interface IssueTrackingClient<T> {
     /**
      * Attempt to load an issue by unique key. Returns absent value if no issue is found, or if the client

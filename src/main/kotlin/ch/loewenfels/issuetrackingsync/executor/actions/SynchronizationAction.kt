@@ -6,6 +6,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.AdditionalProperties
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
+@Suppress("LongParameterList")
 interface SynchronizationAction {
     fun execute(
         sourceClient: IssueTrackingClient<Any>,

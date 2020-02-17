@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEva
 import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEvaluatorFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
+@Suppress("TooGenericExceptionCaught")
 object FieldMappingFactory {
     private val mapperInstances = mutableMapOf<String, FieldMapper>()
 
@@ -28,7 +29,6 @@ object FieldMappingFactory {
         )
     }
 
-
     private fun getFieldSkippingEvaluator(fieldMappingDefinition: FieldMappingDefinition): List<FieldSkippingEvaluator> =
         FieldSkippingEvaluatorFactory.getEvaluators(fieldMappingDefinition)
 
@@ -40,7 +40,7 @@ object FieldMappingFactory {
         return mapper
     }
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "SwallowedException")
     private fun buildMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {
         val mapperClass = try {
             Class.forName(fieldMappingDefinition.mapperClassname) as Class<FieldMapper>
@@ -53,11 +53,12 @@ object FieldMappingFactory {
         return try {
             mapperClass.getConstructor(FieldMappingDefinition::class.java).newInstance(fieldMappingDefinition)
         } catch (e: Exception) {
-            null
-        } ?: try {
-            mapperClass.getDeclaredConstructor().newInstance()
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to instantiate mapper class $mapperClass", e)
+            // no ctor taking a FieldMappingDefinition, so look for empty ctor
+            try {
+                mapperClass.getDeclaredConstructor().newInstance()
+            } catch (e2: Exception) {
+                throw IllegalArgumentException("Failed to instantiate mapper class $mapperClass", e2)
+            }
         }
     }
 }
