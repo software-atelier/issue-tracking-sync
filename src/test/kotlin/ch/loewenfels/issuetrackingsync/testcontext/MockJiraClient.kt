@@ -105,9 +105,10 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
             Comment(
                 "Quiet Mary",
                 LocalDateTime.now().minusHours(36),
-                "I'll have to take a closer look at the logic here"
+                "I'll have to take a closer look at the logic here",
+                "4321"
             ),
-            Comment("Happy Joe", LocalDateTime.now().minusHours(24), "Mary, could this be related to BUG-1234?")
+            Comment("Happy Joe", LocalDateTime.now().minusHours(24), "Mary, could this be related to BUG-1234?", "2345")
         )
     }
 

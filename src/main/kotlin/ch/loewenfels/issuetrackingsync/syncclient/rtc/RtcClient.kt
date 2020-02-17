@@ -93,7 +93,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getLastUpdated(internalIssue: IWorkItem): LocalDateTime =
-        LocalDateTime.ofInstant(internalIssue.modified().toInstant(), ZoneId.systemDefault())
+        toLocalDateTime(internalIssue.modified())
 
     override fun getKey(internalIssue: IWorkItem): String =
         internalIssue.id.toString()
@@ -413,8 +413,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     ItemProfile.CONTRIBUTOR_DEFAULT,
                     null
                 ) as IContributor).name,
-                rtcComment.creationDate.toLocalDateTime(),
-                rtcComment.htmlContent.plainText
+                toLocalDateTime(rtcComment.creationDate),
+                rtcComment.htmlContent.xmlText,
+                rtcComment.creationDate.time.toString()
             )
         }
     }
@@ -535,6 +536,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
+    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
+        setValue(internalIssueBuilder, issue, fieldName, (timeInMinutes?.toLong() ?: 0) * millisToMinutes)
+    }
+
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
         val copyManager = workItemClient.workItemWorkingCopyManager
         copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)
@@ -553,6 +558,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     fun listMetadata(): List<IAttribute> =
         workItemClient.findAttributes(projectArea, progressMonitor).toList()
 
+    private fun toLocalDateTime(sqlDate: Date): LocalDateTime =
+        sqlDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    private fun toLocalDateTime(sqlTimestamp: Timestamp): LocalDateTime =
+        sqlTimestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
     inner class LoginHandler : ITeamRepository.ILoginHandler, ITeamRepository.ILoginHandler.ILoginInfo {
         override fun getUserId(): String {
             return setup.username
@@ -565,9 +576,5 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         override fun challenge(repository: ITeamRepository?): ITeamRepository.ILoginHandler.ILoginInfo {
             return this
         }
-    }
-
-    override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {
-        setValue(internalIssueBuilder, issue, fieldName, (timeInMinutes?.toLong() ?: 0) * millisToMinutes)
     }
 }

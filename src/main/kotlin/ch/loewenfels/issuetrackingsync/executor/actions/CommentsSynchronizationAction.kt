@@ -38,19 +38,23 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                 .map { mapContentOfComment(it, additionalProperties) }//
                 .forEach {
                     targetClient.addComment(internalTargetIssue, it)
-                    issue.workLog.add("Added comment from ${it.author}")
+                    issue.workLog.add("Added comment from ${it.author} created ${it.timestamp}")
                 }
         } else {
-            logger().warn("This action relies on a previous action loading source and target issues." +
-                    " Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action.")
+            logger().warn(
+                "This action relies on a previous action loading source and target issues." +
+                        " Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action."
+            )
         }
     }
 
     private fun mapContentOfComment(comment: Comment, additionalProperties: AdditionalProperties?): Comment {
         val preComment: String = replacePlaceholders(additionalProperties?.preComment ?: "", comment)
         val postComment: String = replacePlaceholders(additionalProperties?.postComment ?: "", comment)
-        val content = preComment + comment.content + postComment
-        return Comment(comment.author, comment.timestamp, content)
+        val content = listOf(preComment, comment.content, postComment)
+            .filter { it.isNotEmpty() }
+            .joinToString("<br/>")
+        return Comment(comment.author, comment.timestamp, content, comment.internalId)
     }
 
     private fun replacePlaceholders(
@@ -59,6 +63,7 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     ): String {
         return containingPlaceholders
             .replace("\${author}", comment.author)//
+            .replace("\${id}", comment.internalId)//
             .replace("\${time}", comment.timestamp.format(timeFormatter)) //
             .replace("\${date}", comment.timestamp.format(dateFormatter)) //
     }
@@ -74,8 +79,8 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
         targetComments: List<Comment>
     ): Boolean =
         targetComments.any { targetComment ->
-            sourceComment.content.contains(targetComment.content) || targetComment.content.contains(
-                sourceComment.content
-            )
+            sourceComment.content.contains(targetComment.content) //
+                    || targetComment.content.contains(sourceComment.content) //
+                    || targetComment.content.contains(sourceComment.internalId) //
         }
 }

@@ -28,6 +28,7 @@ import java.util.*
  */
 open class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<com.atlassian.jira.rest.client.api.domain.Issue>, Logging {
+    private val backReferenceCommentId = "00000000"
     private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
         URI(setup.endpoint),
         setup.username,
@@ -238,29 +239,25 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .toList()
     }
 
-    override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> {
-        return internalIssue.comments.map { jiraComment ->
-            Comment(
-                jiraComment.author?.displayName ?: "n/a",
-                toLocalDateTime(jiraComment.creationDate),
-                jiraComment.body
+    override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> =
+        jiraRestClient.getHtmlRenderingRestClient().getHtmlComments(internalIssue.key)
+            .plusElement(
+                createLinkComment(internalIssue)
             )
-        }.plusElement(
-            createLinkComment(internalIssue)
-        )
-    }
 
     private fun createLinkComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): Comment {
         // Because a direct link in the other tracking application to this Jira issue would be nice
         return Comment(
             setup.username,
             toLocalDateTime(internalIssue.creationDate),
-            "Jira link: " + setup.endpoint + "/browse/" + internalIssue.key
+            "Jira link: " + setup.endpoint + "/browse/" + internalIssue.key,
+            backReferenceCommentId
         )
     }
 
     override fun addComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, comment: Comment) {
-        val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(comment.content)
+        val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(comment.content)
+        val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(convertedValue)
         jiraRestClient.issueClient.addComment(internalIssue.commentsUri, jiraComment).claim()
     }
 

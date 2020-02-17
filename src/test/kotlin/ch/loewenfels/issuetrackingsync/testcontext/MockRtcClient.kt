@@ -92,9 +92,10 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
             Comment(
                 "Quiet Mary",
                 LocalDateTime.now().minusHours(36),
-                "I'll have to take a closer look at the logic here"
+                "I'll have to take a closer look at the logic here",
+                "4444"
             ),
-            Comment("Impatient Rick", LocalDateTime.now().minusHours(24), "Mary, this is rather urgent!")
+            Comment("Impatient Rick", LocalDateTime.now().minusHours(24), "Mary, this is rather urgent!", "5555")
         )
     }
 
