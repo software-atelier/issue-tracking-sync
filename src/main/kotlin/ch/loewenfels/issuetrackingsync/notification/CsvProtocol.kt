@@ -4,8 +4,12 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
-import java.io.*
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.time.LocalDateTime
+
 
 class CsvProtocol(properties: NotificationChannelProperties) : NotificationChannel {
     private val csvHeader = "Datum;Source Issue;Target Issue;Sync Actions;Status"

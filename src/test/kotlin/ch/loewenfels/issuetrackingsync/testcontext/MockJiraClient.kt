@@ -1,6 +1,9 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.StateHistory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -97,7 +100,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         batchSize: Int,
         offset: Int
     ): Collection<Issue> {
-        return testIssues
+        if (offset < 200) return testIssues else return emptyList()
     }
 
     override fun getComments(internalIssue: Issue): List<Comment> {
