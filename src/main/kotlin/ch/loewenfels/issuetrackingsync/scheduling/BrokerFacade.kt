@@ -14,7 +14,8 @@ typealias QueueName = String
 @Component
 class BrokerFacade(private val connectionFactory: ConnectionFactory) {
     private val statisticsBrokers = mutableMapOf<QueueName, StatisticsBrokerAccess>()
-
+    private val timeoutIntervall: Long = 2000
+    
     @Throws(JMSException::class)
     fun getStatistics(queueName: QueueName): QueueStatistics? {
         val brokerAccess = statisticsBrokers.getOrPut(queueName, { StatisticsBrokerAccess(queueName) })
@@ -51,7 +52,7 @@ class BrokerFacade(private val connectionFactory: ConnectionFactory) {
 
         fun getCurrentStatistics(): MapMessage? {
             statisticsMessageProducer.send(statisticsMessage)
-            return statisticsMessageConsumer.receive(2000) as MapMessage?
+            return statisticsMessageConsumer.receive(timeoutIntervall) as MapMessage?
         }
     }
 }

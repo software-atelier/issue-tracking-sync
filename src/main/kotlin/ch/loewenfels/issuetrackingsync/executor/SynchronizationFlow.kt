@@ -37,6 +37,7 @@ class SynchronizationFlow(
     private val syncActions: Map<SyncActionName, SynchronizationAction>
     private val issueFilter: IssueFilter?
     private val defaultsForNewIssue: DefaultsForNewIssue?
+    private val syncAbortThreshold = 5
 
     init {
         syncActions = syncFlowDefinition.actions.associateBy({ it }, { buildSyncAction(it, actionDefinitions) })
@@ -79,7 +80,7 @@ class SynchronizationFlow(
         val sourceIssue =
             sourceClient.getProprietaryIssue(issue.key) ?: throw IllegalArgumentException("No source issue found")
         val gap = issue.lastUpdated.until(sourceClient.getLastUpdated(sourceIssue), ChronoUnit.SECONDS)
-        if (abs(gap) > 5) {
+        if (abs(gap) > syncAbortThreshold) {
             throw SynchronizationAbortedException("Issues have been updated since synchronization request")
         }
         issue.proprietarySourceInstance = sourceIssue
