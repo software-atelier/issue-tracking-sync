@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.scheduling
 
-class QueueStatistics(
+data class QueueStatistics(
     val queuename: String,
     /**
      * The number of messages that currently reside in the queue.
@@ -25,11 +25,11 @@ class QueueStatistics(
      */
     val averageEnqueueTime: Double,
     val memoryUsage: Long,
-    memoryPercentUsage: Long
+    val memoryUsageInPercent: Long
 ) {
     val memoryPercentUsage: Double
 
     init {
-        this.memoryPercentUsage = memoryPercentUsage / 100.0
+        memoryPercentUsage = memoryUsageInPercent / 100.0
     }
 }
