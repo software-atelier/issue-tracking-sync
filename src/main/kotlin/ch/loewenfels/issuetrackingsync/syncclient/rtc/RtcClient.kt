@@ -8,8 +8,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.foundation.common.text.XMLString
 import com.ibm.team.process.client.IProcessClientService
-import com.ibm.team.process.common.IIterationHandle
-import com.ibm.team.process.common.IProjectArea
+import com.ibm.team.process.common.*
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.*
@@ -140,12 +139,13 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         fieldName: String,
         value: Any?
     ) {
-        logger().debug("Setting value $value on $fieldName")
         val workItem = internalIssueBuilder as IWorkItem
         val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
-            when (value) {
-                is ArrayList<*> -> workItem.setValue(attribute, getEnumerationValues(fieldName, value))
+            logger().debug("Setting value $value on $fieldName")
+            when (it) {
+                is IIterationHandle -> workItem.target = it
+                is ICategoryHandle -> workItem.category = it
                 else -> workItem.setValue(attribute, it)
             }
         }
@@ -181,6 +181,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             attribute.attributeType == "interval" -> getIntervalIdentifier(value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
             fieldName == "internalTags" -> value
+            // handle multi-select values
+            AttributeTypes.isEnumerationListAttributeType(attribute.attributeType) && value is List<*> ->
+                getEnumerationValues(fieldName, value)
+            // handle single-select values
             AttributeTypes.isListAttributeType(attribute.attributeType) ||
                     AttributeTypes.isEnumerationAttributeType(attribute.attributeType)
             -> getEnumerationIdentifier(fieldName, value)
@@ -207,7 +211,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             .name
     }
 
-    private fun getEnumerationValues(fieldName: String, value: ArrayList<*>): List<Identifier<out ILiteral>> {
+    private fun getEnumerationValues(fieldName: String, value: List<*>): List<Identifier<out ILiteral>> {
         val enumerations = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
         return enumerations.enumerationLiterals//
             .filter { value.contains(it.name) }//
@@ -226,17 +230,38 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    private fun getIterationName(handle: IIterationHandle): String {
-        return auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null).name
-    }
+    private fun getIteration(handle: IIterationHandle): IIteration =
+        auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null) as IIteration
 
+    /**
+     * The [intervalName] might be something like "I2003.3 - 3.77", while RTC defines:
+     *
+     * - Iteration named "I2003"
+     * - Child named '3 - 3.77'
+     */
     private fun getIntervalIdentifier(intervalName: String?): IIterationHandle? {
+        if (intervalName == null) {
+            return null
+        }
         return auditableClient.resolveAuditable(
             projectArea.projectDevelopmentLine,
             ItemProfile.DEVELOPMENT_LINE_DEFAULT,
             null
         )
-            .iterations.firstOrNull { getIterationName(it) == intervalName }
+            .iterations
+            .map { getIteration(it) }
+            .firstOrNull { intervalName.startsWith(it.name) }
+            ?.let { getIntervalIdentifier(it, intervalName) }
+    }
+
+    private fun getIntervalIdentifier(parentIteration: IIteration, intervalName: String): IIterationHandle? {
+        if (parentIteration.name == intervalName) {
+            return parentIteration
+        }
+        return parentIteration.children
+            .map { getIteration(it) }
+            .firstOrNull { intervalName.startsWith(it.name) }
+            ?.let { getIntervalIdentifier(it, intervalName) }
     }
 
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
@@ -254,7 +279,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             fieldName == "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
             value is ICategoryHandle -> getCategoryName(value)
             value is Identifier<*> -> getEnumerationName(fieldName, value)
-            value is IIterationHandle -> getIterationName(value)
+            value is IIterationHandle -> getIteration(value).name
             else -> value
         }
     }
