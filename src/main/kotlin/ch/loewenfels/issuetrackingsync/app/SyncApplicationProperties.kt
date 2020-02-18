@@ -34,7 +34,6 @@ class NotificationChannelProperties {
     var username: String = ""
     var subject: String = ""
     var avatar: String = ""
-    var csvProtocolLocation: String = ""
 }
 
 

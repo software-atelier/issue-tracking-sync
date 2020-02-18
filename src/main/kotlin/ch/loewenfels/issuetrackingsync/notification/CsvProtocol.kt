@@ -9,10 +9,9 @@ import java.io.FileOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
 class CsvProtocol(properties: NotificationChannelProperties) : NotificationChannel {
     private val csvHeader = "Datum;Source Issue;Target Issue;Sync Actions;Status"
-    private val csvLocation = properties.csvProtocolLocation
+    private val csvLocation = properties.endpoint
     val file = File(csvLocation)
 
     override fun onSuccessfulSync(

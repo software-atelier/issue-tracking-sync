@@ -22,13 +22,13 @@ internal class CsvProtocolTest {
         // act
         testee.onSuccessfulSync(issue, syncActions)
         // assert
-        assertCsvEntry(issue)
+        assertCsvEntry(issue, properties)
     }
 
     private fun defaultProperties(): NotificationChannelProperties {
         val properties = NotificationChannelProperties()
         properties.classname = "ch.loewenfels.issuetrackingsync.notification.CsvProtocol"
-        properties.csvProtocolLocation = "src/test/resources/protocol.csv"
+        properties.endpoint = File.createTempFile("protocol", ".csv").absolutePath
         return properties
     }
 
@@ -41,8 +41,8 @@ internal class CsvProtocolTest {
         )
     }
 
-    private fun assertCsvEntry(issue: Issue) {
-        val file: File = File(defaultProperties().csvProtocolLocation)
+    private fun assertCsvEntry(issue: Issue, properties: NotificationChannelProperties) {
+        val file = File(properties.endpoint)
         val lastLine = file.readLines()
             .findLast { line -> line.contains(issue.key) }
         assertThat(lastLine, containsString("SynchronizeTimeJiraToRtc"))
