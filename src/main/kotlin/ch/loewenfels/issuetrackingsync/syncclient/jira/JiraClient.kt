@@ -210,14 +210,19 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     private fun updateTargetIssue(targetIssue: com.atlassian.jira.rest.client.api.domain.Issue, issue: Issue) {
         val issueBuilder = IssueInputBuilder()
-
         setTargetPropertiesOnSyncIssue(targetIssue, issue)
 
         issue.fieldMappings.forEach {
             it.setTargetValue(issueBuilder, issue, this)
         }
         logger().info("Updating JIRA issue ${targetIssue.key}")
-        jiraRestClient.issueClient.updateIssue(targetIssue.key, issueBuilder.build()).claim()
+        val issueInput = issueBuilder.build()
+        try {
+            jiraRestClient.issueClient.updateIssue(targetIssue.key, issueInput).claim()
+        } catch (e: RuntimeException) {
+            issue.workLog.add("Failed to update using issue input: $issueInput")
+            throw e
+        }
     }
 
     private fun setTargetPropertiesOnSyncIssue(
@@ -292,14 +297,14 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         internalIssue: com.atlassian.jira.rest.client.api.domain.Issue,
         fieldName: String
     ): List<String> {
-        val value = getValue(internalIssue, fieldName)
+        val value = getValue(internalIssue, fieldName) ?: listOf<String>()
         if (value is List<*>) {
             return value.filterIsInstance<String>()
         }
         if (value is JSONObject) {
             return listOf(value["value"].toString())
         }
-        throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
+        throw IllegalArgumentException("The field $fieldName was expected to return an array, got $value instead. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
     override fun getState(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String {

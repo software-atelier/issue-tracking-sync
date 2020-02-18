@@ -316,7 +316,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun updateTargetIssue(targetIssue: IWorkItem, issue: Issue) {
         setTargetPropertiesOnSyncIssue(targetIssue, issue)
-
         doWithWorkingCopy(targetIssue) {
             val changeableWorkingItem = it.workItem
             mapNewIssueValues(changeableWorkingItem, issue)
@@ -480,7 +479,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             throw IllegalArgumentException("Attribute $fieldName has no list")
         }
         val enumeration = workItemClient.resolveEnumeration(attribute, null)
-        val values = getValue(internalIssue, fieldName)
+        val values = getValue(internalIssue, fieldName) ?: listOf<Identifier<ILiteral>>()
         if (values is List<*>) {
             val fieldValues = values.filterIsInstance<Identifier<ILiteral>>()
             val stringIdentifiers = fieldValues.map { it.stringIdentifier }
@@ -494,7 +493,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 .filter { it.identifier2.stringIdentifier == stringIdentifier }//
                 .map { it.name }
         }
-        throw IllegalArgumentException("The field $fieldName was expected to return an array. Did you forget to configure the MultiSelectionFieldMapper?")
+        throw IllegalArgumentException("The field $fieldName was expected to return an array, got $values instead. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
     override fun getState(internalIssue: IWorkItem): String {

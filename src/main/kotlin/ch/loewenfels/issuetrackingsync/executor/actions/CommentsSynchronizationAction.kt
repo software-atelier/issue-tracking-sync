@@ -81,9 +81,9 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
         targetComments.any { targetComment ->
             sourceComment.content.contains(targetComment.content) //
                     || targetComment.content.contains(sourceComment.content) //
-                    // if the source comment contains its own internal ID, it must have been sync'ed there
+                    // if the source comment contains the internal ID of a target, it must have been sync'ed
                     // from another system, so don't sync it back anywhere
-                    || sourceComment.content.contains(sourceComment.internalId) //
+                    || sourceComment.content.contains(targetComment.internalId) //
                     // a match here means the source comment was already synced to the target system
                     || targetComment.content.contains(sourceComment.internalId) //
         }
