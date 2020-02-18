@@ -75,20 +75,23 @@ class SynchronizationFlow(
         try {
             loadInternalSourceIssue(issue)
             syncActions.forEach { execute(it, issue) }
-            writeBackKeyReference(issue)
             notificationObserver.notifySuccessfulSync(issue, syncActions)
         } catch (ex: Exception) {
             logger().debug(ex.message, ex)
             notificationObserver.notifyException(issue, ex, syncActions)
+        } finally {
+            writeBackKeyReference(issue)
         }
     }
 
-    private fun loadInternalSourceIssue(issue: Issue) {
+    private fun loadInternalSourceIssue(issue: Issue, checkLastUpdatedTimestamp: Boolean = true) {
         val sourceIssue =
             sourceClient.getProprietaryIssue(issue.key) ?: throw IllegalArgumentException("No source issue found")
-        val gap = issue.lastUpdated.until(sourceClient.getLastUpdated(sourceIssue), ChronoUnit.SECONDS)
-        if (abs(gap) > syncAbortThreshold) {
-            throw SynchronizationAbortedException("Issues have been updated since synchronization request")
+        if (checkLastUpdatedTimestamp) {
+            val gap = issue.lastUpdated.until(sourceClient.getLastUpdated(sourceIssue), ChronoUnit.SECONDS)
+            if (abs(gap) > syncAbortThreshold) {
+                throw SynchronizationAbortedException("Issues have been updated since synchronization request")
+            }
         }
         issue.proprietarySourceInstance = sourceIssue
         issue.sourceUrl = sourceClient.getIssueUrl(sourceIssue)
@@ -112,18 +115,26 @@ class SynchronizationFlow(
     }
 
     private fun writeBackKeyReference(issue: Issue) {
-        updateKeyReferenceOnTarget(issue)
-        updateKeyReferenceOnSource(issue)
+        try {
+            updateKeyReferenceOnTarget(issue)
+            updateKeyReferenceOnSource(issue)
+        } catch (ex: Exception) {
+            logger().debug(ex.message, ex)
+            notificationObserver.notifyException(issue, ex, syncActions)
+        }
     }
 
     private fun updateKeyReferenceOnTarget(issue: Issue) {
         issue.keyFieldMapping?.let {
-            val fieldMappings = listOf(it)
+            val fieldMapping = listOf(it)
+            // use a clone here so we don't attempt to re-update all previously mapped fields
+            val issueClone = Issue(issue.key!!, "", issue.lastUpdated)
+            loadInternalSourceIssue(issueClone, false)
             SimpleSynchronizationAction("SourceReferenceOnTarget").execute(
                 sourceClient,
                 targetClient,
-                issue,
-                fieldMappings,
+                issueClone,
+                fieldMapping,
                 defaultsForNewIssue
             )
         }
