@@ -47,9 +47,8 @@ class CsvProtocol(properties: NotificationChannelProperties) : NotificationChann
         }
     }
 
-    private fun currentTime(): String {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-    }
+    private fun currentTime(): String =
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 
     private fun concatActions(syncActions: Map<SyncActionName, SynchronizationAction>) =
         syncActions.keys.toList().toString().replace("[", "").replace("]", "")

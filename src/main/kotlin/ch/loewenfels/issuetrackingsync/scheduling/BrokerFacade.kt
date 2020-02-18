@@ -16,7 +16,7 @@ class BrokerFacade(private val connectionFactory: ConnectionFactory) {
     private val statisticsBrokers = mutableMapOf<QueueName, StatisticsBrokerAccess>()
 
     companion object {
-        val timeoutIntervall: Long = 2000
+        const val timeoutIntervall: Long = 2000
     }
 
     @Throws(JMSException::class)

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import java.io.FileInputStream
 import javax.servlet.http.HttpServletResponse
 
-
 @Controller
 class CsvController(
     private val properties: SyncApplicationProperties

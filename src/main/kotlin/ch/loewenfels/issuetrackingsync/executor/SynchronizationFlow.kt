@@ -1,14 +1,20 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.*
+import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Objects
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -33,7 +39,7 @@ class SynchronizationFlow(
     private val defaultsForNewIssue: DefaultsForNewIssue?
 
     companion object {
-        val syncAbortThreshold = 5
+        const val syncAbortThreshold = 5
     }
 
     init {
