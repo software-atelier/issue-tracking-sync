@@ -44,7 +44,7 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
     ) {
         val source = issue.sourceUrl?.let { "<$it|${issue.key}>" } ?: issue.key
         val target = issue.targetUrl?.let { "<$it|${issue.targetKey ?: "Issue"}>" } ?: issue.targetKey ?: "Issue"
-        val message = "Synchronized issue $source to $target\n" + issue.workLog.joinToString(separator = "\n")
+        val message = "Synchronized issue $source to $target"
         sendMessage(message.trim())
     }
 
