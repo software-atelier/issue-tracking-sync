@@ -33,6 +33,40 @@
           "associations": {
             "P1 - Kritisch,S1-Geringfügig": "Hoch"
           }
+        },
+        {
+          "sourceName": "cantons",
+          "targetName": "customfield_11342",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+          "associations": {
+            "#common": "cantonsRtcToJira"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SimpleFieldsJiraToRtc",
+      "classname": "ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction",
+      "fieldMappingDefinitions": [
+        {
+          "sourceName": "title",
+          "targetName": "summary"
+        },
+        {
+          "sourceName": "priority,severity",
+          "targetName": "priorityId",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.PriorityAndSeverityFieldMapper",
+          "associations": {
+            "Hoch": "P1 - Kritisch,S1-Geringfügig"
+          }
+        },
+        {
+          "sourceName": "cantons",
+          "targetName": "customfield_11342",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+          "associations": {
+            "#common": "cantonsRtcToJira->reversed"
+          }
         }
       ]
     },
@@ -92,5 +126,32 @@
         "SynchronizeAttachments"
       ]
     }
-  ]
+  ],
+  "common": {
+    "cantonsRtcToJira": {
+      "Unterwalden": "NW,OW",
+      "Appenzell": "AI,AR",
+      "AI": "AI",
+      "AR": "AR",
+      "BE": "BE",
+      "FR": "FR",
+      "GE": "GE",
+      "GL": "GL",
+      "GR": "GR",
+      "JU": "JU",
+      "LI": "LI",
+      "NE": "NE",
+      "NW": "NW",
+      "OW": "OW",
+      "SG": "SG",
+      "SH": "SH",
+      "SO": "SO",
+      "SZ": "SZ",
+      "TG": "TG",
+      "TI": "TI",
+      "UR": "UR",
+      "ZG": "ZG",
+      "ZH": "ZH"
+    }
+  }
 }

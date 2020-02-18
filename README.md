@@ -297,6 +297,45 @@ There are a few twists
 * If a source state changelog entry contains a state unknown in the target system, synchronization fails
 * If the target system has multiple transitions for a single one on the source side, the field association can define a comma-separated list of target states
 
+##### Re-using associations
+
+When defining multiple, similar sync-actions, the same field mappers and esp. the same `associations` are often used. 
+To re-use such `associations`, define `common` mappings in the settings.json. It is good practice to indicate the
+direction of the mapping.
+
+```json
+{
+  "common": {
+    "cantonsFromThemToUs": {
+      "Unterwalden": "NW,OW",
+      "Appenzell": "AI,AR",
+      "AI": "AI",
+      "AR": "AR",
+      ...
+    }
+  },
+```
+
+The common entries can then be used by setting a **#common** association pointing to the entry name.
+
+```json
+  {
+    "sourceName": "cantons",
+    "targetName": "customfield_11342",
+    "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+    "associations": {"#common": "cantons"}
+  },
+  {
+    "sourceName": "customfield_11342",
+    "targetName": "cantons",
+    "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+    "associations": {"#common": "cantons->reversed"}
+  }
+}
+```
+
+By adding `->reversed` to the entry, the map is reversed.
+
 #### actionDefinitions
 
 An action definition represents a synchronization sequence, similar to a macro. Typically, multiple field mappers are
