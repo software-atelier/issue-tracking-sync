@@ -115,10 +115,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as com.atlassian.jira.rest.client.api.domain.Issue
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
-                } else if (fieldName == "labels" && value is ArrayList<*>) {
-                    if (value.isNotEmpty()) {
-                        setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
-                    }
+                } else if (fieldName == "labels" && value is List<*>) {
+                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
