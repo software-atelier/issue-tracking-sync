@@ -39,7 +39,6 @@ data class Settings(
      * and replace the content with a copy. If the value references ends with `->reversed`, the
      * map is reversed
      */
-    @Suppress("CommentOverPrivateFunction")
     private fun mapCommons() =
         actionDefinitions.flatMap { it.fieldMappingDefinitions }.forEach { fldMapping ->
             fldMapping.associations["#common"]?.let {
