@@ -165,7 +165,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
      */
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
         //
-        val attribute = getAttribute(fieldName);
+        val attribute = getAttribute(fieldName)
         return when {
             attribute.attributeType == "priority" -> RtcMetadata.getPriorityId(
                 value?.toString() ?: "",
@@ -290,7 +290,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        var targetIssue =
+        val targetIssue =
             (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
                 targetKeyFieldname,
                 targetIssueKey
@@ -555,7 +555,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 }
                 previousState = it.state2
             }
-        return result;
+        return result
     }
 
     override fun setState(internalIssue: IWorkItem, targetState: String) {
