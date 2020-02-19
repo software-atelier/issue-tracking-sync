@@ -1,5 +1,5 @@
 build:
-  maxIssues: 8
+  maxIssues: 2
   weights:
     complexity: 2
     style: 1
@@ -69,3 +69,5 @@ style:
     active: false
   MagicNumber:
     active: false
+  DataClassContainsFunctions:
+    conversionFunctionPrefix: 'map,to'

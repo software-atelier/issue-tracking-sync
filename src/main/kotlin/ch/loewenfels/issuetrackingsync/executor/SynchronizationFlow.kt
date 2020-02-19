@@ -61,12 +61,12 @@ class SynchronizationFlow(
         val actionClass = Class.forName(actionDefinition.classname) as Class<SynchronizationAction>
         return try {
             actionClass.getConstructor(String::class.java).newInstance(actionName)
-        } catch (e: Exception) {
+        } catch (ignore: Exception) {
             // no ctor taking a FieldMappingDefinition, so look for empty ctor
             try {
                 actionClass.getDeclaredConstructor().newInstance()
-            } catch (e2: Exception) {
-                throw IllegalArgumentException("Failed to instantiate action class ${actionDefinition.classname}", e2)
+            } catch (ignore: Exception) {
+                throw IllegalArgumentException("Failed to instantiate action class ${actionDefinition.classname}", ignore)
             }
         }
     }
@@ -120,6 +120,7 @@ class SynchronizationFlow(
         issue.fieldMappings.clear()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun writeBackKeyReference(issue: Issue) {
         try {
             updateKeyReferenceOnTarget(issue)
@@ -134,7 +135,7 @@ class SynchronizationFlow(
         issue.keyFieldMapping?.let {
             val fieldMapping = listOf(it)
             // use a clone here so we don't attempt to re-update all previously mapped fields
-            val issueClone = Issue(issue.key!!, "", issue.lastUpdated)
+            val issueClone = Issue(issue.key, "", issue.lastUpdated)
             loadInternalSourceIssue(issueClone, false)
             SimpleSynchronizationAction("SourceReferenceOnTarget").execute(
                 sourceClient,

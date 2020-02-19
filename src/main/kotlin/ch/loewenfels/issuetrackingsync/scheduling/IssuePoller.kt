@@ -68,7 +68,7 @@ class IssuePoller @Autowired constructor(
                 }
             offset += batchSize
 
-        } while (changedIssues.size > 0)
+        } while (changedIssues.isNotEmpty())
     }
 
     private fun scheduleSync(issue: Issue) = syncRequestProducer.queue(issue)

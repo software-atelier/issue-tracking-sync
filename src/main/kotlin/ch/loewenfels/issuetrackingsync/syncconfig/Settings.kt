@@ -31,7 +31,7 @@ data class Settings(
         }
     }
 
-    fun getTrackingApplication(name: TrackingApplicationName): IssueTrackingApplication? =
+    fun toTrackingApplication(name: TrackingApplicationName): IssueTrackingApplication? =
         trackingApplications.find { Objects.equals(it.name, name) }
 
     /**

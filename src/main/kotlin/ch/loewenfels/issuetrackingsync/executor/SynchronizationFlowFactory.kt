@@ -22,9 +22,9 @@ class SynchronizationFlowFactory @Autowired constructor(
     @PostConstruct
     fun loadSyncFlows() {
         definedFlows = settings.syncFlowDefinitions.map {
-            val sourceClientSettings = settings.getTrackingApplication(it.source)
+            val sourceClientSettings = settings.toTrackingApplication(it.source)
                 ?: throw IllegalArgumentException("No application configured for ${it.source}")
-            val targetClientSettings = settings.getTrackingApplication(it.target)
+            val targetClientSettings = settings.toTrackingApplication(it.target)
                 ?: throw IllegalArgumentException("No application configured for ${it.target}")
             SynchronizationFlow(
                 it,
