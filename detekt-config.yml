@@ -13,6 +13,8 @@ comments:
     active: false
   UndocumentedPublicProperty:
     active: false
+  CommentOverPrivateFunction:
+    active: false
 
 complexity:
   ComplexInterface:
