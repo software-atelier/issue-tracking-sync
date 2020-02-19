@@ -456,6 +456,15 @@ The `settings.json` works with class FQNs, which must be present on the classpat
 project. If custom field mappers, filters etc. are needed, they can be provided in a separate JAR. If those implementations
 might be of value to others, add them to this project in the `ch.loewenfels.issuetrackingsync.custom` package.   
 
+### Controllers
+
+The `DebugController` offers resources to access debug-relevant information from the tool while it is running.
+Under `foobar.com/config` (while `foobar.com` is the issue-tracking-sync-tool) the `settings.json` can be accessed. 
+To ensure privacy, the default implementation masks passwords with asterisks.
+Under `foobar.com/log` the log file of the tool can be downloaded. 
+This resource provides also a date-parameter for accessing past log files. The date-parameter has the following pattern: 
+`yyyy-MM-dd`. Hence, to access the log file from February 18<sup>th</sup> 2020, the URL would be `foobar.com/log2020-02-18`
+
 ## For contributors
 
 This project aims at allowing for simple issue synchronization using a purely configurative approach, while also embracing 

@@ -13,7 +13,8 @@
 
     <springProfile name="!test">
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-        <property name="LOG_FILE" value="${user.home}/issue-sync.log}"/>
+        <springProperty scope="context" name="fileLocation" source="sync.logfile"/>
+        <property name="LOG_FILE" value="${fileLocation}"/>
         <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
         <root level="INFO">
             <appender-ref ref="FILE"/>
