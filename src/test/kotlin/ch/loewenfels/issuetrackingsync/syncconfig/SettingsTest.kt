@@ -7,6 +7,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,10 +69,12 @@ internal class SettingsTest : AbstractSpringTest() {
     fun loadFromFile_currentSettingsFile_fileLoadedAndProperlyFormatted() {
         // arrange
         val settingsName = File(syncApplicationProperties.settingsLocation).name
-        val settingsPath = File(settingsName).absolutePath
-        // act + assert
+        val settingsFile = File(settingsName)
+        Assumptions.assumeTrue(settingsFile.exists())
         try {
-            val result = Settings.loadFromFile(settingsPath, objectMapper)
+            // act
+            val result = Settings.loadFromFile(settingsFile.absolutePath, objectMapper)
+            // assert
             assertNotNull(result)
         } catch (ex: Exception) {
             fail("$settingsName could not be loaded, it may not properly formatted: ${ex.message}")

@@ -12,10 +12,7 @@ class UnclosedChangeWithRtcReferenceFilter : IssueFilter {
         client: IssueTrackingClient<out Any>,
         issue: Issue,
         syncFlowDefinition: SyncFlowDefinition
-    ): Boolean {
-        return if (client is JiraClient) testUnclosedIssueWithRefToRtc(client, issue, syncFlowDefinition)
-        else true
-    }
+    ): Boolean = (client !is JiraClient) || testUnclosedIssueWithRefToRtc(client, issue, syncFlowDefinition)
 
     private fun testUnclosedIssueWithRefToRtc(
         client: JiraClient,
