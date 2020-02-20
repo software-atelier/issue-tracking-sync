@@ -39,7 +39,7 @@ class DebugController(
         val file: File = getFile(date)
         response.contentType = "text/plain"
         response.setHeader("Content-Disposition", "attachment; filename=\"${file.name}\"")
-        IOUtils.copy(FileInputStream(file), response.outputStream)
+        FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
     }
 
     private fun getFile(date: String): File {
