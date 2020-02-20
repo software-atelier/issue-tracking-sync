@@ -36,7 +36,7 @@ class DebugController(
 
     @GetMapping("/log{date}")
     fun getLogFile(response: HttpServletResponse, @PathVariable("date") date: String) {
-        val file:File = getFile(date)
+        val file: File = getFile(date)
         response.contentType = "text/plain"
         response.setHeader("Content-Disposition", "attachment; filename=\"${file.name}\"")
         IOUtils.copy(FileInputStream(file), response.outputStream)

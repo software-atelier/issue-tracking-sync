@@ -26,7 +26,7 @@ class IssuePoller @Autowired constructor(
     private val synchronizationFlowFactory: SynchronizationFlowFactory
 ) : Logging {
     private val batchSize = 200
-    
+
     @PostConstruct
     fun afterPropertiesSet() {
         logger().info("Polling set for {}", syncApplicationProperties.pollingCron)

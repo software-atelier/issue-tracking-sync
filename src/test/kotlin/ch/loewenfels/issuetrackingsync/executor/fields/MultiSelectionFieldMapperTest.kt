@@ -45,7 +45,7 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(issue, jiraFieldname, issue, targetClient, value)
         // assert
-        verify(targetClient).setValue(issue, issue, jiraFieldname, arrayListOf("fooJira","barJira"))
+        verify(targetClient).setValue(issue, issue, jiraFieldname, arrayListOf("fooJira", "barJira"))
     }
 
     @Test

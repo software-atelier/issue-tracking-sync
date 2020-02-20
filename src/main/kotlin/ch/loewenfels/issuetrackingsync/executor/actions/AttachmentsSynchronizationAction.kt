@@ -28,8 +28,10 @@ class AttachmentsSynchronizationAction : AbstractSynchronizationAction(),
                 issue.workLog.add("Added attachment ${it.filename}")
             }
         } else {
-            logger().warn("This action relies on a previous action loading source and target issues." +
-                    " Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action.")
+            logger().warn(
+                "This action relies on a previous action loading source and target issues." +
+                        " Consider configuring a SimpleSynchronizationAction without any fieldMappings prior to this action."
+            )
         }
     }
 
