@@ -6,7 +6,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 
-class UnclosedChangeWithRtcReferenceFilter :
+class UnclosedChangeWithRtcReferenceFilter() :
     IssueFilter {
 
     override fun test(
