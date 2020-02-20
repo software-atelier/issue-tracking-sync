@@ -7,6 +7,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class SettingsTest : AbstractSpringTest() {
@@ -57,6 +58,20 @@ internal class SettingsTest : AbstractSpringTest() {
         assertNotNull(syncFlow.defaultsForNewIssue)
         assertEquals("TST", syncFlow.defaultsForNewIssue?.project, "Default project for new issues")
         assertEquals(3, syncFlow.actions.size, "Count of actions in sync flow")
+    }
+
+    @Test
+    fun loadFromFile_currentSettingsFile_fileLoadedAndProperlyFormatted() {
+        // arrange
+        val settingsHome = System.getProperty("user.dir")
+        val settingsFile = "/settings.json"
+        // act + assert
+        try {
+            val result = Settings.loadFromFile("$settingsHome$settingsFile", objectMapper)
+            assertNotNull(result)
+        } catch (ex: Exception) {
+            fail("$settingsFile could not be loaded, it may not properly formatted: ${ex.message}")
+        }
     }
 
     @Test

@@ -25,8 +25,9 @@ object JiraMetadata {
             ?: run {
                 loadIssueTypes(jiraRestClient)
                 loadPriorities(jiraRestClient)
-                name.toLongOrNull() ?: collection[name]
-                ?: throw IssueClientException("Unknown $property $name")
+                name.toLongOrNull()
+                    ?: collection[name]
+                    ?: throw IssueClientException("Unknown $property $name")
             }
     }
 
