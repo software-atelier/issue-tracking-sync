@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.any
 import ch.loewenfels.issuetrackingsync.safeEq
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.ibm.team.workitem.common.model.IWorkItem
@@ -35,7 +36,7 @@ abstract class UnclosedFilterTest {
         )
         Mockito.`when`(jiraClient.getValue(safeEq(internalIssue), safeEq("status.name"))).thenReturn("In Progress")
         // act
-        val result = getUnclosedFilter().test(jiraClient, issue)
+        val result = getUnclosedFilter().test(jiraClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertTrue(result)
     }
@@ -52,7 +53,7 @@ abstract class UnclosedFilterTest {
         )
         Mockito.`when`(jiraClient.getValue(safeEq(internalIssue), safeEq("status.name"))).thenReturn("Closed")
         // act
-        val result = getUnclosedFilter().test(jiraClient, issue)
+        val result = getUnclosedFilter().test(jiraClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertFalse(result)
     }
@@ -69,7 +70,7 @@ abstract class UnclosedFilterTest {
         )
         Mockito.`when`(jiraClient.getValue(safeEq(internalIssue), safeEq("status.name"))).thenReturn("In Progress")
         // act
-        val result = getUnclosedFilter().test(jiraClient, issue)
+        val result = getUnclosedFilter().test(jiraClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertFalse(result)
     }
@@ -86,7 +87,7 @@ abstract class UnclosedFilterTest {
         Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("state2.stringIdentifier")))
             .thenReturn("ch.igs.team.workitem.workflow.change.state.s5")
         // act
-        val result = getUnclosedFilter().test(rtcClient, issue)
+        val result = getUnclosedFilter().test(rtcClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertTrue(result)
     }
@@ -103,7 +104,7 @@ abstract class UnclosedFilterTest {
         Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("state2.stringIdentifier")))
             .thenReturn("ch.igs.team.workitem.workflow.change.state.s17")
         // act
-        val result = getUnclosedFilter().test(rtcClient, issue)
+        val result = getUnclosedFilter().test(rtcClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertFalse(result)
     }
@@ -120,7 +121,7 @@ abstract class UnclosedFilterTest {
         Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("state2.stringIdentifier")))
             .thenReturn("ch.igs.team.workitem.workflow.defect.state.s5")
         // act
-        val result = getUnclosedFilter().test(rtcClient, issue)
+        val result = getUnclosedFilter().test(rtcClient, issue, SyncFlowDefinition())
         // assert
         Assertions.assertFalse(result)
     }

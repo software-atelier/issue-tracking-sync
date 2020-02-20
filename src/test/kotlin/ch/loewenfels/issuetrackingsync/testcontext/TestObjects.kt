@@ -4,11 +4,17 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.executor.IssueFilter
 import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowTest
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
-import ch.loewenfels.issuetrackingsync.executor.fields.*
+import ch.loewenfels.issuetrackingsync.executor.fields.DirectFieldMapper
+import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.*
+import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
+import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
+import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import org.mockito.Mockito.spy
 import java.time.LocalDateTime
 
@@ -87,5 +93,9 @@ object TestObjects {
 }
 
 class AlwaysFalseIssueFilter : IssueFilter {
-    override fun test(client: IssueTrackingClient<out Any>, issue: Issue): Boolean = false
+    override fun test(
+        client: IssueTrackingClient<out Any>,
+        issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean = false
 }

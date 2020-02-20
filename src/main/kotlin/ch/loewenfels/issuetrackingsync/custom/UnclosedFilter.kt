@@ -5,6 +5,7 @@ import ch.loewenfels.issuetrackingsync.executor.IssueFilter
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import com.ibm.team.workitem.common.model.IWorkItem
 
 /**
@@ -17,7 +18,10 @@ abstract class UnclosedFilter(
 ) :
     IssueFilter {
 
-    override fun test(client: IssueTrackingClient<out Any>, issue: Issue): Boolean {
+    override fun test(
+        client: IssueTrackingClient<out Any>, issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean {
         return when (client) {
             is RtcClient -> testUnclosedIssueInRtc(client, issue)
             is JiraClient -> testUnclosedIssueInJira(client, issue)

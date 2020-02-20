@@ -14,7 +14,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.time.temporal.ChronoUnit
-import java.util.Objects
+import java.util.*
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -66,14 +66,17 @@ class SynchronizationFlow(
             try {
                 actionClass.getDeclaredConstructor().newInstance()
             } catch (ignore: Exception) {
-                throw IllegalArgumentException("Failed to instantiate action class ${actionDefinition.classname}", ignore)
+                throw IllegalArgumentException(
+                    "Failed to instantiate action class ${actionDefinition.classname}",
+                    ignore
+                )
             }
         }
     }
 
     fun applies(source: TrackingApplicationName, issue: Issue): Boolean {
         return Objects.equals(sourceApplication, source) &&
-                issueFilter?.test(sourceClient, issue) ?: true
+                issueFilter?.test(sourceClient, issue, syncFlowDefinition) ?: true
     }
 
     @Suppress("TooGenericExceptionCaught")
