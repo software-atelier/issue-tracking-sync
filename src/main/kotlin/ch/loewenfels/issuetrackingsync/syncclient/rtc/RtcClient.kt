@@ -526,13 +526,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return workflowInfo.getStateName(internalIssue.state2)
     }
 
-    fun listAllStates(internalIssue: IWorkItem): Map<String, String> {
-        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
-        return workflowInfo.allStateIds
-            .map { it.stringIdentifier to workflowInfo.getStateName(it) }
-            .toMap()
-    }
-
     override fun getStateHistory(internalIssue: IWorkItem): List<StateHistory> {
         var previousState: Identifier<IState>? = null
         val result = mutableListOf<StateHistory>()
