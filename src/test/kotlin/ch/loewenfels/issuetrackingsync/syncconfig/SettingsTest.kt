@@ -1,6 +1,7 @@
 package ch.loewenfels.issuetrackingsync.syncconfig
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
+import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -9,10 +10,13 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
+import java.io.File
 
 internal class SettingsTest : AbstractSpringTest() {
     @Autowired
     lateinit var objectMapper: ObjectMapper
+    @Autowired
+    lateinit var syncApplicationProperties: SyncApplicationProperties
 
     @Test
     fun loadFromFile_validParameters_fileProperlyLoaded() {
@@ -63,14 +67,14 @@ internal class SettingsTest : AbstractSpringTest() {
     @Test
     fun loadFromFile_currentSettingsFile_fileLoadedAndProperlyFormatted() {
         // arrange
-        val settingsHome = System.getProperty("user.dir")
-        val settingsFile = "/settings.json"
+        val settingsName = File(syncApplicationProperties.settingsLocation).name
+        val settingsPath = File(settingsName).absolutePath
         // act + assert
         try {
-            val result = Settings.loadFromFile("$settingsHome$settingsFile", objectMapper)
+            val result = Settings.loadFromFile(settingsPath, objectMapper)
             assertNotNull(result)
         } catch (ex: Exception) {
-            fail("$settingsFile could not be loaded, it may not properly formatted: ${ex.message}")
+            fail("$settingsName could not be loaded, it may not properly formatted: ${ex.message}")
         }
     }
 
