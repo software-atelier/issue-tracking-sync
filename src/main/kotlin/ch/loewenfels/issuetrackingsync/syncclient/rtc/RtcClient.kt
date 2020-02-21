@@ -1,6 +1,12 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.StateHistory
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -8,15 +14,39 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.foundation.common.text.XMLString
 import com.ibm.team.process.client.IProcessClientService
-import com.ibm.team.process.common.*
+import com.ibm.team.process.common.IIteration
+import com.ibm.team.process.common.IIterationHandle
+import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
-import com.ibm.team.repository.common.*
-import com.ibm.team.workitem.client.*
+import com.ibm.team.repository.common.IAuditableHandle
+import com.ibm.team.repository.common.IContent
+import com.ibm.team.repository.common.IContributor
+import com.ibm.team.repository.common.model.ContributorHandle
+import com.ibm.team.workitem.client.IAuditableClient
+import com.ibm.team.workitem.client.IWorkItemClient
+import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.*
-import com.ibm.team.workitem.common.model.*
+import com.ibm.team.workitem.common.expression.AttributeExpression
+import com.ibm.team.workitem.common.expression.IQueryableAttribute
+import com.ibm.team.workitem.common.expression.QueryableAttributes
+import com.ibm.team.workitem.common.expression.Term
+import com.ibm.team.workitem.common.model.AttributeOperation
+import com.ibm.team.workitem.common.model.AttributeTypes
+import com.ibm.team.workitem.common.model.IAttachment
+import com.ibm.team.workitem.common.model.IAttachmentHandle
+import com.ibm.team.workitem.common.model.IAttribute
+import com.ibm.team.workitem.common.model.ICategoryHandle
+import com.ibm.team.workitem.common.model.ILiteral
+import com.ibm.team.workitem.common.model.IState
+import com.ibm.team.workitem.common.model.IWorkItem
+import com.ibm.team.workitem.common.model.IWorkItemHandle
+import com.ibm.team.workitem.common.model.IWorkItemType
+import com.ibm.team.workitem.common.model.Identifier
+import com.ibm.team.workitem.common.model.ItemProfile
+import com.ibm.team.workitem.common.model.WorkItemEndPoints
+import com.ibm.team.workitem.common.model.WorkItemLinkTypes
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
 import org.eclipse.core.runtime.AssertionFailedException
@@ -233,6 +263,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private fun getIteration(handle: IIterationHandle): IIteration =
         auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null) as IIteration
 
+    private fun getContributorName(value: ContributorHandle): String {
+        return auditableClient.resolveAuditable(value, ItemProfile.CONTRIBUTOR_DEFAULT, null).name
+    }
+
     /**
      * The [intervalName] might be something like "I2003.3 - 3.77", while RTC defines:
      *
@@ -280,6 +314,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             value is ICategoryHandle -> getCategoryName(value)
             value is Identifier<*> -> getEnumerationName(fieldName, value)
             value is IIterationHandle -> getIteration(value).name
+            value is ContributorHandle -> getContributorName(value)
             else -> value
         }
     }
