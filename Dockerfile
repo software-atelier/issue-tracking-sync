@@ -2,7 +2,7 @@ FROM  gradle:6.0-jdk8 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 ARG MVN_REPO
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon --stacktrace -x test -P repositoryIssueTrackingJars=${MVN_REPO}
+RUN gradle build --no-daemon --stacktrace -P repositoryIssueTrackingJars=${MVN_REPO}
 
 FROM openjdk:8
 ARG SETTINGSFILE=test/resources/settings.json
