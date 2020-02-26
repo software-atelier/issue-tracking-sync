@@ -6,7 +6,9 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 
-class UnclosedChangeWithRtcReferenceFilter : IssueFilter {
+class UnclosedChangeWithRtcReferenceFilter(
+    private val closedJiraStatus: List<String> = listOf("Resolved", "Closed")
+) : IssueFilter {
 
     override fun test(
         client: IssueTrackingClient<out Any>,
@@ -25,7 +27,7 @@ class UnclosedChangeWithRtcReferenceFilter : IssueFilter {
         val issueReference = client.getValue(
             internalIssue, syncFlowDefinition.writeBackFieldMappingDefinition!!.targetName
         )
-        return UnclosedChangeFilter().getAllowedJiraIssueTypes().contains(status) //
+        return !closedJiraStatus.contains(status) //
                 && isAllowedIssueType(issueType, UnclosedChangeFilter().getAllowedJiraIssueTypes())//
                 && issueReference != null
     }
