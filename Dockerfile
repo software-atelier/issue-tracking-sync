@@ -8,8 +8,10 @@ FROM openjdk:8
 ARG SETTINGSFILE=test/resources/settings.json
 ARG SETTINGSTARGET=test/settings.json
 ARG APPLICATIONFILE=test/resources/settings.json
+ARG VOLUME=/root
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 COPY ${APPLICATIONFILE} config/application.yml
 COPY ${SETTINGSFILE} ${SETTINGSTARGET}
+VOLUME ${VOLUME}
 EXPOSE 8080
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
