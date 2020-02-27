@@ -173,9 +173,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
             logger().debug("Setting value $value on $fieldName")
-            when (it) {
-                is IIterationHandle -> workItem.target = it
-                is ICategoryHandle -> workItem.category = it
+            when {
+                it is IIterationHandle && fieldName == "target" -> workItem.target = it
+                it is ICategoryHandle -> workItem.category = it
                 else -> workItem.setValue(attribute, it)
             }
         }
