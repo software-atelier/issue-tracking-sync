@@ -51,7 +51,6 @@ var sync = {
     runManual: function () {
         var frm = $('form#manual-sync-form');
         var requestBody = {
-            "trackingsystem": $("[name=trackingsystem]", frm).val(),
             "issuekey": $("[name=issuekey]", frm).val()
         }
         $.ajax({

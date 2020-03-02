@@ -2,7 +2,6 @@ package ch.loewenfels.issuetrackingsync.controller
 
 import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_ISSUEKEY
 import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_RESPONSEMESSAGE
-import ch.loewenfels.issuetrackingsync.HTTP_PARAMNAME_TRACKINGSYSTEM
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.app.AppState
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
@@ -10,6 +9,7 @@ import ch.loewenfels.issuetrackingsync.scheduling.SyncRequestProducer
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
+import com.atlassian.jira.rest.client.api.RestClientException
 import org.springframework.scheduling.support.CronSequenceGenerator
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.util.*
 
 @RestController
 class InteractivceSyncController(
@@ -48,11 +48,13 @@ class InteractivceSyncController(
 
     @PutMapping("/manualsync")
     fun manualSync(@RequestBody body: Map<String, String>): Map<String, String> {
-        val sourceAppName = body.getValue(HTTP_PARAMNAME_TRACKINGSYSTEM)
-        val trackingApp: IssueTrackingApplication? =
-            settings.trackingApplications.find { it.name.equals(sourceAppName, ignoreCase = true) }
-        val resultMessage = trackingApp?.let { loadAndQueueIssue(body.getValue(HTTP_PARAMNAME_ISSUEKEY), it) }
-            ?: "Unknown source app $sourceAppName. Are your settings correct?"
+        val trackingApplications = settings.trackingApplications
+        val issueKey = body.getValue(HTTP_PARAMNAME_ISSUEKEY)
+        val trackingApplication = trackingApplications.map { it to retrieveIssue(issueKey, it) }//
+            .sortedByDescending { (_, issue) -> issue?.lastUpdated }//
+            .first()//
+            .first
+        val resultMessage = loadAndQueueIssue(issueKey, trackingApplication)
         return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to resultMessage)
     }
 
@@ -63,10 +65,19 @@ class InteractivceSyncController(
         } ?: "Failed to locate issue with key $key in ${trackingApplication.name}"
     }
 
-    private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? =
-        clientFactory.getClient(trackingApplication).getIssue(key)
+    private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? {
+        return try {
+            clientFactory.getClient(trackingApplication).getIssue(key)
+        } catch (ex: Exception) {
+            when (ex) {
+                is RestClientException, is NumberFormatException -> null
+                else -> throw ex
+            }
+        }
+    }
 
     @GetMapping("/definedSystems")
     fun definedSystems(): List<String> =
         settings.trackingApplications.map { app -> app.name }.toList()
 }
+
