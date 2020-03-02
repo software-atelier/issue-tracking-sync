@@ -1,15 +1,24 @@
 package ch.loewenfels.issuetrackingsync.syncclient.jira
 
-import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.Attachment
 import ch.loewenfels.issuetrackingsync.Comment
 import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
+import ch.loewenfels.issuetrackingsync.StateHistory
+import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import com.atlassian.jira.rest.client.api.domain.*
-import com.atlassian.jira.rest.client.api.domain.input.*
+import com.atlassian.jira.rest.client.api.domain.IssueField
+import com.atlassian.jira.rest.client.api.domain.IssueFieldId
+import com.atlassian.jira.rest.client.api.domain.TimeTracking
+import com.atlassian.jira.rest.client.api.domain.Transition
+import com.atlassian.jira.rest.client.api.domain.Version
+import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
+import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
+import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.commons.io.IOUtils
@@ -19,7 +28,10 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.time.*
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -117,6 +129,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
                 } else if (fieldName == "labels" && value is List<*>) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
+                } else if (fieldName == "versions") {
+                    // RTC allows only one version (field: foundIn) while Jira awaits a list of versions
+                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.AFFECTS_VERSIONS_FIELD.id, mutableListOf(value))
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
@@ -140,10 +155,17 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     private fun convertFromMetadataId(fieldName: String, value: Any): Any {
         return when {
             "priorityId" == fieldName -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
+            "versions" == fieldName -> getFirstVersion(value)
             value is JSONObject -> value.get("value")
             else -> value
         }
     }
+
+    /**
+     *  Jira allows multiple affected versions, while RTC allows only one affected version.
+     *  Because of this, only the first entry of the List will be used for synchronization.
+     */
+    private fun getFirstVersion(value: Any) = ((value as List<*>)[0] as Version).name ?: ""
 
     private fun getJiraIssue(key: String): com.atlassian.jira.rest.client.api.domain.Issue {
         return jiraRestClient.issueClient.getIssue(key).claim()

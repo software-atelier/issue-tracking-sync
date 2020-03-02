@@ -17,12 +17,13 @@ import com.ibm.team.process.client.IProcessClientService
 import com.ibm.team.process.common.IIteration
 import com.ibm.team.process.common.IIterationHandle
 import com.ibm.team.process.common.IProjectArea
+import com.ibm.team.repository.client.IItemManager
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.IAuditableHandle
 import com.ibm.team.repository.common.IContent
 import com.ibm.team.repository.common.IContributor
-import com.ibm.team.repository.common.model.ContributorHandle
+import com.ibm.team.repository.common.IContributorHandle
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
@@ -38,6 +39,8 @@ import com.ibm.team.workitem.common.model.IAttachment
 import com.ibm.team.workitem.common.model.IAttachmentHandle
 import com.ibm.team.workitem.common.model.IAttribute
 import com.ibm.team.workitem.common.model.ICategoryHandle
+import com.ibm.team.workitem.common.model.IDeliverable
+import com.ibm.team.workitem.common.model.IDeliverableHandle
 import com.ibm.team.workitem.common.model.ILiteral
 import com.ibm.team.workitem.common.model.IState
 import com.ibm.team.workitem.common.model.IWorkItem
@@ -208,7 +211,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 workItemClient
             )
             attribute.attributeType == "category" -> getCategoryIdentifier(value as String?)
-            attribute.attributeType == "interval" -> getIntervalIdentifier(value as String?)
+            attribute.attributeType == "interval"
+                    || attribute.attributeType == "deliverable" -> getIntervalIdentifier(value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
             fieldName == "internalTags" -> value
             // handle multi-select values
@@ -263,7 +267,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private fun getIteration(handle: IIterationHandle): IIteration =
         auditableClient.resolveAuditable(handle, ItemProfile.ITERATION_DEFAULT, null) as IIteration
 
-    private fun getContributorName(value: ContributorHandle): String {
+    private fun getDeliverable(handle: IDeliverableHandle): IDeliverable =
+        teamRepository.itemManager().fetchCompleteItem(handle, IItemManager.DEFAULT, null) as IDeliverable
+
+    private fun getContributorName(value: IContributorHandle): String {
         return auditableClient.resolveAuditable(value, ItemProfile.CONTRIBUTOR_DEFAULT, null).name
     }
 
@@ -314,7 +321,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             value is ICategoryHandle -> getCategoryName(value)
             value is Identifier<*> -> getEnumerationName(fieldName, value)
             value is IIterationHandle -> getIteration(value).name
-            value is ContributorHandle -> getContributorName(value)
+            value is IDeliverableHandle -> getDeliverable(value).name
+            value is IContributorHandle -> getContributorName(value)
             else -> value
         }
     }
