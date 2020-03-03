@@ -88,3 +88,27 @@ var sync = {
 $(document).ready(function () {
     sync.init();
 });
+
+var datetimepicker = {
+    updateStartdate: function (date, time) {
+        var requestBody = {
+            "date": date,
+            "time": time
+        }
+        $.ajax({
+            url: '/earliestSyncDate',
+            type: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(requestBody),
+            success: function (data) {
+                $('#sync-date-error').text("").hide();
+                $('#sync-date-status').text(data.message).show();
+            },
+            error: function (data) {
+                $('#sync-date-error').text("An error occurred: " + data.message).show();
+                $('#sync-date-status').text("").hide();
+            }
+        });
+    }
+}

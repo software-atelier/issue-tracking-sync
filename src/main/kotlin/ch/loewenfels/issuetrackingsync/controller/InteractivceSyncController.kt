@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -56,6 +57,21 @@ class InteractivceSyncController(
             .first
         val resultMessage = loadAndQueueIssue(issueKey, trackingApplication)
         return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to resultMessage)
+    }
+
+    @PutMapping("/earliestSyncDate")
+    fun updateStartDateTime(@RequestBody body: Map<String, String>): Map<String, String> {
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyyHH:mm");
+        val date = body.getValue("date")
+        val time = body.getValue("time")
+
+        try {
+            val dateTime = LocalDateTime.parse(date + time, formatter);
+            settings.earliestSyncDate = dateTime.toString()
+        } catch (e: Exception) {
+            return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to "Could not update earliest sync date")
+        }
+        return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to "Earliest sync date successfully updated")
     }
 
     private fun loadAndQueueIssue(key: String, trackingApplication: IssueTrackingApplication): String {
