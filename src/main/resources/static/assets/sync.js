@@ -93,7 +93,7 @@ var datetimepicker = {
     updateStartdate: function (date, time) {
         var requestBody = {
             "date": date,
-            "time": time
+            "time": time ? time : "00:00"
         }
         $.ajax({
             url: '/earliestSyncDate',
