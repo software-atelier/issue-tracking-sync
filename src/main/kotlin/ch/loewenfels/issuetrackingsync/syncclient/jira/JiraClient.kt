@@ -399,6 +399,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     val complexValues = value//
                         .map { ComplexIssueInputFieldValue.with("value", it) }
                     internalIssueBuilder.setFieldValue(fld.id, complexValues)
+                } else if (value is String) {
+                    val complexValue = listOf(value).map { ComplexIssueInputFieldValue.with("value", it) }
+                    internalIssueBuilder.setFieldValue(fld.id, complexValue)
                 } else {
                     throw IllegalArgumentException("The field $fieldName was expected to receive an array, but was of type ${value::class.simpleName}")
                 }
