@@ -13,6 +13,9 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import com.atlassian.jira.rest.client.api.RestClientException
+import com.ibm.team.repository.common.TeamRepositoryException
+import org.springframework.http.HttpStatus
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
@@ -79,12 +82,15 @@ class SynchronizationFlow(
                 issueFilter?.test(sourceClient, issue, syncFlowDefinition) ?: true
     }
 
-    @Suppress("TooGenericExceptionCaught")
     fun execute(issue: Issue) {
         try {
             loadInternalSourceIssue(issue)
             syncActions.forEach { execute(it, issue) }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
+        } catch (ex: RestClientException) {
+            logJiraException(issue, ex)
+        } catch (ex: TeamRepositoryException) {
+            logRtcException(issue, ex)
         } catch (ex: Exception) {
             logger().debug(ex.message, ex)
             notificationObserver.notifyException(issue, ex, syncActions)
@@ -123,15 +129,32 @@ class SynchronizationFlow(
         issue.fieldMappings.clear()
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun writeBackKeyReference(issue: Issue) {
         try {
             updateKeyReferenceOnTarget(issue)
             updateKeyReferenceOnSource(issue)
+        } catch (ex: RestClientException) {
+            logJiraException(issue, ex)
+        } catch (ex: TeamRepositoryException) {
+            logRtcException(issue, ex)
         } catch (ex: Exception) {
             logger().debug(ex.message, ex)
             notificationObserver.notifyException(issue, ex, syncActions)
         }
+    }
+
+    private fun logJiraException(issue: Issue, ex: RestClientException) {
+        val statusCode = ex.statusCode.or(0)
+        val responseMessage = HttpStatus.valueOf(statusCode).reasonPhrase
+        val errorMessage = "Jira: $responseMessage ($statusCode)"
+        logger().debug(errorMessage)
+        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    private fun logRtcException(issue: Issue, ex: TeamRepositoryException) {
+        val errorMessage = "RTC: ${ex.message}"
+        logger().debug(errorMessage)
+        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
     }
 
     private fun updateKeyReferenceOnTarget(issue: Issue) {

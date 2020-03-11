@@ -1,17 +1,27 @@
 package ch.loewenfels.issuetrackingsync.executor
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.AbstractSpringTest
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.any
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.notification.NotificationChannel
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.testcontext.AlwaysFalseIssueFilter
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
-import org.junit.jupiter.api.Assertions.*
+import com.atlassian.jira.rest.client.api.RestClientException
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 
 internal class SynchronizationFlowTest : AbstractSpringTest() {
     @Autowired
@@ -20,6 +30,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     companion object TestNotificationChannel : NotificationChannel {
         val successfulIssueKeys: MutableList<String> = mutableListOf()
         val erroneousIssueKeys: MutableList<String> = mutableListOf()
+        val erroneousMessages: MutableList<String> = mutableListOf()
         override fun onSuccessfulSync(
             issue: Issue,
             syncActions: Map<SyncActionName, SynchronizationAction>
@@ -33,6 +44,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             syncActions: Map<SyncActionName, SynchronizationAction>
         ) {
             erroneousIssueKeys.add(issue.key)
+            ex.message?.let { erroneousMessages.add(it) }
         }
     }
 
@@ -111,6 +123,28 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         testee.execute(issue)
         // assert
         assertEquals(1, TestNotificationChannel.erroneousIssueKeys.size)
+    }
+
+    @Test
+    fun execute_jiraLoginFailure_notifiedAsError() {
+        // arrange
+        val error = HttpStatus.UNAUTHORIZED
+        val exception = RestClientException(Throwable(error.reasonPhrase), error.value())
+        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = TestObjects.buildNotificationObserver()
+        val testee =
+            SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
+        val issue = TestObjects.buildIssue("MK-1")
+        `when`(sourceClient.getProprietaryIssue(anyString())).thenThrow(exception)
+        // act
+        testee.execute(issue)
+        // assert
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase} (${error.value()})"))
     }
 
     @Test
