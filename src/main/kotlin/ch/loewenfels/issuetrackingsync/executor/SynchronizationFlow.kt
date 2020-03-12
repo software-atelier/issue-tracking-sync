@@ -82,6 +82,7 @@ class SynchronizationFlow(
                 issueFilter?.test(sourceClient, issue, syncFlowDefinition) ?: true
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun execute(issue: Issue) {
         try {
             loadInternalSourceIssue(issue)
@@ -129,6 +130,7 @@ class SynchronizationFlow(
         issue.fieldMappings.clear()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun writeBackKeyReference(issue: Issue) {
         try {
             updateKeyReferenceOnTarget(issue)
