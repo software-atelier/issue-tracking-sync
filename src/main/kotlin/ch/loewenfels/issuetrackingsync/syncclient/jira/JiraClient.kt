@@ -324,7 +324,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         if (value is JSONObject) {
             return listOf(value["value"].toString())
         }
-        throw IllegalArgumentException("The field $fieldName was expected to return an array, got $value instead. Did you forget to configure the MultiSelectionFieldMapper?")
+        val fieldId = internalIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
+        throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to return an array, got $value instead. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
     override fun getState(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): String {
@@ -403,7 +404,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     val complexValue = listOf(value).map { ComplexIssueInputFieldValue.with("value", it) }
                     internalIssueBuilder.setFieldValue(fld.id, complexValue)
                 } else {
-                    throw IllegalArgumentException("The field $fieldName was expected to receive an array, but was of type ${value::class.simpleName}")
+                    val fieldId = jiraIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
+                    throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to receive an array, but was of type ${value::class.simpleName}")
                 }
             }
             "option" -> {
