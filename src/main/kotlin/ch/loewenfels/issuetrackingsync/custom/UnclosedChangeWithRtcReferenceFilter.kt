@@ -7,14 +7,14 @@ import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 
 class UnclosedChangeWithRtcReferenceFilter(
-    private val closedJiraStatus: List<String> = listOf("Resolved", "Closed")
+    private val closedJiraStatus: List<String> = listOf("Resolved", "Closed", "geschlossen", "erledigt")
 ) : IssueFilter {
 
     override fun test(
         client: IssueTrackingClient<out Any>,
         issue: Issue,
         syncFlowDefinition: SyncFlowDefinition
-    ): Boolean = (client !is JiraClient) || testUnclosedIssueWithRefToRtc(client, issue, syncFlowDefinition)
+    ): Boolean = (client is JiraClient) && testUnclosedIssueWithRefToRtc(client, issue, syncFlowDefinition)
 
     private fun testUnclosedIssueWithRefToRtc(
         client: JiraClient,
