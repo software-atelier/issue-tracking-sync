@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.Objects
 
 data class Settings(
     var earliestSyncDate: String? = null,
@@ -52,11 +52,14 @@ data class Settings(
 
     private fun mapCommons(fieldMapping: FieldMappingDefinition, commonName: String, invert: Boolean) {
         (common[commonName] ?: throw IllegalArgumentException("Undefined common expression $commonName")).let {
-            fieldMapping.associations = if (invert) {
-                it.entries.associate { (k, v) -> v to k }.toMutableMap()
-            } else {
-                it
-            }
+            fieldMapping.associations.remove("#common")
+            fieldMapping.associations.putAll(
+                if (invert) {
+                    it.entries.associate { (k, v) -> v to k }.toMutableMap()
+                } else {
+                    it
+                }
+            )
         }
     }
 }

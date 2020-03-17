@@ -31,7 +31,7 @@ internal class SettingsTest : AbstractSpringTest() {
         assertEquals(5, result.actionDefinitions.size, "Count of configured actions")
         val actionDefinition = result.actionDefinitions[0]
         assertEquals("SimpleFieldsRtcToJira", actionDefinition.name, "Name of first action definition")
-        assertEquals(3, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
+        assertEquals(4, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
         assertEquals(
             "summary", actionDefinition.fieldMappingDefinitions[0].sourceName, "Source property of first field mapping"
         )
@@ -39,6 +39,11 @@ internal class SettingsTest : AbstractSpringTest() {
         assertEquals("cantons", cantonMapping.sourceName, "Source property of third field mapping")
         assertEquals(23, cantonMapping.associations.size, "Size of 'associations' map")
         assertEquals("NW,OW", cantonMapping.associations["Unterwalden"], "Common entry loading")
+        //
+        val cantonMappingExtended = actionDefinition.fieldMappingDefinitions[3]
+        assertEquals("cantons_ext", cantonMappingExtended.sourceName, "Source property of third field mapping")
+        assertEquals(24, cantonMappingExtended.associations.size, "Size of 'associations' map")
+        assertEquals("BE", cantonMappingExtended.associations["AKB"], "Additional mappings are loaded")
         //
         val jiraToRtcAction = result.actionDefinitions[1]
         assertEquals("SimpleFieldsJiraToRtc", jiraToRtcAction.name, "Name of first action definition")

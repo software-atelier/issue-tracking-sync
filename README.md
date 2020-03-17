@@ -336,6 +336,21 @@ The common entries can then be used by setting a **#common** association pointin
 
 By adding `->reversed` to the entry, the map is reversed.
 
+If the imported common entries should be extended you can simply define more definitions to it.
+```json
+  {
+    "sourceName": "cantons",
+    "targetName": "customfield_11342",
+    "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+    "associations": 
+    {
+      "#common": "cantons",
+      "BL": "BS"
+    }
+  }
+}
+```
+
 #### actionDefinitions
 
 An action definition represents a synchronization sequence, similar to a macro. Typically, multiple field mappers are

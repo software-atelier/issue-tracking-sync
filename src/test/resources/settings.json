@@ -41,6 +41,15 @@
           "associations": {
             "#common": "cantonsRtcToJira"
           }
+        },
+        {
+          "sourceName": "cantons_ext",
+          "targetName": "customfield_11343",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+          "associations": {
+            "#common": "cantonsRtcToJira",
+            "AKB": "BE"
+          }
         }
       ]
     },
