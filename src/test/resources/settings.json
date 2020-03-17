@@ -50,6 +50,14 @@
             "#common": "cantonsRtcToJira",
             "AKB": "BE"
           }
+        },
+        {
+          "sourceName": "cantons_two_commons",
+          "targetName": "customfield_11344",
+          "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+          "associations": {
+            "#common": "cantonsRtcToJira, cantonsExtended"
+          }
         }
       ]
     },
@@ -161,6 +169,9 @@
       "UR": "UR",
       "ZG": "ZG",
       "ZH": "ZH"
+    },
+    "cantonsExtended": {
+      "AKB": "BE"
     }
   }
 }

@@ -41,7 +41,7 @@ data class Settings(
      */
     private fun mapCommons() =
         actionDefinitions.flatMap { it.fieldMappingDefinitions }.forEach { fldMapping ->
-            fldMapping.associations["#common"]?.let {
+            fldMapping.associations["#common"]?.split(",")?.map(String::trim)?.forEach {
                 if (it.endsWith("->reversed")) {
                     mapCommons(fldMapping, it.substring(0, it.length - 10), true)
                 } else {

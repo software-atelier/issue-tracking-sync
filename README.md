@@ -337,6 +337,7 @@ The common entries can then be used by setting a **#common** association pointin
 By adding `->reversed` to the entry, the map is reversed.
 
 If the imported common entries should be extended you can simply define more definitions to it.
+Additional you can also simple add multiple common entries by listing them sepperated by a comma ",".
 ```json
   {
     "sourceName": "cantons",
@@ -347,7 +348,13 @@ If the imported common entries should be extended you can simply define more def
       "#common": "cantons",
       "BL": "BS"
     }
-  }
+  },
+    {
+        "sourceName": "customfield_11342",
+        "targetName": "cantons",
+        "mapperClassname": "ch.loewenfels.issuetrackingsync.executor.fields.MultiSelectionFieldMapper",
+        "associations": {"#common": "cantons->reversed,cantonsExtended"}
+    }
 }
 ```
 

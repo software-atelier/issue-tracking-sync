@@ -31,7 +31,7 @@ internal class SettingsTest : AbstractSpringTest() {
         assertEquals(5, result.actionDefinitions.size, "Count of configured actions")
         val actionDefinition = result.actionDefinitions[0]
         assertEquals("SimpleFieldsRtcToJira", actionDefinition.name, "Name of first action definition")
-        assertEquals(4, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
+        assertEquals(5, actionDefinition.fieldMappingDefinitions.size, "Count of field mappings in first action")
         assertEquals(
             "summary", actionDefinition.fieldMappingDefinitions[0].sourceName, "Source property of first field mapping"
         )
@@ -41,9 +41,18 @@ internal class SettingsTest : AbstractSpringTest() {
         assertEquals("NW,OW", cantonMapping.associations["Unterwalden"], "Common entry loading")
         //
         val cantonMappingExtended = actionDefinition.fieldMappingDefinitions[3]
-        assertEquals("cantons_ext", cantonMappingExtended.sourceName, "Source property of third field mapping")
+        assertEquals("cantons_ext", cantonMappingExtended.sourceName, "Source property of fourth field mapping")
         assertEquals(24, cantonMappingExtended.associations.size, "Size of 'associations' map")
         assertEquals("BE", cantonMappingExtended.associations["AKB"], "Additional mappings are loaded")
+        //
+        val cantonMappingTwoCommonEntries = actionDefinition.fieldMappingDefinitions[4]
+        assertEquals(
+            "cantons_two_commons",
+            cantonMappingTwoCommonEntries.sourceName,
+            "Source property of fith field mapping"
+        )
+        assertEquals(24, cantonMappingTwoCommonEntries.associations.size, "Size of 'associations' map")
+        assertEquals("BE", cantonMappingTwoCommonEntries.associations["AKB"], "Additional mappings are loaded")
         //
         val jiraToRtcAction = result.actionDefinitions[1]
         assertEquals("SimpleFieldsJiraToRtc", jiraToRtcAction.name, "Name of first action definition")
