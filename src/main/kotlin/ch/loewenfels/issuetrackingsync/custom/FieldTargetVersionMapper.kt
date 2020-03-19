@@ -40,30 +40,38 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
             ) as String
             val get = "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex().find(value1)?.groupValues?.get(1) ?: ""
             if (value.contains(get).not()) {
-                val first = mutableListOf<String>()
-                val second = mutableListOf<String>()
-                for (string in value) {
-                    if (string is String) {
-                        val regexMinorVersion = "^(\\d\\.\\d{2,3})(?!\\.)".toRegex()
-                        val regexBugfixVerion = "^(\\d\\.\\d{2,3}\\.\\d*)".toRegex()
-                        first.addAll(regexMinorVersion.findAll(string).toList().map { it.groupValues.get(1) })
-                        second.addAll(regexBugfixVerion.findAll(string).toList().map { it.groupValues.get(1) })
-                    }
-                }
-                first.sort()
-                second.sort()
-                val potentialValueToWrite = (first.firstOrNull() ?: second.firstOrNull())
-                    ?: throw IllegalStateException("The state of the issue ${issue.key} is not valid. No legit sync value found for TargetVersion value was: $value")
-                val valueToWrite =
-                    issueTrackingClient.getAllIIteration().map { it.name }.firstOrNull {
-                        it.endsWith(
-                            potentialValueToWrite
-                        )
-                    }
-                        ?: throw IllegalStateException("The version is not yet defined for RTC. Version: $potentialValueToWrite")
-                super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, valueToWrite)
+                mergeToRtc(value, issue, issueTrackingClient, proprietaryIssueBuilder, fieldname)
             }
         }
+    }
+
+    private fun mergeToRtc(
+        value: List<*>,
+        issue: Issue,
+        issueTrackingClient: RtcClient,
+        proprietaryIssueBuilder: Any,
+        fieldname: String
+    ) {
+        val first = mutableListOf<String>()
+        val second = mutableListOf<String>()
+        for (string in value) {
+            if (string is String) {
+                val regexMinorVersion = "^(\\d\\.\\d{2,3})(?!\\.)".toRegex()
+                val regexBugfixVerion = "^(\\d\\.\\d{2,3}\\.\\d*)".toRegex()
+                first.addAll(regexMinorVersion.findAll(string).toList().map { it.groupValues.get(1) })
+                second.addAll(regexBugfixVerion.findAll(string).toList().map { it.groupValues.get(1) })
+            }
+        }
+        first.sort()
+        second.sort()
+        val potentialValueToWrite = first.firstOrNull() ?: second.firstOrNull()
+        checkNotNull(potentialValueToWrite) {
+            "The state of the issue ${issue.key} is not valid. No legit sync value found for TargetVersion value was: $value"
+        }
+        val valueToWrite =
+            issueTrackingClient.getAllIIteration().map { it.name }.firstOrNull { it.endsWith(potentialValueToWrite) }
+        checkNotNull(valueToWrite) { IllegalStateException("The version is not yet defined for RTC. Version: $potentialValueToWrite") }
+        super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, valueToWrite)
     }
 
     fun mergeLogicToJira(
@@ -82,8 +90,12 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                 val regexMinorVersion = "^\\d\\.\\d{2,3}(?!\\.)".toRegex()
                 val regexBugfixVersion = "\\d\\.\\d{2,3}\\.\\d*(?!\\.)".toRegex()
                 val valueToWrite = value1.toMutableList()
-                if (regexMinorVersion.containsMatchIn(value).not() && regexBugfixVersion.containsMatchIn(value).not()) {
-                    throw IllegalStateException("The version of the issue ${issue.key} is not valid. No legit sync value found for TargetVersion value was: $value")
+
+                check(regexMinorVersion.containsMatchIn(value) || regexBugfixVersion.containsMatchIn(value)) {
+                    throw IllegalStateException(
+                        "The version of the issue ${issue.key} is not valid. No legit sync " +
+                                "value found for TargetVersion value was: $value"
+                    )
                 }
                 valueToWrite.add(value)
                 super.setValue(
