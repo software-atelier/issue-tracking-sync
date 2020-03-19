@@ -56,6 +56,7 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
             "text" -> "text should have no title"
             "multiSelectCustomFieldRtc" -> listOf("fooRtc", "barRtc")
             "singleSelectCustomFieldRtc" -> "fooRtc"
+            "geplantFuer" -> "I2000.3 - 3.66"
             else -> "foobar"
         }
     }

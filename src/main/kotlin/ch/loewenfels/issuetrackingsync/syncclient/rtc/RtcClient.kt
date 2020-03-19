@@ -14,6 +14,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.foundation.common.text.XMLString
 import com.ibm.team.process.client.IProcessClientService
+import com.ibm.team.process.common.IDevelopmentLine
 import com.ibm.team.process.common.IIteration
 import com.ibm.team.process.common.IIterationHandle
 import com.ibm.team.process.common.IProjectArea
@@ -62,7 +63,8 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -274,6 +276,28 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return auditableClient.resolveAuditable(value, ItemProfile.CONTRIBUTOR_DEFAULT, null).name
     }
 
+    private fun getDevelopmentLine(): IDevelopmentLine {
+        return auditableClient.resolveAuditable(
+            projectArea.projectDevelopmentLine,
+            ItemProfile.DEVELOPMENT_LINE_DEFAULT,
+            null
+        )
+    }
+
+    open fun getAllIIteration(): List<IIteration> {
+        return getDevelopmentLine()
+            .iterations
+            .flatMap { resolveAllChildIterations(it) }
+    }
+
+    private fun resolveAllChildIterations(iteration: IIterationHandle): List<IIteration> {
+        val childIterations = getIteration(iteration)
+        if (childIterations.children.isEmpty()) {
+            return listOf(childIterations)
+        }
+        return childIterations.children.flatMap(this::resolveAllChildIterations)
+    }
+
     /**
      * The [intervalName] might be something like "I2003.3 - 3.77", while RTC defines:
      *
@@ -284,11 +308,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         if (intervalName == null) {
             return null
         }
-        return auditableClient.resolveAuditable(
-            projectArea.projectDevelopmentLine,
-            ItemProfile.DEVELOPMENT_LINE_DEFAULT,
-            null
-        )
+        return getDevelopmentLine()
             .iterations
             .map { getIteration(it) }
             .firstOrNull { intervalName.startsWith(it.name) }
@@ -608,7 +628,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         setValue(internalIssueBuilder, issue, fieldName, (timeInMinutes?.toLong() ?: 0) * millisToMinutes)
     }
 
-    private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
+    fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
         val copyManager = workItemClient.workItemWorkingCopyManager
         copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)
         try {

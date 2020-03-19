@@ -7,6 +7,7 @@ object JiraMetadata {
     private val issueTypes: MutableMap<String, Long> = mutableMapOf()
     private val priorities: MutableMap<String, Long> = mutableMapOf()
     private val fieldTypes: MutableMap<String, String> = mutableMapOf()
+    private val fieldCustom: MutableMap<String, String> = mutableMapOf()
 
     fun getIssueTypeId(name: String, jiraRestClient: JiraRestClient): Long =
         getId(issueTypes, "issue type", name, jiraRestClient)
@@ -31,6 +32,9 @@ object JiraMetadata {
             }
     }
 
+    fun getFieldCustom(internalId: String, jiraRestClient: JiraRestClient): String =
+        getName(fieldCustom, "customfield", internalId, null, jiraRestClient)
+
     fun getPriorityName(internalId: Long, jiraRestClient: JiraRestClient): String =
         getName(priorities, "priority", null, internalId, jiraRestClient)
 
@@ -48,7 +52,7 @@ object JiraMetadata {
             ?: collection.filterValues { it == internalId }.keys.firstOrNull() as String?
             ?: run {
                 loadPriorities(jiraRestClient)
-                loadFieldTypes(jiraRestClient)
+                loadFields(jiraRestClient)
                 collection.filterValues { it == internalId }.keys.firstOrNull() as String?
                     ?: collection[internalName] as String?
                     ?: throw IssueClientException("Unknown $property ${internalId ?: internalName}")
@@ -70,9 +74,10 @@ object JiraMetadata {
     }
 
     @kotlin.jvm.Synchronized
-    private fun loadFieldTypes(jiraRestClient: JiraRestClient) {
+    private fun loadFields(jiraRestClient: JiraRestClient) {
         jiraRestClient.metadataClient.fields.claim().forEach { f ->
             fieldTypes[f.id] = f.schema?.type ?: ""
+            fieldCustom[f.id] = f.schema?.custom ?: ""
         }
     }
 }

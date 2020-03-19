@@ -1,6 +1,9 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Attachment
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.StateHistory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -65,6 +68,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
             "priorityId" -> "12"
             "comments" -> "h4. Important stuff"
             "multiSelectCustomFieldJira" -> arrayOf("fooJira", "barJira")
+            "geplantFuer" -> arrayOf("3.66", "3.67", "3.65.1")
             else -> "foobar"
         }
     }

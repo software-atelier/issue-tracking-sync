@@ -33,7 +33,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
@@ -131,7 +131,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
                 } else if (fieldName == "versions") {
                     // RTC allows only one version (field: foundIn) while Jira awaits a list of versions
-                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.AFFECTS_VERSIONS_FIELD.id, mutableListOf(value))
+                    setInternalFieldValue(
+                        internalIssueBuilder,
+                        IssueFieldId.AFFECTS_VERSIONS_FIELD.id,
+                        mutableListOf(value)
+                    )
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
@@ -177,7 +181,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
         val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        var targetIssue =
+        val targetIssue =
             (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
                 targetKeyFieldname,
                 targetIssueKey
@@ -396,22 +400,37 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             // Text custom field
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
             "array" -> {
-                if (value is List<*>) {
-                    val complexValues = value//
-                        .map { ComplexIssueInputFieldValue.with("value", it) }
-                    internalIssueBuilder.setFieldValue(fld.id, complexValues)
-                } else if (value is String) {
-                    val complexValue = listOf(value).map { ComplexIssueInputFieldValue.with("value", it) }
-                    internalIssueBuilder.setFieldValue(fld.id, complexValue)
-                } else {
-                    val fieldId = jiraIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
-                    throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to receive an array, but was of type ${value::class.simpleName}")
+                val writerName = when (JiraMetadata.getFieldCustom(fieldName, jiraRestClient)) {
+                    "com.atlassian.jira.plugin.system.customfieldtypes:multiversion" -> "name"
+                    else -> "value"
                 }
+                writeComplexField(value, internalIssueBuilder, fld, jiraIssue, fieldName, writerName)
             }
             "option" -> {
                 val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())
                 setInternalFieldValue(internalIssueBuilder, fld.id, complexValue)
             }
+        }
+    }
+
+    private fun writeComplexField(
+        value: Any,
+        internalIssueBuilder: IssueInputBuilder,
+        fld: IssueField,
+        jiraIssue: com.atlassian.jira.rest.client.api.domain.Issue,
+        fieldName: String,
+        fieldWriterName: String
+    ): IssueInputBuilder? {
+        return if (value is List<*>) {
+            val complexValues = value//
+                .map { ComplexIssueInputFieldValue.with(fieldWriterName, it) }
+            internalIssueBuilder.setFieldValue(fld.id, complexValues)
+        } else if (value is String) {
+            val complexValue = listOf(value).map { ComplexIssueInputFieldValue.with(fieldWriterName, it) }
+            internalIssueBuilder.setFieldValue(fld.id, complexValue)
+        } else {
+            val fieldId = jiraIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
+            throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to receive an array, but was of type ${value::class.simpleName}")
         }
     }
 
@@ -436,7 +455,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         if (value is JSONArray) {
             for (i in 0 until value.length()) {
                 val jsonObject = value.get(i) as JSONObject
-                val fieldValue = jsonObject.getString("value")
+                val fieldValue =
+                    if (jsonObject.has("value")) jsonObject.getString("value") else jsonObject.getString("name")
                 result.add(fieldValue)
             }
         }
