@@ -4,10 +4,15 @@ import ch.loewenfels.issuetrackingsync.Attachment
 import ch.loewenfels.issuetrackingsync.Comment
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.StateHistory
+import ch.loewenfels.issuetrackingsync.executor.SyncActionName
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
+import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
 import com.fasterxml.jackson.databind.JsonNode
+import com.ibm.team.repository.common.TeamRepositoryException
+import org.springframework.http.HttpStatus
 import java.time.LocalDateTime
 import kotlin.math.abs
 import kotlin.random.Random
@@ -149,5 +154,19 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
 
     override fun setState(internalIssue: Issue, targetState: String) {
         // no-op
+    }
+
+    override fun logException(
+        issue: Issue,
+        exception: Exception,
+        notificationObserver: NotificationObserver,
+        syncActions: Map<SyncActionName, SynchronizationAction>
+    ) {
+        val errorMessage = if (exception is TeamRepositoryException) {
+            "Rtc: ${HttpStatus.UNAUTHORIZED.reasonPhrase}"
+        } else {
+            HttpStatus.UNAUTHORIZED.reasonPhrase
+        }
+        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
     }
 }

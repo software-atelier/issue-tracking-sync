@@ -10,6 +10,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.testcontext.AlwaysFalseIssueFilter
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import com.atlassian.jira.rest.client.api.RestClientException
+import com.ibm.team.repository.common.TeamRepositoryException
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.times
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -122,11 +123,11 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // act
         testee.execute(issue)
         // assert
-        assertEquals(1, TestNotificationChannel.erroneousIssueKeys.size)
+        assertEquals(1, TestNotificationChannel.erroneousIssueKeys.distinct().size)
     }
 
     @Test
-    fun execute_jiraLoginFailure_notifiedAsError() {
+    fun execute_jiraLoginFailureSourceIsJira_notifiedAsError() {
         // arrange
         val error = HttpStatus.UNAUTHORIZED
         val exception = RestClientException(Throwable(error.reasonPhrase), error.value())
@@ -140,11 +141,81 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = TestObjects.buildIssue("MK-1")
-        `when`(sourceClient.getProprietaryIssue(anyString())).thenThrow(exception)
+        doAnswer { throw exception }//
+            .`when`(sourceClient).getProprietaryIssue(anyString())
         // act
         testee.execute(issue)
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase} (${error.value()})"))
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase}"))
+    }
+
+    @Test
+    fun execute_jiraLoginFailureSourceIsRtc_notifiedAsError() {
+        // arrange
+        val error = HttpStatus.UNAUTHORIZED
+        val exception = RestClientException(Throwable(error.reasonPhrase), error.value())
+        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
+        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val notificationObserver = TestObjects.buildNotificationObserver()
+        val testee =
+            SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
+        val issue = TestObjects.buildIssue("MK-1")
+        doAnswer { throw exception }//
+            .`when`(sourceClient).getProprietaryIssue(anyString())
+        // act
+        testee.execute(issue)
+        // assert
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
+    }
+
+    @Test
+    fun execute_rtcLoginFailureSourceIsRtc_notifiedAsError() {
+        // arrange
+        val error = HttpStatus.UNAUTHORIZED
+        val exception = TeamRepositoryException(Throwable(error.reasonPhrase))
+        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
+        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val notificationObserver = TestObjects.buildNotificationObserver()
+        val testee =
+            SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
+        val issue = TestObjects.buildIssue("MK-1")
+        doAnswer { throw exception }//
+            .`when`(sourceClient).getProprietaryIssue(anyString())
+        // act
+        testee.execute(issue)
+        // assert
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Rtc: ${error.reasonPhrase}"))
+    }
+
+    @Test
+    fun execute_rtcLoginFailureSourceIsJira_notifiedAsError() {
+        // arrange
+        val error = HttpStatus.UNAUTHORIZED
+        val exception = TeamRepositoryException(Throwable(error.reasonPhrase))
+        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = TestObjects.buildNotificationObserver()
+        val testee =
+            SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
+        val issue = TestObjects.buildIssue("MK-1")
+        doAnswer { throw exception }//
+            .`when`(sourceClient).getProprietaryIssue(anyString())
+        // act
+        testee.execute(issue)
+        // assert
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
     }
 
     @Test

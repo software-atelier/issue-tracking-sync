@@ -6,7 +6,10 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.StateHistory
 import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.executor.SyncActionName
+import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.logger
+import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -25,6 +28,7 @@ import com.ibm.team.repository.common.IAuditableHandle
 import com.ibm.team.repository.common.IContent
 import com.ibm.team.repository.common.IContributor
 import com.ibm.team.repository.common.IContributorHandle
+import com.ibm.team.repository.common.TeamRepositoryException
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
@@ -63,8 +67,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
-import java.util.LinkedList
+import java.util.*
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -337,7 +340,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 getAttribute(IWorkItem.SEVERITY_PROPERTY),
                 workItemClient
             )
-            fieldName == "internalTags" -> value.toString().split("|").toTypedArray().filter { label -> label.isNotBlank() }
+            fieldName == "internalTags" -> value.toString().split("|").toTypedArray()
+                .filter { label -> label.isNotBlank() }
             value is ICategoryHandle -> getCategoryName(value)
             value is Identifier<*> -> getEnumerationName(fieldName, value)
             value is IIterationHandle -> getIteration(value).name
@@ -628,7 +632,22 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         setValue(internalIssueBuilder, issue, fieldName, (timeInMinutes?.toLong() ?: 0) * millisToMinutes)
     }
 
-    fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
+    override fun logException(
+        issue: Issue,
+        exception: java.lang.Exception,
+        notificationObserver: NotificationObserver,
+        syncActions: Map<SyncActionName, SynchronizationAction>
+    ) {
+        val errorMessage = if (exception is TeamRepositoryException) {
+            "RTC: ${exception.message}"
+        } else {
+            exception.message
+        }
+        logger().debug(errorMessage)
+        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
         val copyManager = workItemClient.workItemWorkingCopyManager
         copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)
         try {
