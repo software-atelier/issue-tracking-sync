@@ -11,9 +11,7 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
-        return getValue(proprietaryIssue, fieldname, issueTrackingClient, associations)
-    }
+    ) = getValue(proprietaryIssue, fieldname, issueTrackingClient, associations)
 
 
     protected fun <T> getValue(
@@ -23,13 +21,14 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
         association: Map<String, String>
     ): Any? {
         val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)
-        if (value is String) {
-            return transFromString(value, association)
-        } else if (value is List<*>) {
-            val list = issueTrackingClient.getMultiSelectValues(proprietaryIssue, fieldname)
-            return list.map { transFromString(it, association) }
+        return when (value) {
+            is String -> transFromString(value, association)
+            is List<*> -> issueTrackingClient.getMultiSelectValues(
+                proprietaryIssue,
+                fieldname
+            ).map { transFromString(it, association) }
+            else -> value
         }
-        return value
     }
 
     private fun transFromString(value: String, association: Map<String, String>): String? {
