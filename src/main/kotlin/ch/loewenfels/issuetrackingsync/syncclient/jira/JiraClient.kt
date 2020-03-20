@@ -283,19 +283,6 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> =
         jiraRestClient.getHtmlRenderingRestClient().getHtmlComments(internalIssue.key)
-            .plusElement(
-                createLinkComment(internalIssue)
-            )
-
-    private fun createLinkComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): Comment {
-        // Because a direct link in the other tracking application to this Jira issue would be nice
-        return Comment(
-            setup.username,
-            toLocalDateTime(internalIssue.creationDate),
-            "Jira link: " + setup.endpoint + "/browse/" + internalIssue.key,
-            backReferenceCommentId
-        )
-    }
 
     override fun addComment(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue, comment: Comment) {
         val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(comment.content)

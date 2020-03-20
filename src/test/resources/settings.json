@@ -125,10 +125,12 @@
         "sourceName": "id",
         "targetName": "RTC ID"
       },
-      "writeBackFieldMappingDefinition": {
-        "sourceName": "key",
-        "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
-      },
+      "writeBackFieldMappingDefinition": [
+        {
+          "sourceName": "key",
+          "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
+        }
+      ],
       "defaultsForNewIssue": {
         "issueType": "10302",
         "project": "TST",

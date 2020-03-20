@@ -25,7 +25,7 @@ class UnclosedChangeWithRtcReferenceFilter(
         val status = client.getValue(internalIssue, "status.name")
         val issueType = client.getValue(internalIssue, "issueType.name")
         val issueReference = client.getValue(
-            internalIssue, syncFlowDefinition.writeBackFieldMappingDefinition!!.targetName
+            internalIssue, syncFlowDefinition.writeBackFieldMappingDefinition[0].targetName
         )
         return !closedJiraStatus.contains(status) //
                 && isAllowedIssueType(issueType, UnclosedChangeFilter().getAllowedJiraIssueTypes())//

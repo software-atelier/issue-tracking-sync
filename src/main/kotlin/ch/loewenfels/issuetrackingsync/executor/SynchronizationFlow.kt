@@ -13,7 +13,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Objects
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -133,7 +133,7 @@ class SynchronizationFlow(
 
     private fun updateKeyReferenceOnTarget(issue: Issue) {
         issue.keyFieldMapping?.let {
-            val fieldMapping = listOf(it)
+            val keyMapping = listOf(it)
             // use a clone here so we don't attempt to re-update all previously mapped fields
             val issueClone = Issue(issue.key, "", issue.lastUpdated)
             loadInternalSourceIssue(issueClone, false)
@@ -141,7 +141,7 @@ class SynchronizationFlow(
                 sourceClient,
                 targetClient,
                 issueClone,
-                fieldMapping,
+                keyMapping,
                 defaultsForNewIssue
             )
         }
@@ -151,19 +151,19 @@ class SynchronizationFlow(
     private fun updateKeyReferenceOnSource(issue: Issue) {
         if (issue.proprietaryTargetInstance != null) {
             issue.targetKey = issue.proprietaryTargetInstance?.let { targetClient.getKey(it) }
-            syncFlowDefinition.writeBackFieldMappingDefinition?.let { writeBack ->
+            syncFlowDefinition.writeBackFieldMappingDefinition.let { writeBack ->
                 val invertedIssue = Issue(issue.targetKey!!, "", issue.lastUpdated)
                 invertedIssue.proprietarySourceInstance = issue.proprietaryTargetInstance
                 invertedIssue.proprietaryTargetInstance = issue.proprietarySourceInstance
-                val invertedKeyMapping = FieldMappingFactory.getKeyMapping(writeBack)
-                invertedKeyMapping.loadSourceValue(invertedIssue, targetClient)
-                invertedIssue.keyFieldMapping = invertedKeyMapping
-                val fieldMappings = listOf(invertedKeyMapping)
+                val invertedKeyFieldMapping = issue.keyFieldMapping?.invertMapping()
+                val writeBackList = writeBack.map { FieldMappingFactory.getKeyMapping(it) }.toList()
+                writeBackList.forEach { it.loadSourceValue(invertedIssue, targetClient) }
+                invertedIssue.keyFieldMapping = invertedKeyFieldMapping
                 SimpleSynchronizationAction("ReferenceWriteBack").execute(
                     targetClient,
                     sourceClient,
                     invertedIssue,
-                    fieldMappings,
+                    writeBackList,
                     defaultsForNewIssue
                 )
             }

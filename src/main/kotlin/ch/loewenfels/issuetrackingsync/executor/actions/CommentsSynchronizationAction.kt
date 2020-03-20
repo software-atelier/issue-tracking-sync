@@ -1,7 +1,10 @@
 package ch.loewenfels.issuetrackingsync.executor.actions
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Comment
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.AdditionalProperties
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
@@ -74,17 +77,19 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     ): List<Comment> =
         sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }.toList()
 
-    private fun isSourcePresentInTarget(
-        sourceComment: Comment,
-        targetComments: List<Comment>
-    ): Boolean =
-        targetComments.any { targetComment ->
-            sourceComment.content.contains(targetComment.content) //
-                    || targetComment.content.contains(sourceComment.content) //
-                    // if the source comment contains the internal ID of a target, it must have been sync'ed
-                    // from another system, so don't sync it back anywhere
-                    || sourceComment.content.contains(targetComment.internalId) //
-                    // a match here means the source comment was already synced to the target system
-                    || targetComment.content.contains(sourceComment.internalId) //
-        }
+    companion object {
+        fun isSourcePresentInTarget(
+            sourceComment: Comment,
+            targetComments: List<Comment>
+        ): Boolean =
+            targetComments.any { targetComment ->
+                sourceComment.content.contains(targetComment.content) //
+                        || targetComment.content.contains(sourceComment.content) //
+                        // if the source comment contains the internal ID of a target, it must have been sync'ed
+                        // from another system, so don't sync it back anywhere
+                        || sourceComment.content.contains(targetComment.internalId) //
+                        // a match here means the source comment was already synced to the target system
+                        || targetComment.content.contains(sourceComment.internalId) //
+            }
+    }
 }

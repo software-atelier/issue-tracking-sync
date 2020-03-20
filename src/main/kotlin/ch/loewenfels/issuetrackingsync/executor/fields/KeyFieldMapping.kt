@@ -7,4 +7,5 @@ class KeyFieldMapping(
 ) : FieldMapping(sourceName, targetName, mapper) {
     fun getKeyForTargetIssue(): Any? = sourceValue
     fun getTargetFieldname(): String = targetName
+    fun invertMapping(): KeyFieldMapping = KeyFieldMapping(targetName, sourceName, mapper)
 }

@@ -46,10 +46,12 @@ object TestObjects {
             "custom_field_10244"
         )
 
-    private fun buildWriteBackFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition(
-            "key",
-            "ch.foobar.team.workitem.attribute.external_refid"
+    private fun buildWriteBackFieldMappingDefinition(): List<FieldMappingDefinition> =
+        listOf(
+            FieldMappingDefinition(
+                "key",
+                "ch.foobar.team.workitem.attribute.external_refid"
+            )
         )
 
     private fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =

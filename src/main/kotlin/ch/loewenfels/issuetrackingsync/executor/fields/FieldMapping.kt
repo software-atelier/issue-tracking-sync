@@ -5,9 +5,9 @@ import ch.loewenfels.issuetrackingsync.executor.fields.skipping.FieldSkippingEva
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 open class FieldMapping(
-    private val sourceName: String,
+    protected val sourceName: String,
     val targetName: String,
-    private val mapper: FieldMapper,
+    protected val mapper: FieldMapper,
     private val fieldSkipEvalutors: List<FieldSkippingEvaluator> = mutableListOf()
 ) {
     protected var sourceValue: Any? = null
