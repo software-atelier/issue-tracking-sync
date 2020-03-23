@@ -36,7 +36,8 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
         if ((internalSourceIssue != null) && (internalTargetIssue != null)) {
             val sourceComments = sourceClient.getComments(internalSourceIssue)
             val targetComments = targetClient.getComments(internalTargetIssue)
-            val commentsToSync = getSourceCommentsNotPresentInTarget(sourceComments, targetComments)
+            val commentsToSync =
+                getSourceCommentsNotPresentInTarget(sourceComments, targetComments, additionalProperties?.commentFilter)
             commentsToSync //
                 .map { mapContentOfComment(it, additionalProperties) }//
                 .forEach {
@@ -73,9 +74,11 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
 
     private fun getSourceCommentsNotPresentInTarget(
         sourceComments: List<Comment>,
-        targetComments: List<Comment>
+        targetComments: List<Comment>,
+        commentFilter: List<String>?
     ): List<Comment> =
-        sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }.toList()
+        sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }
+            .filter(CommentFilterFactory.create(commentFilter)).toList()
 
     companion object {
         fun isSourcePresentInTarget(
@@ -92,4 +95,32 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                         || targetComment.content.contains(sourceComment.internalId) //
             }
     }
+
+    class CommentFilterFactory {
+        companion object {
+            fun create(commentFilterClassName: List<String>?): (Comment) -> Boolean {
+                if (commentFilterClassName == null) {
+                    return { (_) -> true }
+                }
+                val someList: MutableList<(Comment) -> Boolean> =
+                    getListOfCommentFilterInstances(commentFilterClassName)
+                return { comment ->
+                    !someList.map { it(comment) }.contains(false)
+                }
+            }
+
+            private fun getListOfCommentFilterInstances(commentFilterClassName: List<String>): MutableList<(Comment) -> Boolean> {
+                val someList: MutableList<(Comment) -> Boolean> = mutableListOf()
+                commentFilterClassName.forEach {
+                    try {
+                        someList.add((Class.forName(it).getDeclaredConstructor().newInstance() as CommentFilter).getFilter())
+                    } catch (e: Exception) {
+                    }
+                }
+                return someList
+            }
+        }
+    }
 }
+
+
