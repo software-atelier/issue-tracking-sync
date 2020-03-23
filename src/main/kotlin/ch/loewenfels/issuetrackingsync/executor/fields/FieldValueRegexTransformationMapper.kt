@@ -13,7 +13,6 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
         issueTrackingClient: IssueTrackingClient<in T>
     ) = getValue(proprietaryIssue, fieldname, issueTrackingClient, associations)
 
-
     protected fun <T> getValue(
         proprietaryIssue: T,
         fieldname: String,
@@ -22,19 +21,23 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
     ): Any? {
         val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)
         return when (value) {
-            is String -> transFromString(value, association)
+            is String -> transFromString(value, association, fieldname)
             is List<*> -> issueTrackingClient.getMultiSelectValues(
                 proprietaryIssue,
                 fieldname
-            ).map { transFromString(it, association) }
+            ).map { transFromString(it, association, fieldname) }
             else -> value
         }
     }
 
-    private fun transFromString(value: String, association: Map<String, String>): String? {
-        return association.map {
+    private fun transFromString(value: String, association: Map<String, String>, fieldname: String): String? {
+        val transformedString = association.map {
             it.key.toRegex().find(value)?.value?.replace(it.key.toRegex(), it.value)
-        }.filterNotNull().firstOrNull(String::isNotEmpty)
+        }.filterNotNull().toList()
+        check(transformedString.isNotEmpty()) {
+            throw IllegalStateException("Found non transformable value for field $fieldname: \"$value\"")
+        }
+        return transformedString.firstOrNull(String::isNotEmpty)
     }
 
     override fun <T> setValue(
