@@ -38,7 +38,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
@@ -273,12 +273,18 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project?.let { jql += " AND project = '$it'" }
         setup.pollingJqlFilter?.let { jql += " AND $it" }
-        return jiraRestClient.searchClient
-            .searchJql("$jql ORDER BY key", batchSize, offset, setOf("*all"))
-            .claim()
-            .issues
-            .map { mapJiraIssue(it) }
-            .toList()
+        try {
+            return jiraRestClient.searchClient
+                .searchJql("$jql ORDER BY key", batchSize, offset, setOf("*all"))
+                .claim()
+                .issues
+                .map { mapJiraIssue(it) }
+                .toList()
+        } catch (e: RestClientException) {
+            val restExceptionMessage = getRestExceptionMessage(e)
+            logger().error(restExceptionMessage)
+            throw IllegalStateException(restExceptionMessage)
+        }
     }
 
     override fun getComments(internalIssue: com.atlassian.jira.rest.client.api.domain.Issue): List<Comment> =
@@ -485,14 +491,26 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ) {
+        val errorMessage = getRestExceptionMessage(exception)
+        logger().debug(errorMessage)
+        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    private fun getRestExceptionMessage(exception: java.lang.Exception): String? {
         val errorMessage = if (exception is RestClientException) {
             val statusCode = exception.statusCode.or(0)
+
             val responseMessage = HttpStatus.valueOf(statusCode).reasonPhrase
-            "Jira: $responseMessage ($statusCode)"
+            val additionalPhrase = when (statusCode) {
+                401, 403 -> "There seems to be a Problem with your Login. Please check your configuration." +
+                        " If your login credentials for the tool are correct, then make sure the User is not forced to enter a Captch" +
+                        " If a captcha is needed, please shutdown this tool, then manually login and then start this tool again."
+                else -> ""
+            }
+            "Jira: $responseMessage ($statusCode)\n$additionalPhrase"
         } else {
             exception.message
         }
-        logger().debug(errorMessage)
-        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+        return errorMessage
     }
 }
