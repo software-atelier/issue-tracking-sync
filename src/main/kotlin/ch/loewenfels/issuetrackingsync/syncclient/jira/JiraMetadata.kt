@@ -2,18 +2,31 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import com.atlassian.jira.rest.client.api.JiraRestClient
+import com.atlassian.jira.rest.client.api.domain.Version
 
 object JiraMetadata {
     private val issueTypes: MutableMap<String, Long> = mutableMapOf()
     private val priorities: MutableMap<String, Long> = mutableMapOf()
     private val fieldTypes: MutableMap<String, String> = mutableMapOf()
     private val fieldCustom: MutableMap<String, String> = mutableMapOf()
+    private val projectVersions: MutableMap<String, Version> = mutableMapOf()
 
     fun getIssueTypeId(name: String, jiraRestClient: JiraRestClient): Long =
         getId(issueTypes, "issue type", name, jiraRestClient)
 
     fun getPriorityId(name: String, jiraRestClient: JiraRestClient): Long =
         getId(priorities, "priority", name, jiraRestClient)
+
+    fun getVersionEntity(name: List<*>, jiraRestClient: JiraRestClient, projectKey: String?): List<Version> {
+        return name.mapNotNull {
+            projectVersions[it] ?: run {
+                projectKey?.run {
+                    loadVersions(jiraRestClient, projectKey)
+                    projectVersions[it] ?: throw IssueClientException("Unknown version $name")
+                }
+            }
+        }
+    }
 
     private fun getId(
         collection: MutableMap<String, Long>,
@@ -58,6 +71,14 @@ object JiraMetadata {
                     ?: throw IssueClientException("Unknown $property ${internalId ?: internalName}")
             }
     }
+
+    @kotlin.jvm.Synchronized
+    private fun loadVersions(jiraRestClient: JiraRestClient, projectKey: String) {
+        jiraRestClient.projectClient.getProject(projectKey).claim().versions.forEach {
+            projectVersions[it.name] = it
+        }
+    }
+
 
     @kotlin.jvm.Synchronized
     private fun loadIssueTypes(jiraRestClient: JiraRestClient) {
