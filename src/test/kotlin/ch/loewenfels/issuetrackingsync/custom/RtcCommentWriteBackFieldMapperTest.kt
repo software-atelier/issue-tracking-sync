@@ -2,7 +2,7 @@ package ch.loewenfels.issuetrackingsync.custom
 
 import ch.loewenfels.issuetrackingsync.any
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 

@@ -3,7 +3,7 @@ package ch.loewenfels.issuetrackingsync.executor.fields
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
-class DirectFieldMapper : FieldMapper {
+open class DirectFieldMapper : FieldMapper {
     override fun <T> getValue(
         proprietaryIssue: T,
         fieldname: String,

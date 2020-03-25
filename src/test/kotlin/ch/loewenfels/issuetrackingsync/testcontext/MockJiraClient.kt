@@ -73,6 +73,7 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
             "priorityId" -> "12"
             "comments" -> "h4. Important stuff"
             "multiSelectCustomFieldJira" -> arrayOf("fooJira", "barJira")
+            "arrayField" -> listOf("a", "b")
             "geplantFuer" -> arrayOf("3.66", "3.67", "3.65.1")
             else -> "foobar"
         }

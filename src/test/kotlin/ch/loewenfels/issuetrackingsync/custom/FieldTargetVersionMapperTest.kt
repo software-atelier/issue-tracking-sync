@@ -167,7 +167,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
                 safeEq(fieldname),
                 argumentCaptor.capture()
             )
-
         assertThat(
             "List should be correct",
             argumentCaptor.value as List<String>,
