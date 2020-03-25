@@ -82,10 +82,12 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         value: Any?
     ) {
         if (value is String) {
-            val value1 = issueTrackingClient.getMultiSelectValues(
-                issue.proprietaryTargetInstance as com.atlassian.jira.rest.client.api.domain.Issue,
-                fieldname
-            )
+            val value1 = issue.proprietaryTargetInstance?.run {
+                issueTrackingClient.getMultiSelectValues(
+                    issue.proprietaryTargetInstance as com.atlassian.jira.rest.client.api.domain.Issue,
+                    fieldname
+                )
+            } ?: emptyList()
             if (value1.contains(value).not()) {
                 val regexMinorVersion = "^\\d\\.\\d{2,3}(?!\\.)".toRegex()
                 val regexBugfixVersion = "\\d\\.\\d{2,3}\\.\\d*(?!\\.)".toRegex()
