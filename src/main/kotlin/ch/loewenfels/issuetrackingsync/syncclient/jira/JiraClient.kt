@@ -124,12 +124,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         value: Any?
     ) {
         logger().debug("Setting value $value on $fieldName")
-        convertToMetadataId(fieldName, value, issue.proprietaryTargetInstance as JiraProprietaryIssue)?.let {
+        val proprietaryJiraIssue = issue.proprietaryTargetInstance
+        convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraProprietaryIssue?)?.let {
             val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
             if (beanWrapper.isWritableProperty(fieldName))
                 beanWrapper.setPropertyValue(fieldName, it)
             else if (internalIssueBuilder is IssueInputBuilder) {
-                val targetInternalIssue = (issue.proprietaryTargetInstance
+                val targetInternalIssue = (proprietaryJiraIssue
                     ?: throw IllegalStateException("Need a target issue for custom fields")) as JiraProprietaryIssue
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
