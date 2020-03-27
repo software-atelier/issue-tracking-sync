@@ -4,6 +4,7 @@ var sync = {
         sync.readSystemName();
         sync.readInfo();
         sync.updateStatistics();
+        sync.updateErliestSyncDate();
         setInterval(sync.updateStatistics, 10000);
     },
 
@@ -17,7 +18,19 @@ var sync = {
                 }
             });
     },
-
+    triggerPolling: function () {
+        $.get('/triggerPolling')
+            .done(function (response) {
+                $('#manual-trigger-error').text("").hide();
+                $('#manual-trigger-status').text(response).show()//
+                    .delay(10000).fadeOut(1000);
+            })
+            .error(function (error) {
+                $('#manual-trigger-status').text("").hide();
+                $('#manual-trigger-error').text("An error occurred: " + error).show()//
+                    .delay(10000).fadeOut(1000);
+            });
+    },
     readInfo: function () {
         $.get('/info')
             .done(function (response) {
@@ -25,8 +38,8 @@ var sync = {
                 container.empty();
                 Object.keys(response).forEach(function (key) {
                     var row = $("<div class='row'/>");
-                    var labelCell = $("<div class='col-sm-3'>" + key + "</div>");
-                    var valueCell = $("<div class='col-sm-3'>" + response[key] + "</div>");
+                    var labelCell = $("<div class='col-sm-6'>" + key + "</div>");
+                    var valueCell = $("<div class='col-sm-6'>" + response[key] + "</div>");
                     row.append(labelCell).append(valueCell);
                     container.append(row);
                 });
@@ -39,15 +52,14 @@ var sync = {
                 container.empty();
                 Object.keys(response).forEach(function (key) {
                     var row = $("<div class='row'/>");
-                    var labelCell = $("<div class='col-sm-3'>" + key + "</div>");
+                    var labelCell = $("<div class='col-sm-6'>" + key + "</div>");
                     var value = key.indexOf("EnqueueTime") >= 0 ? response[key] + " ms" : response[key];
-                    var valueCell = $("<div class='col-sm-3'>" + value + "</div>");
+                    var valueCell = $("<div class='col-sm-6'>" + value + "</div>");
                     row.append(labelCell).append(valueCell)
                     container.append(row);
                 });
             });
     },
-
     runManual: function () {
         var frm = $('form#manual-sync-form');
         var requestBody = {
@@ -61,15 +73,41 @@ var sync = {
             data: JSON.stringify(requestBody),
             success: function (data) {
                 $('#manual-sync-error').text("").hide();
-                $('#manual-sync-status').text(data.message).show();
+                $('#manual-sync-status').text(data.message).show()//
+                    .delay(10000).fadeOut(1000);
             },
             error: function (data) {
-                $('#manual-sync-error').text("An error occurred: " + data.message).show();
                 $('#manual-sync-status').text("").hide();
+                $('#manual-sync-error').text("An error occurred: " + data.message).show()//
+                    .dealy(10000).fadeOut(1000);
             }
         });
     },
-
+    updateSyncIssuesUpdatedAfter: function (date, time) {
+        var requestBody = {
+            "date": date,
+            "time": time ? time : "00:00"
+        }
+        $.ajax({
+            url: '/earliestSyncDate',
+            type: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(requestBody),
+            success: function (data) {
+                $('#sync-date-error').text("").hide();
+                $('#sync-date-status').text(data.message).show()//
+                    .delay(10000).fadeOut(1000);
+                sync.readInfo()
+            },
+            error: function (data) {
+                $('#sync-date-error').text("An error occurred: " + data.message).show()//
+                    .delay(10000).fadeOut(1000);
+                $('#sync-date-status').text("").hide();
+                sync.readInfo()
+            }
+        });
+    },
     _loadDefinedTrackingApplications: function () {
         $.get('/definedSystems')
             .done(function (response) {
@@ -89,26 +127,4 @@ $(document).ready(function () {
     sync.init();
 });
 
-var datetimepicker = {
-    updateStartdate: function (date, time) {
-        var requestBody = {
-            "date": date,
-            "time": time ? time : "00:00"
-        }
-        $.ajax({
-            url: '/earliestSyncDate',
-            type: 'PUT',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify(requestBody),
-            success: function (data) {
-                $('#sync-date-error').text("").hide();
-                $('#sync-date-status').text(data.message).show();
-            },
-            error: function (data) {
-                $('#sync-date-error').text("An error occurred: " + data.message).show();
-                $('#sync-date-status').text("").hide();
-            }
-        });
-    }
-}
+var datetimepicker = {}

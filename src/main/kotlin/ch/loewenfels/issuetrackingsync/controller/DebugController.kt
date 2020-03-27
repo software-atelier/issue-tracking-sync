@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.io.File
 import java.io.FileInputStream
 import javax.servlet.http.HttpServletResponse
+import kotlin.concurrent.thread
 
 @RestController
 class DebugController(
@@ -23,7 +24,15 @@ class DebugController(
 
     @GetMapping("/manualTimetrackingSync")
     fun startManualTimetrackingSync() {
-        issuePoller.checkForUpdatedIssues()
+        triggerPollingManually()
+    }
+
+    @GetMapping("/triggerPolling")
+    fun triggerPollingManually(): String {
+        thread(start = true) {
+            issuePoller.checkForUpdatedIssues()
+        }
+        return "Trigger successfully started. Please look at the protocol for further status information"
     }
 
     @GetMapping("/config")

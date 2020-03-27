@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Date
 
 @RestController
 class InteractivceSyncController(
@@ -67,7 +67,7 @@ class InteractivceSyncController(
 
         try {
             val dateTime = LocalDateTime.parse(date + time, formatter);
-            settings.earliestSyncDate = dateTime.toString()
+            appState.lastPollingTimestamp = dateTime
         } catch (e: Exception) {
             return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to "Could not update earliest sync date")
         }

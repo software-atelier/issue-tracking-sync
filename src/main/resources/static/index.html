@@ -12,6 +12,7 @@
     <script crossorigin="anonymous"
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
             src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link href="assets/custom.css" rel="stylesheet">
 </head>
 <body>
 <div class="jumbotron">
@@ -19,39 +20,26 @@
     <p class="lead">Because you probably have better things to do.</p>
     <hr class="my-4">
 </div>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Polling</h5>
-        <div class="card-text container-fluid sync-polling"></div>
-    </div>
-</div>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Statistics</h5>
-        <div class="card-text container-fluid sync-statistics"></div>
-    </div>
-</div>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Protocol</h5>
-        <a class="hyperlink" href="protocolCsv">Download Protocol</a>
-    </div>
-</div>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Earliest Sync Date</h5>
-        <div class="card-text form-group">
-            <div class="alert alert-primary" id="sync-date-status" role="alert" style="display: none"></div>
-            <div class="alert alert-danger" id="sync-date-error" role="alert" style="display: none"></div>
-            <div class='input-group date' id='datetimepicker'>
-                <input class="form-control col-2" id='sync-date' placeholder="dd.mm.yyyy" type='text'>
-                <input class="form-control col-1" id='sync-time' placeholder="hh:mm" type='text'/>
-            </div>
+<div class="card-group">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Polling</h5>
+            <div class="card-text container-fluid sync-polling"></div>
         </div>
-        <button class="btn btn-primary"
-                onclick="datetimepicker.updateStartdate($('#sync-date').val(),$('#sync-time').val());"
-                type="button">Set Date
-        </button>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Statistics</h5>
+            <div class="card-text container-fluid sync-statistics"></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Protocol</h5>
+            <h5 class="card-text form-group">
+                <a class="hyperlink" href="protocolCsv">Download Protocol</a>
+            </h5>
+        </div>
     </div>
 </div>
 <div class="">
@@ -71,6 +59,13 @@
                 </div>
                 <button class="btn btn-primary" onclick="sync.runManual();" type="button">Submit</button>
             </form>
+        </div>
+    </div>
+</div>
+<div class="">
+    <div class="card-body">
+        <div class="card-test">
+            <a href="admin.html">Admin/Debug</a>
         </div>
     </div>
 </div>
