@@ -10,6 +10,7 @@ open class SyncApplicationProperties {
     lateinit var pollingCron: String
     lateinit var logfile: String
     var title: String = "Issue tracking synchronisation"
+    var debug: Boolean? = null
     var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
     var notificationChannels = ArrayList<NotificationChannel>()
         private set

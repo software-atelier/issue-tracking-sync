@@ -30,9 +30,10 @@ class InteractivceSyncController(
 ) {
 
     @GetMapping("/systeminfo")
-    fun getSystemInfo(): Map<String, Any> {
+    fun getSystemInfo(): Map<String, Any?> {
         return mapOf(
-            "title" to syncApplicationProperties.title
+            "title" to syncApplicationProperties.title,
+            "debug" to syncApplicationProperties.debug
         )
     }
 

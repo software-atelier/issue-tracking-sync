@@ -16,6 +16,11 @@ var sync = {
                     title.empty();
                     title.append(response["title"]);
                 }
+                if (response["debug"]) {
+                    $('#debug-banner').show()
+                } else {
+                    $('#debug-banner').hide()
+                }
             });
     },
     triggerPolling: function () {
