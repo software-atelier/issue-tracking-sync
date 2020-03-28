@@ -638,13 +638,17 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ) {
-        val errorMessage = if (exception is TeamRepositoryException) {
+        val errorMessage = if (isClientException(exception)) {
             "RTC: ${exception.message}"
         } else {
             exception.message
         }
         logger().debug(errorMessage)
         notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    override fun isClientException(exception: Exception): Boolean {
+        return exception is TeamRepositoryException
     }
 
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {

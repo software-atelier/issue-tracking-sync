@@ -169,7 +169,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // act
         testee.execute(issue)
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase}"))
     }
 
     @Test
@@ -215,7 +215,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // act
         testee.execute(issue)
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
+        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Rtc: ${error.reasonPhrase}"))
     }
 
     @Test

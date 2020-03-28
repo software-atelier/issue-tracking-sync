@@ -171,11 +171,15 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ) {
-        val errorMessage = if (exception is RestClientException) {
+        val errorMessage = if (isClientException(exception)) {
             "Jira: ${HttpStatus.UNAUTHORIZED.reasonPhrase}"
         } else {
             HttpStatus.UNAUTHORIZED.reasonPhrase
         }
         notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    override fun isClientException(exception: Exception): Boolean {
+        return exception is RestClientException
     }
 }

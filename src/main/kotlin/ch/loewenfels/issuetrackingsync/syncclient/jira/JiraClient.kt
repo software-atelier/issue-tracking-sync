@@ -38,7 +38,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Collections
+import java.util.*
 import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
 
 /**
@@ -510,13 +510,14 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun getRestExceptionMessage(exception: java.lang.Exception): String? {
-        val errorMessage = if (exception is RestClientException) {
-            val statusCode = exception.statusCode.or(0)
+        return if (isClientException(exception)) {
+            val clientException = exception as RestClientException
+            val statusCode = clientException.statusCode.or(0)
 
             val responseMessage = HttpStatus.valueOf(statusCode).reasonPhrase
             val additionalPhrase = when (statusCode) {
                 401, 403 -> "There seems to be a Problem with your Login. Please check your configuration." +
-                        " If your login credentials for the tool are correct, then make sure the User is not forced to enter a Captch" +
+                        " If your login credentials for the tool are correct, then make sure the User is not forced to enter a Captcha" +
                         " If a captcha is needed, please shutdown this tool, then manually login and then start this tool again."
                 else -> ""
             }
@@ -524,6 +525,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         } else {
             exception.message
         }
-        return errorMessage
+    }
+
+    override fun isClientException(exception: Exception): Boolean {
+        return exception is RestClientException
     }
 }

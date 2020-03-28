@@ -162,11 +162,15 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ) {
-        val errorMessage = if (exception is TeamRepositoryException) {
+        val errorMessage = if (isClientException(exception)) {
             "Rtc: ${HttpStatus.UNAUTHORIZED.reasonPhrase}"
         } else {
             HttpStatus.UNAUTHORIZED.reasonPhrase
         }
         notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+    }
+
+    override fun isClientException(exception: Exception): Boolean {
+        return exception is TeamRepositoryException
     }
 }
