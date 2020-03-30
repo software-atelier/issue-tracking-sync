@@ -4,7 +4,6 @@ var sync = {
         sync.readSystemName();
         sync.readInfo();
         sync.updateStatistics();
-        sync.updateErliestSyncDate();
         setInterval(sync.updateStatistics, 10000);
     },
 
@@ -79,7 +78,8 @@ var sync = {
             success: function (data) {
                 $('#manual-sync-error').text("").hide();
                 $('#manual-sync-status').text(data.message).show()//
-                    .delay(10000).fadeOut(1000);
+                sync.updateStatistics();
+                $('#manual-sync-status').delay(10000).fadeOut(1000);
             },
             error: function (data) {
                 $('#manual-sync-status').text("").hide();
@@ -131,5 +131,3 @@ var sync = {
 $(document).ready(function () {
     sync.init();
 });
-
-var datetimepicker = {}
