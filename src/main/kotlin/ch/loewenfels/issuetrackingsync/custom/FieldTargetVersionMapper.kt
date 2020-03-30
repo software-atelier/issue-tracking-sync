@@ -92,11 +92,11 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                 val regexMinorVersion = "^\\d\\.\\d{2,3}(?!\\.)".toRegex()
                 val regexBugfixVersion = "\\d\\.\\d{2,3}\\.\\d*(?!\\.)".toRegex()
                 val valueToWrite = value1.toMutableList()
-
-                check(regexMinorVersion.containsMatchIn(value) || regexBugfixVersion.containsMatchIn(value)) {
+                val validTransformaltion = associations.keys.any { it.toRegex().containsMatchIn(value) }
+                check(regexMinorVersion.containsMatchIn(value) || regexBugfixVersion.containsMatchIn(value) || validTransformaltion) {
                     throw IllegalStateException(
                         "The version of the issue ${issue.key} is not valid. No legit sync " +
-                                "value found for TargetVersion value was: $value"
+                                "value found for TargetVersion. Invalid value was: $value"
                     )
                 }
                 valueToWrite.add(value)
