@@ -12,7 +12,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  *  configured for both clients. This implies that both client-configuration are a mirrored version of each other.
  */
 
-class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
+open class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
     private val associations: Map<String, String> = fieldMappingDefinition.associations
 
     override fun <T> getValue(
@@ -20,8 +20,34 @@ class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
     ): Any? {
+        return getValue(proprietaryIssue, fieldname, issueTrackingClient, associations)
+    }
+
+    fun <T> getValue(
+        proprietaryIssue: T,
+        fieldname: String,
+        issueTrackingClient: IssueTrackingClient<in T>,
+        association: Map<String, String>
+    ): List<String> {
         val values = issueTrackingClient.getMultiSelectValues(proprietaryIssue, fieldname)
-        return values.filter { associations.containsKey(it) }
+        return mapAssociations(values, association)
+    }
+
+    fun mapAssociations(value: List<String>, association: Map<String, String>): List<String> {
+        val containsOneToOneAssotiantion = association.containsKey("*") && association.getValue("*").equals("*")
+        val containsOneToSomethingAssotiation = association.containsKey("*") && !containsOneToOneAssotiantion
+        return value
+            .filter { association.containsKey(it) || containsOneToOneAssotiantion || containsOneToSomethingAssotiation }//
+            .mapNotNull {
+                if (association.containsKey(it)) {
+                    association.getValue(it)
+                } else if (containsOneToOneAssotiantion) {
+                    it
+                } else {
+                    association.getValue("*")
+                }
+            }
+
     }
 
     override fun <T> setValue(
@@ -31,9 +57,6 @@ class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        val result = (value as ArrayList<*>).filterIsInstance<String>()
-            .filter { associations.containsKey(it) }//
-            .map { associations.getValue(it) }
-        issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
+        issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, value)
     }
 }
