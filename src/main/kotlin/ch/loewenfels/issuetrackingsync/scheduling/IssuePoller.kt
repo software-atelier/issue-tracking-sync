@@ -1,9 +1,11 @@
 package ch.loewenfels.issuetrackingsync.scheduling
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.app.AppState
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import ch.loewenfels.issuetrackingsync.executor.SynchronizationFlowFactory
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -55,11 +57,16 @@ class IssuePoller @Autowired constructor(
     ) {
         var offset = 0
         do {
-            val changedIssues = issueTrackingClient.changedIssuesSince(
-                appState.lastPollingTimestamp ?: LocalDateTime.now(),
-                batchSize,
-                offset
-            )
+            var changedIssues: Collection<Issue> = try {
+                val timestamp = appState.lastPollingTimestamp ?: LocalDateTime.now()
+                issueTrackingClient.changedIssuesSince(timestamp, batchSize, offset)
+            } catch (e: Exception) {
+                logger().error(
+                    "Could not load issues or polling. One common problem could be your authentication or authorisation." +
+                            "\nException was: ${e.message}"
+                )
+                emptyList()
+            }
             changedIssues
                 .forEach { ticket ->
                     if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, ticket) != null) {
