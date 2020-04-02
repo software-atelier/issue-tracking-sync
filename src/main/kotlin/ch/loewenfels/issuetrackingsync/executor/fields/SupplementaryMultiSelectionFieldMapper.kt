@@ -4,7 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
-class SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) :
+open class SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) :
     MultiSelectionFieldMapper(
         fieldMappingDefinition
     ) {
@@ -16,13 +16,7 @@ class SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition: FieldMappin
         value: Any?
     ) {
         val newValue = mutableSetOf<Any>()
-        val oldValue =
-            super.getValue(
-                issue.proprietaryTargetInstance as T,
-                fieldname,
-                issueTrackingClient,
-                mapOf("*" to "*")
-            )
+        val oldValue = getValueFromTarget(issue, fieldname, issueTrackingClient)
         addToSet(newValue, oldValue)
         addToSet(newValue, value)
         super.setValue(
@@ -31,6 +25,19 @@ class SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition: FieldMappin
             issue,
             issueTrackingClient,
             newValue.toList()
+        )
+    }
+
+    fun <T> getValueFromTarget(
+        issue: Issue,
+        fieldname: String,
+        issueTrackingClient: IssueTrackingClient<in T>
+    ): List<String> {
+        return super.getValue(
+            issue.proprietaryTargetInstance as T,
+            fieldname,
+            issueTrackingClient,
+            mapOf("*" to "*")
         )
     }
 
