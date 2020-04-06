@@ -35,7 +35,12 @@ class IssuePoller @Autowired constructor(
         settings.earliestSyncDate?.let {
             // we want to fail hard here as assuming a different "earliest" date might have
             // unwanted effects
-            appState.lastPollingTimestamp = LocalDateTime.parse(it)
+            val erliestSyncDate = LocalDateTime.parse(it)
+            appState.lastPollingTimestamp = appState.lastPollingTimestamp?.let { localDateTime ->
+                if (localDateTime.isAfter(erliestSyncDate)) {
+                    localDateTime
+                } else erliestSyncDate
+            } ?: erliestSyncDate
         }
     }
 
