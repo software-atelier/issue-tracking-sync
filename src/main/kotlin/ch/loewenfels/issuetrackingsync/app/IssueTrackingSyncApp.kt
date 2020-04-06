@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
-import org.springframework.boot.system.ApplicationHome
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ImportResource
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import java.io.File
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -40,8 +40,8 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
 
     @Bean
     open fun appState(@Autowired objectMapper: ObjectMapper): AppState {
-        val home = ApplicationHome(javaClass)
-        return AppState.loadFromFile(home.dir, objectMapper)
+        val location = File(syncApplicationProperties.appStateLocation)
+        return AppState.loadFromFile(location, objectMapper)
     }
 
     @Bean
