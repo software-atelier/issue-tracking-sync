@@ -11,6 +11,7 @@ internal class RtcCommentWriteBackFieldMapperTest {
     @Test
     fun getValue() {
         val testee = RtcCommentWriteBackFieldMapper()
+        @Suppress("UNCHECKED_CAST")
         val issueTrackingClient = Mockito.mock(IssueTrackingClient::class.java) as IssueTrackingClient<String>
         val url = "https://www.example.com/"
         val fieldname = "Remote Link:"

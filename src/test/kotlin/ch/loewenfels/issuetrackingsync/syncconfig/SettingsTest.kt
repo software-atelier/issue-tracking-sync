@@ -68,12 +68,12 @@ internal class SettingsTest : AbstractSpringTest() {
         )
         assertEquals(
             "key",
-            syncFlow.writeBackFieldMappingDefinition[0]?.sourceName,
+            syncFlow.writeBackFieldMappingDefinition[0].sourceName,
             "source property name for write-back mapping"
         )
         assertEquals(
             "ch.loewenfels.team.workitem.attribute.external_refid",
-            syncFlow.writeBackFieldMappingDefinition[0]?.targetName,
+            syncFlow.writeBackFieldMappingDefinition[0].targetName,
             "target property name for write-back mapping"
         )
         assertNotNull(syncFlow.defaultsForNewIssue)
