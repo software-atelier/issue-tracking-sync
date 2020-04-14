@@ -97,7 +97,7 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     }
 
     class CommentFilterFactory {
-        companion object {
+        companion object : Logging {
             fun create(commentFilterClassName: List<String>?): (Comment) -> Boolean {
                 if (commentFilterClassName == null) {
                     return { (_) -> true }
@@ -115,6 +115,8 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                     try {
                         someList.add((Class.forName(it).getDeclaredConstructor().newInstance() as CommentFilter).getFilter())
                     } catch (e: Exception) {
+                        logger().error("Failed to create $it" +
+                                "\nException was: ${e.message}")
                     }
                 }
                 return someList

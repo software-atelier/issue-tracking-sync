@@ -108,5 +108,9 @@ interface IssueTrackingClient<T> {
 
     fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?)
 
-    fun logException(issue: Issue, exception: Exception, notificationObserver: NotificationObserver, syncActions: Map<SyncActionName, SynchronizationAction>)
+    fun logException(
+        issue: Issue,
+        exception: Exception,
+        notificationObserver: NotificationObserver,
+        syncActions: Map<SyncActionName, SynchronizationAction>)
 }

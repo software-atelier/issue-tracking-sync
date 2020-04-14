@@ -23,8 +23,6 @@ internal class SupplementaryMultiSelectionFieldMapperTest : AbstractSpringTest()
         issue.proprietaryTargetInstance = issue
         val targetClient =
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
         val value = listOf("congress")
         // act
         testee.setValue(issue, jiraFieldname, issue, targetClient, value)
