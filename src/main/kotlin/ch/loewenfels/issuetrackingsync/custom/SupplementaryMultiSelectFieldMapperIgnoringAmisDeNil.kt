@@ -21,7 +21,7 @@ class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil(fieldMappingDefinitio
     ) {
         val oldValue = getValueFromTarget(issue, fieldname, issueTrackingClient)
         val newValue = mutableListOf<Any?>()
-        if (value is Collection<*> && oldValue is Collection<*>) {
+        if (value is Collection<*>) {
             newValue.addAll(value)
             ignoringDoupleSyncingMap.forEach {
                 if (oldValue.contains(it.key)) {

@@ -14,6 +14,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
+import com.atlassian.jira.rest.client.api.IssueRestClient
 import com.atlassian.jira.rest.client.api.RestClientException
 import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
@@ -131,7 +132,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 beanWrapper.setPropertyValue(fieldName, it)
             else if (internalIssueBuilder is IssueInputBuilder) {
                 val targetInternalIssue = (proprietaryJiraIssue
-                    ?: throw IllegalStateException("Need a target issue for custom fields")) as JiraProprietaryIssue
+                    ?: throw IllegalStateException("Need a target issue for custom fields"))
                 if (fieldName == "timeTracking" && value is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
                 } else if (fieldName == "labels" && value is List<*>) {
@@ -343,10 +344,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getStateHistory(internalIssue: JiraProprietaryIssue): List<StateHistory> {
-        return internalIssue.changelog
+        return jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
+            .changelog
             ?.flatMap { logEntry ->
                 logEntry.items
-                    .filter { it.field == "state" }
+                    .filter { it.field == "status" }
                     .map { StateHistory(toLocalDateTime(logEntry.created), it.fromString ?: "", it.toString ?: "") }
             } ?: listOf()
     }
@@ -361,11 +363,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         val transition = jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
             .filter { it.value == targetState }
-            .keys.firstOrNull() ?: throw IllegalArgumentException("Not transition found to state $targetState")
+            .keys.firstOrNull() ?: throw IllegalArgumentException("No transition found to state $targetState")
         try {
             jiraRestClient.issueClient.transition(internalIssue, TransitionInput(transition.id)).claim()
         } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to transition issue ${internalIssue.key} to $targetState", e)
+            throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} to $targetState", e)
         }
     }
 

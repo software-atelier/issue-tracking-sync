@@ -28,6 +28,7 @@ open class SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition: FieldM
         )
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getValueFromTarget(
         issue: Issue,
         fieldname: String,

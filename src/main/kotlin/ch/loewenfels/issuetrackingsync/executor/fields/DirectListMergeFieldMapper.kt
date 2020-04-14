@@ -4,6 +4,7 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 
 class DirectListMergeFieldMapper : DirectFieldMapper() {
+    @Suppress("UNCHECKED_CAST")
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,

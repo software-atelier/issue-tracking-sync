@@ -16,6 +16,7 @@ class RtcCommentWriteBackFieldMapper : FieldMapper {
 
     private val commentId = "00000000"
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,

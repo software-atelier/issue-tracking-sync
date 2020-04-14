@@ -12,7 +12,6 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * This mapper works with [Pair] values
  */
 open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper, Logging {
-    private val keyFallback = "*,*"
     private val associations: Map<String, String> = fieldMappingDefinition.associations
     override fun <T> getValue(
         proprietaryIssue: T,
