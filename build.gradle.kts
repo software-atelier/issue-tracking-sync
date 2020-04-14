@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.3.61"
-    id("org.springframework.boot") version "2.2.2.RELEASE"
-    id("io.spring.dependency-management") version "1.0.8.RELEASE"
+    id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.springframework.boot") version "2.2.6.RELEASE"
+    id("io.spring.dependency-management") version "1.0.9.RELEASE"
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("io.gitlab.arturbosch.detekt") version "1.5.1"
 }
