@@ -294,7 +294,7 @@ Then, in `setValue` the source's changelog is used to
 
 There are a few twists
 * JRJC easily provides available transitions for an issue via `jiraRestClient.issueClient.getTransitions(myIssue)`, but this contains no information on the target state of the transition. Thus, the `AsynchronousHtmlRenderingRestClient` uses a JSON response from the API's /transitions response to find a suitable transition for a target state
-* If a source state changelog entry contains a state unknown in the target system, synchronization fails
+* If a source state changelog entry contains a state unknown in the target system, the state will not be synchronized
 * If the target system has multiple transitions for a single one on the source side, the field association can define a comma-separated list of target states
 
 ##### Re-using associations

@@ -34,6 +34,7 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
         val internalTargetIssue = issue.proprietaryTargetInstance
             ?: throw IllegalStateException("This mapper expects a previous action to have loaded the target instance")
         val currentStateOfTarget = issueTrackingClient.getState(internalTargetIssue as T)
+        logger().info("Current state of source: ${(value.first as String)}, target: $currentStateOfTarget")
         getStatePath(value.second as List<StateHistory>, currentStateOfTarget).forEach {
             logger().info("Attempting to transition to state $it")
             issueTrackingClient.setState(internalTargetIssue as T, it)
@@ -74,8 +75,8 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
      * spans multiple transitions on the target side.
      */
     private fun getCorrespondingStatesInTargetWorld(sourceStateHistory: StateHistory): List<String> =
-        (associations[sourceStateHistory.toState]
-            ?: throw IllegalStateException("Unmapped source state ${sourceStateHistory.toState}")).split("[,;/]".toRegex())
+        (associations[sourceStateHistory.toState].orEmpty())
+            .split("[,;/]".toRegex())
 
     /**
      * Add entries while ensuring that there are no states immediately repeating themselves. Thus
