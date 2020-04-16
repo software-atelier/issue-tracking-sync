@@ -615,7 +615,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 }
                 previousState = it.state2
             }
-        return result
+        val indexOfLast = result.indexOfLast { it.fromState == "Neu" }
+        return result.drop(indexOfLast)
     }
 
     override fun setState(internalIssue: IWorkItem, targetState: String) {

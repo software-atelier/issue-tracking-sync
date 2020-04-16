@@ -344,13 +344,15 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getStateHistory(internalIssue: JiraProprietaryIssue): List<StateHistory> {
-        return jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
+        val result = jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
             .changelog
             ?.flatMap { logEntry ->
                 logEntry.items
                     .filter { it.field == "status" }
                     .map { StateHistory(toLocalDateTime(logEntry.created), it.fromString ?: "", it.toString ?: "") }
             } ?: listOf()
+        val indexOfLast = result.indexOfLast { it.fromState == "Open" }
+        return result.drop(indexOfLast)
     }
 
     /**

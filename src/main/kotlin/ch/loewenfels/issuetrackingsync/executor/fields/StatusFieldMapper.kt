@@ -67,7 +67,7 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
                 addMissingStates(correspondingStateInTargetWorld, result)
             }
         }
-        return result
+        return result.filter(String::isNotBlank)
     }
 
     /**
