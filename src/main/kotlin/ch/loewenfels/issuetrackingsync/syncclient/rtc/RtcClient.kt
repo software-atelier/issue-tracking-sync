@@ -47,6 +47,7 @@ import com.ibm.team.workitem.common.model.ICategoryHandle
 import com.ibm.team.workitem.common.model.IDeliverable
 import com.ibm.team.workitem.common.model.IDeliverableHandle
 import com.ibm.team.workitem.common.model.ILiteral
+import com.ibm.team.workitem.common.model.IResolution
 import com.ibm.team.workitem.common.model.IState
 import com.ibm.team.workitem.common.model.IWorkItem
 import com.ibm.team.workitem.common.model.IWorkItemHandle
@@ -67,7 +68,8 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -181,9 +183,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val attribute = getAttribute(fieldName)
         convertToMetadataId(fieldName, value)?.let {
             logger().debug("Setting value $value on $fieldName")
+            @Suppress("UNCHECKED_CAST")
             when {
                 it is IIterationHandle && fieldName == "target" -> workItem.target = it
                 it is ICategoryHandle -> workItem.category = it
+                it is Identifier<*> && it.type.simpleName == "IResolution" -> workItem.resolution2 = it as Identifier<IResolution>
                 else -> workItem.setValue(attribute, it)
             }
         }
@@ -220,6 +224,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     || attribute.attributeType == "deliverable" -> getIntervalIdentifier(value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
             fieldName == "internalTags" -> value
+            fieldName == "internalResolution" -> Identifier.create(IResolution::class.java, value as String)
             // handle multi-select values
             AttributeTypes.isEnumerationListAttributeType(attribute.attributeType) && value is List<*> ->
                 getEnumerationValues(fieldName, value)

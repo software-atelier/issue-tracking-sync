@@ -18,6 +18,7 @@ import com.atlassian.jira.rest.client.api.IssueRestClient
 import com.atlassian.jira.rest.client.api.RestClientException
 import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
+import com.atlassian.jira.rest.client.api.domain.Resolution
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.Version
@@ -144,6 +145,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                         IssueFieldId.AFFECTS_VERSIONS_FIELD.id,
                         mutableListOf(value)
                     )
+                } else if (fieldName == "resolution" && value is String) {
+                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.RESOLUTION_FIELD.id, value)
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
@@ -174,6 +177,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return when {
             "priorityId" == fieldName -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
             "versions" == fieldName -> getFirstVersion(value)
+            "resolution" == fieldName -> (value as Resolution).name
             value is JSONObject -> value.get("value")
             else -> value
         }
