@@ -23,6 +23,7 @@ import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.Version
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
+import com.atlassian.jira.rest.client.api.domain.input.FieldInput
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import com.atlassian.jira.rest.client.api.domain.input.TransitionInput
 import com.atlassian.renderer.wysiwyg.converter.DefaultWysiwygConverter
@@ -146,7 +147,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                         mutableListOf(value)
                     )
                 } else if (fieldName == "resolution" && value is String) {
-                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.RESOLUTION_FIELD.id, value)
+                    setResolution(targetInternalIssue, value)
                 } else {
                     setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
                 }
@@ -374,6 +375,21 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             jiraRestClient.issueClient.transition(internalIssue, TransitionInput(transition.id)).claim()
         } catch (e: Exception) {
             throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} to $targetState", e)
+        }
+    }
+
+    private fun setResolution(
+        internalIssue: JiraProprietaryIssue,
+        targetResolution: String
+    ) {
+        val transition = jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
+            .filter { it.value == "erledigt" }
+            .keys.firstOrNull() ?: throw IllegalArgumentException("No transition found to set resolution $targetResolution")
+        try {
+            val resolution = FieldInput(IssueFieldId.RESOLUTION_FIELD, ComplexIssueInputFieldValue.with("name", targetResolution))
+            jiraRestClient.issueClient.transition(internalIssue, TransitionInput(transition.id, listOf(resolution))).claim()
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} and resolution $targetResolution", e)
         }
     }
 
