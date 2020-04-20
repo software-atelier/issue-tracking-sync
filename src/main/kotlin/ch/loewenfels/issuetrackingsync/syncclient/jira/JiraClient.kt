@@ -356,7 +356,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                     .filter { it.field == "status" }
                     .map { StateHistory(toLocalDateTime(logEntry.created), it.fromString ?: "", it.toString ?: "") }
             } ?: listOf()
-        val indexOfLast = result.indexOfLast { it.fromState == "Open" }
+        val indexOfLast = maxOf(result.indexOfLast { it.fromState == "Open" }, 0)
         return result.drop(indexOfLast)
     }
 
