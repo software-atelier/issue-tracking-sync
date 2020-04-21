@@ -382,6 +382,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         internalIssue: JiraProprietaryIssue,
         targetResolution: String
     ) {
+        if(internalIssue.resolution?.name ?: ""  == targetResolution) return
         val transition = jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
             .filter { it.value == "erledigt" }
             .keys.firstOrNull() ?: throw IllegalArgumentException("No transition found to set resolution $targetResolution")

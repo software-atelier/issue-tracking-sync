@@ -152,12 +152,17 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun getValue(internalIssue: IWorkItem, fieldName: String): Any? {
-        val beanWrapper = BeanWrapperImpl(internalIssue)
-        val internalValue = if (beanWrapper.isReadableProperty(fieldName))
-            beanWrapper.getPropertyValue(fieldName)
-        else
-            getPropertyValueForCustomFields(internalIssue, fieldName)
-        return internalValue?.let { convertFromMetadataId(fieldName, it) }
+        return when (fieldName) {
+            "internalResolution" -> getResolutionName(internalIssue)
+            else -> {
+                val beanWrapper = BeanWrapperImpl(internalIssue)
+                val internalValue = if (beanWrapper.isReadableProperty(fieldName))
+                    beanWrapper.getPropertyValue(fieldName)
+                else
+                    getPropertyValueForCustomFields(internalIssue, fieldName)
+                return internalValue?.let { convertFromMetadataId(fieldName, it) }
+            }
+        }
     }
 
     private fun getPropertyValueForCustomFields(internalIssue: IWorkItem, fieldName: String): Any? {
@@ -354,6 +359,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             value is IContributorHandle -> getContributorName(value)
             else -> value
         }
+    }
+
+    private fun getResolutionName(internalIssue: IWorkItem): String {
+        val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
+        return workflowInfo.getResolutionName(internalIssue.resolution2)
     }
 
     override fun createOrUpdateTargetIssue(
