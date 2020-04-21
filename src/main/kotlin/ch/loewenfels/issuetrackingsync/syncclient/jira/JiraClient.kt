@@ -345,7 +345,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getState(internalIssue: JiraProprietaryIssue): String {
-        return internalIssue.status.name
+        return jiraRestClient.issueClient.getIssue(internalIssue.key).claim().status.name
     }
 
     override fun getStateHistory(internalIssue: JiraProprietaryIssue): List<StateHistory> {
