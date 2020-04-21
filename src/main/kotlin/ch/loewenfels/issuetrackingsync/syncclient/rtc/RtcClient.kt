@@ -620,7 +620,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 }
                 previousState = it.state2
             }
-        val indexOfLast = maxOf(result.indexOfLast { it.fromState == "Neu" }, 0)
+        val indexOfLast = maxOf(result.indexOfLast { it.fromState == "Neu" || it.fromState == "Erneut geöffnet" }, 0)
         return result.drop(indexOfLast)
     }
 
