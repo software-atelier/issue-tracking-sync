@@ -382,16 +382,18 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         internalIssue: JiraProprietaryIssue,
         targetResolution: String
     ) {
-        if(internalIssue.resolution?.name ?: ""  == targetResolution) return
-        val transition = jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
+        if (internalIssue.resolution?.name ?: "" == targetResolution) return
+        if (internalIssue.status.name == "geschlossen") return
+        jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
             .filter { it.value == "erledigt" }
-            .keys.firstOrNull() ?: throw IllegalArgumentException("No transition found to set resolution $targetResolution")
-        try {
-            val resolution = FieldInput(IssueFieldId.RESOLUTION_FIELD, ComplexIssueInputFieldValue.with("name", targetResolution))
-            jiraRestClient.issueClient.transition(internalIssue, TransitionInput(transition.id, listOf(resolution))).claim()
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} and resolution $targetResolution", e)
-        }
+            .keys.firstOrNull()?.let {
+                try {
+                    val resolution = FieldInput(IssueFieldId.RESOLUTION_FIELD, ComplexIssueInputFieldValue.with("name", targetResolution))
+                    jiraRestClient.issueClient.transition(internalIssue, TransitionInput(it.id, listOf(resolution))).claim()
+                } catch (e: Exception) {
+                    throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} and resolution $targetResolution", e)
+                }
+            }
     }
 
     fun verifySetup(): String {
