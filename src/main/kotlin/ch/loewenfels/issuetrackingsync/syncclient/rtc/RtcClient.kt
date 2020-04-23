@@ -363,7 +363,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun getResolutionName(internalIssue: IWorkItem): String {
         val workflowInfo = workItemClient.findWorkflowInfo(internalIssue, null)
-        return workflowInfo.getResolutionName(internalIssue.resolution2)
+        return workflowInfo.getResolutionName(internalIssue.resolution2).orEmpty()
     }
 
     override fun createOrUpdateTargetIssue(
