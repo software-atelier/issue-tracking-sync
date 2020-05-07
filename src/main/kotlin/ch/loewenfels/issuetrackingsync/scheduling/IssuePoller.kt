@@ -50,10 +50,7 @@ class IssuePoller @Autowired constructor(
             logger().info("Checking for issues for {}", trackingApp.name)
             val issueTrackingClient = clientFactory.getClient(trackingApp)
             pollIssuesInBatches(issueTrackingClient, trackingApp)
-
         }
-        appState.lastPollingTimestamp = LocalDateTime.now()
-        appState.persist(objectMapper)
     }
 
     private fun pollIssuesInBatches(
@@ -62,9 +59,10 @@ class IssuePoller @Autowired constructor(
     ) {
         var offset = 0
         do {
-            var changedIssues: Collection<Issue> = try {
+            val changedIssues: Collection<Issue> = try {
                 val timestamp = appState.lastPollingTimestamp ?: LocalDateTime.now()
                 issueTrackingClient.changedIssuesSince(timestamp, batchSize, offset)
+
             } catch (e: Exception) {
                 logger().error(
                     "Could not load issues or polling. One common problem could be your authentication or authorisation." +
@@ -79,8 +77,13 @@ class IssuePoller @Autowired constructor(
                     }
                 }
             offset += batchSize
-
+            updateLastPollingTimestamp()
         } while (changedIssues.isNotEmpty())
+    }
+
+    private fun updateLastPollingTimestamp() {
+        appState.lastPollingTimestamp = LocalDateTime.now()
+        appState.persist(objectMapper)
     }
 
     private fun scheduleSync(issue: Issue) = syncRequestProducer.queue(issue)
