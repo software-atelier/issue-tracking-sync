@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Collections
+import java.util.*
 import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
 
 /**
@@ -286,7 +286,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project?.let { jql += " AND project = '$it'" }
-        setup.pollingJqlFilter?.let { jql += " AND $it" }
+        setup.pollingIssueType?.let { jql += " AND issueType = $it" }
         try {
             return jiraRestClient.searchClient
                 .searchJql("$jql ORDER BY key", batchSize, offset, setOf("*all"))
@@ -349,13 +349,14 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getStateHistory(internalIssue: JiraProprietaryIssue): List<StateHistory> {
-        val result = jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
-            .changelog
-            ?.flatMap { logEntry ->
-                logEntry.items
-                    .filter { it.field == "status" }
-                    .map { StateHistory(toLocalDateTime(logEntry.created), it.fromString ?: "", it.toString ?: "") }
-            } ?: listOf()
+        val result =
+            jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
+                .changelog
+                ?.flatMap { logEntry ->
+                    logEntry.items
+                        .filter { it.field == "status" }
+                        .map { StateHistory(toLocalDateTime(logEntry.created), it.fromString ?: "", it.toString ?: "") }
+                } ?: listOf()
         val indexOfLast = maxOf(result.indexOfLast { it.fromState == "Open" }, 0)
         return result.drop(indexOfLast)
     }
@@ -388,10 +389,17 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             .filter { it.value == "erledigt" }
             .keys.firstOrNull()?.let {
                 try {
-                    val resolution = FieldInput(IssueFieldId.RESOLUTION_FIELD, ComplexIssueInputFieldValue.with("name", targetResolution))
-                    jiraRestClient.issueClient.transition(internalIssue, TransitionInput(it.id, listOf(resolution))).claim()
+                    val resolution = FieldInput(
+                        IssueFieldId.RESOLUTION_FIELD,
+                        ComplexIssueInputFieldValue.with("name", targetResolution)
+                    )
+                    jiraRestClient.issueClient.transition(internalIssue, TransitionInput(it.id, listOf(resolution)))
+                        .claim()
                 } catch (e: Exception) {
-                    throw IllegalArgumentException("Transition failed for issue ${internalIssue.key} and resolution $targetResolution", e)
+                    throw IllegalArgumentException(
+                        "Transition failed for issue ${internalIssue.key} and resolution $targetResolution",
+                        e
+                    )
                 }
             }
     }

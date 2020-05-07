@@ -51,6 +51,7 @@ class IssuePoller @Autowired constructor(
             val issueTrackingClient = clientFactory.getClient(trackingApp)
             pollIssuesInBatches(issueTrackingClient, trackingApp)
         }
+        updateLastPollingTimestamp()
     }
 
     private fun pollIssuesInBatches(
@@ -77,7 +78,6 @@ class IssuePoller @Autowired constructor(
                     }
                 }
             offset += batchSize
-            updateLastPollingTimestamp()
         } while (changedIssues.isNotEmpty())
     }
 

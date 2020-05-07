@@ -68,8 +68,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
-import java.util.LinkedList
+import java.util.*
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -192,7 +191,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             when {
                 it is IIterationHandle && fieldName == "target" -> workItem.target = it
                 it is ICategoryHandle -> workItem.category = it
-                it is Identifier<*> && it.type.simpleName == "IResolution" -> workItem.resolution2 = it as Identifier<IResolution>
+                it is Identifier<*> && it.type.simpleName == "IResolution" -> workItem.resolution2 =
+                    it as Identifier<IResolution>
                 else -> workItem.setValue(attribute, it)
             }
         }
@@ -447,30 +447,39 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         batchSize: Int,
         offset: Int
     ): Collection<Issue> {
-        val queryClient = workItemClient.queryClient
-        val searchTerms = buildSearchTermForChangedIssues(lastPollingTimestamp)
-        val resolvedResultOfWorkItems =
-            queryClient.getResolvedExpressionResults(projectArea, searchTerms, IWorkItem.FULL_PROFILE)
-        return toWorkItems(resolvedResultOfWorkItems).map { toSyncIssue(it) }
+        if (offset == 0) {
+            val queryClient = workItemClient.queryClient
+            val searchTerms = buildSearchTermForChangedIssues(lastPollingTimestamp)
+            val resolvedResultOfWorkItems =
+                queryClient.getResolvedExpressionResults(projectArea, searchTerms, IWorkItem.FULL_PROFILE)
+            return toWorkItems(resolvedResultOfWorkItems).map { toSyncIssue(it) }
+        } else {
+            return emptyList()
+        }
     }
 
     private fun buildSearchTermForChangedIssues(lastPollingTimestamp: LocalDateTime): Term {
         val modifiedRecently =
             AttributeExpression(
                 getQueryableAttribute(IWorkItem.MODIFIED_PROPERTY),
-                AttributeOperation.GREATER_OR_EQUALS,
+                AttributeOperation.GREATER_OR_EQUALS_PLAIN,
                 Timestamp.valueOf(lastPollingTimestamp)
             )
         val createdRecently =
             AttributeExpression(
                 getQueryableAttribute(IWorkItem.CREATION_DATE_PROPERTY),
-                AttributeOperation.GREATER_OR_EQUALS,
+                AttributeOperation.GREATER_OR_EQUALS_PLAIN,
                 Timestamp.valueOf(lastPollingTimestamp)
             )
         val projectAreaExpression = AttributeExpression(
             getQueryableAttribute(IWorkItem.PROJECT_AREA_PROPERTY),
             AttributeOperation.EQUALS,
             projectArea
+        )
+        val pollingFilter = AttributeExpression(
+            getQueryableAttribute(IWorkItem.TYPE_PROPERTY),
+            AttributeOperation.EQUALS,
+            setup.pollingIssueType
         )
         val relevantIssuesTerm = Term(Term.Operator.OR)
         relevantIssuesTerm.add(modifiedRecently)
@@ -479,6 +488,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val searchTerm = Term(Term.Operator.AND)
         searchTerm.add(relevantIssuesTerm)
         searchTerm.add(projectAreaExpression)
+        searchTerm.add(pollingFilter)
         return searchTerm
     }
 
