@@ -19,8 +19,7 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
         issueTrackingClient: IssueTrackingClient<in T>,
         association: Map<String, String>
     ): Any? {
-        val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)
-        return when (value) {
+        return when (val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)) {
             is String -> transFromString(value, association, fieldname)
             is List<*> -> issueTrackingClient.getMultiSelectValues(
                 proprietaryIssue,
@@ -35,7 +34,7 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
             it.key.toRegex().find(value)?.value?.replace(it.key.toRegex(), it.value)
         }.filterNotNull().toList()
         check(transformedString.isNotEmpty()) {
-            throw IllegalStateException("Found non transformable value for field $fieldname: \"$value\"")
+            "Found non transformable value \"$value\" for field $fieldname."
         }
         return transformedString.firstOrNull(String::isNotEmpty)
     }

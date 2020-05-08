@@ -179,6 +179,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             "priorityId" == fieldName -> JiraMetadata.getPriorityName(value.toString().toLong(), jiraRestClient)
             "versions" == fieldName -> getFirstVersion(value)
             "resolution" == fieldName -> (value as Resolution).name
+            "fixVersions" == fieldName -> (value as List<*>).map { (it as Version).name }
             value is JSONObject -> value.get("value")
             else -> value
         }

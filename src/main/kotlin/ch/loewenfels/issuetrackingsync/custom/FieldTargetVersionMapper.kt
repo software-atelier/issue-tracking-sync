@@ -29,77 +29,88 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         fieldname: String,
         issue: Issue,
         issueTrackingClient: RtcClient,
-        value: Any?
+        jiraVersions: Any?
     ) {
-        if (value is List<*>) {
-            val value1: String = super.getValue(
+        // check if at least one jira version is set
+        if (jiraVersions is List<*> && jiraVersions.isNotEmpty()) {
+            val rtcValue: String? = super.getValue(
                 issue.proprietaryTargetInstance as IWorkItem,
                 fieldname,
                 issueTrackingClient,
                 mapOf("(.*)" to "$1")
-            ) as String
-            val get = "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex().find(value1)?.groupValues?.get(1) ?: ""
-            if (value.contains(get).not()) {
-                mergeToRtc(value, issue, issueTrackingClient, proprietaryIssueBuilder, fieldname)
+            ) as String?
+            val rtcVersion =
+                "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex().find(rtcValue ?: "")?.groupValues?.get(1) ?: ""
+            if (jiraVersions.contains(rtcVersion).not() && isJiraIssueSolved(issue)) {
+                mergeToRtc(jiraVersions, issue, issueTrackingClient, proprietaryIssueBuilder, fieldname)
             }
         }
     }
 
+    private fun isJiraIssueSolved(issue: Issue): Boolean {
+        val jiraStatus = getJiraStatus(issue)
+        return jiraStatus == "erledigt" || jiraStatus == "geschlossen"
+    }
+
+    private fun getJiraStatus(issue: Issue): String =
+        (issue.proprietarySourceInstance as com.atlassian.jira.rest.client.api.domain.Issue).status.name
+
     private fun mergeToRtc(
-        value: List<*>,
+        jiraVersions: List<*>,
         issue: Issue,
         issueTrackingClient: RtcClient,
         proprietaryIssueBuilder: Any,
         fieldname: String
     ) {
-        val first = mutableListOf<String>()
-        val second = mutableListOf<String>()
-        for (string in value) {
-            if (string is String) {
+        val minorVersions = mutableListOf<String>()
+        val bugfixVersions = mutableListOf<String>()
+        for (version in jiraVersions) {
+            if (version is String) {
                 val regexMinorVersion = "^(\\d\\.\\d{2,3})(?!\\.)".toRegex()
-                val regexBugfixVerion = "^(\\d\\.\\d{2,3}\\.\\d*)".toRegex()
-                first.addAll(regexMinorVersion.findAll(string).toList().map { it.groupValues.get(1) })
-                second.addAll(regexBugfixVerion.findAll(string).toList().map { it.groupValues.get(1) })
+                val regexBugfixVersion = "^(\\d\\.\\d{2,3}\\.\\d*)".toRegex()
+                minorVersions.addAll(regexMinorVersion.findAll(version).toList().map { it.groupValues.get(1) })
+                bugfixVersions.addAll(regexBugfixVersion.findAll(version).toList().map { it.groupValues.get(1) })
             }
         }
-        first.sort()
-        second.sort()
-        val potentialValueToWrite = first.firstOrNull() ?: second.firstOrNull()
-        checkNotNull(potentialValueToWrite) {
-            "The state of the issue ${issue.key} is not valid. No legit sync value found for TargetVersion value was: $value"
+        minorVersions.sort()
+        bugfixVersions.sort()
+        val jiraVersionToSync = minorVersions.firstOrNull() ?: bugfixVersions.firstOrNull()
+        checkNotNull(jiraVersionToSync) {
+            "No valid version ($jiraVersions) for issue ${issue.key} found."
         }
-        val valueToWrite =
-            issueTrackingClient.getAllIIteration().map { it.name }.firstOrNull { it.endsWith(potentialValueToWrite) }
-        checkNotNull(valueToWrite) { IllegalStateException("The version is not yet defined for RTC. Version: $potentialValueToWrite") }
-        super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, valueToWrite)
+        val mappedRtcVersion =
+            issueTrackingClient.getAllIIteration().map { it.name }.firstOrNull { it.endsWith(jiraVersionToSync) }
+        checkNotNull(mappedRtcVersion) { "The version $jiraVersionToSync is not yet defined for RTC." }
+        super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, mappedRtcVersion)
     }
 
-    fun mergeLogicToJira(
+    private fun mergeLogicToJira(
         proprietaryIssueBuilder: Any,
         fieldname: String,
         issue: Issue,
         issueTrackingClient: JiraClient,
-        value: Any?
+        rtcVersion: Any?
     ) {
-        if (value is String) {
-            val value1 = issue.proprietaryTargetInstance?.run {
+        if (rtcVersion is String) {
+            val jiraVersions = issue.proprietaryTargetInstance?.run {
                 issueTrackingClient.getMultiSelectValues(
                     issue.proprietaryTargetInstance as com.atlassian.jira.rest.client.api.domain.Issue,
                     fieldname
                 )
             } ?: emptyList()
-            if (value1.contains(value).not()) {
+            if (jiraVersions.contains(rtcVersion).not()) {
                 val regexMinorVersion = "^\\d\\.\\d{2,3}(?!\\.)".toRegex()
                 val regexBugfixVersion = "\\d\\.\\d{2,3}\\.\\d*(?!\\.)".toRegex()
-                val valueToWrite = value1.toMutableList()
-                val validTransformaltion = associations.keys.any { it.toRegex().containsMatchIn(value) }
-                check(regexMinorVersion.containsMatchIn(value) || regexBugfixVersion.containsMatchIn(value) || validTransformaltion) {
-                    throw IllegalStateException(
-                        "The version of the issue ${issue.key} is not valid. No legit sync " +
-                                "value found for TargetVersion. Invalid value was: $value"
-                    )
+                val validTransformation = associations.keys.any { it.toRegex().containsMatchIn(rtcVersion) }
+                check(
+                    regexMinorVersion.containsMatchIn(rtcVersion)
+                            || regexBugfixVersion.containsMatchIn(rtcVersion)
+                            || validTransformation
+                ) {
+                    "No valid version ($rtcVersion) for issue ${issue.key} found."
                 }
-                valueToWrite.add(value)
+                val valueToWrite = jiraVersions.toMutableList()
+                valueToWrite.add(rtcVersion)
                 super.setValue(
                     proprietaryIssueBuilder,
                     fieldname,
@@ -108,7 +119,6 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                     valueToWrite
                 )
             }
-
         }
     }
 }
