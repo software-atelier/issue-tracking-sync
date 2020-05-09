@@ -105,6 +105,14 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return "$endpoint/browse/${internalIssue.key}"
     }
 
+    private fun getLastUpdatedByUser(internalIssue: JiraProprietaryIssue): String {
+        val issue = jiraRestClient.issueClient.getIssue(
+            internalIssue.key,
+            Collections.singletonList(IssueRestClient.Expandos.CHANGELOG)
+        ).claim()
+        return issue.changelog?.sortedByDescending { it.created }?.first()?.author?.name ?: ""
+    }
+
     override fun getLastUpdated(internalIssue: JiraProprietaryIssue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
@@ -294,7 +302,6 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 .claim()
                 .issues
                 .map { mapJiraIssue(it) }
-                .toList()
         } catch (e: RestClientException) {
             val restExceptionMessage = getRestExceptionMessage(e)
             logger().error(restExceptionMessage)
@@ -416,11 +423,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun mapJiraIssue(jiraIssue: JiraProprietaryIssue): Issue {
-        return Issue(
+        val issue = Issue(
             jiraIssue.key,
             setup.name,
             getLastUpdated(jiraIssue)
         )
+        issue.lastUpdatedBy = getLastUpdatedByUser(jiraIssue)
+        return issue
     }
 
     /**

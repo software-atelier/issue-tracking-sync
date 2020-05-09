@@ -28,6 +28,7 @@ class IssuePoller @Autowired constructor(
     private val synchronizationFlowFactory: SynchronizationFlowFactory
 ) : Logging {
     private val batchSize = 200
+    private val issueTrackingAppUsers = settings.trackingApplications.map { it.username }
 
     @PostConstruct
     fun afterPropertiesSet() {
@@ -46,24 +47,31 @@ class IssuePoller @Autowired constructor(
 
     @Scheduled(cron = "\${sync.pollingCron:}")
     fun checkForUpdatedIssues() {
+        val polledIssues = pollChangedIssuesFromTrackingApps()
+        updateLastPollingTimestamp()
+        processChangedIssues(polledIssues)
+    }
+
+    private fun pollChangedIssuesFromTrackingApps(): MutableMap<IssueTrackingApplication, List<Issue>> {
+        val polledIssues = mutableMapOf<IssueTrackingApplication, List<Issue>>()
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
             val issueTrackingClient = clientFactory.getClient(trackingApp)
-            pollIssuesInBatches(issueTrackingClient, trackingApp)
+            polledIssues.put(trackingApp, pollIssuesInBatches(issueTrackingClient))
         }
-        updateLastPollingTimestamp()
+        return polledIssues
     }
 
     private fun pollIssuesInBatches(
-        issueTrackingClient: IssueTrackingClient<Any>,
-        trackingApp: IssueTrackingApplication
-    ) {
+        issueTrackingClient: IssueTrackingClient<Any>
+    ): MutableList<Issue> {
+        val allChangedIssues = mutableListOf<Issue>()
         var offset = 0
         do {
             val changedIssues: Collection<Issue> = try {
                 val timestamp = appState.lastPollingTimestamp ?: LocalDateTime.now()
                 issueTrackingClient.changedIssuesSince(timestamp, batchSize, offset)
-
+                    .filter { lastUpdatedByJira2Rtc(it).not() }
             } catch (e: Exception) {
                 logger().error(
                     "Could not load issues or polling. One common problem could be your authentication or authorisation." +
@@ -71,19 +79,28 @@ class IssuePoller @Autowired constructor(
                 )
                 emptyList()
             }
-            changedIssues
-                .forEach { ticket ->
-                    if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, ticket) != null) {
-                        scheduleSync(ticket)
-                    }
-                }
+            allChangedIssues.addAll(changedIssues)
             offset += batchSize
         } while (changedIssues.isNotEmpty())
+        return allChangedIssues
     }
+
+    private fun lastUpdatedByJira2Rtc(it: Issue) =
+        issueTrackingAppUsers.contains(it.lastUpdatedBy)
 
     private fun updateLastPollingTimestamp() {
         appState.lastPollingTimestamp = LocalDateTime.now()
         appState.persist(objectMapper)
+    }
+
+    private fun processChangedIssues(polledIssues: MutableMap<IssueTrackingApplication, List<Issue>>) {
+        polledIssues.forEach { (trackingApp, issues) ->
+            issues.forEach { issue ->
+                if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, issue) != null) {
+                    scheduleSync(issue)
+                }
+            }
+        }
     }
 
     private fun scheduleSync(issue: Issue) = syncRequestProducer.queue(issue)

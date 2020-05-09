@@ -9,9 +9,11 @@ data class Issue(val key: String, val clientSourceName: String, val lastUpdated:
     var sourceUrl: String? = null
     var keyFieldMapping: KeyFieldMapping? = null
     var targetUrl: String? = null
+
     /**
      * Initially empty, set by an issue client once a write operation takes place
      */
+    var lastUpdatedBy: String? = null
     var proprietaryTargetInstance: Any? = null
     var targetKey: String? = null
     val fieldMappings: MutableList<FieldMapping> = mutableListOf()

@@ -143,6 +143,16 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return "$endpoint/web/projects/$encodedProjectName#action=com.ibm.team.workitem.viewWorkItem&id=${internalIssue.id}"
     }
 
+    private fun getLastUpdatedByUser(internalIssue: IWorkItem): String {
+        val itemManager = teamRepository.itemManager()
+        return getContributorUserId(
+            itemManager.fetchAllStateHandles(internalIssue.stateHandle as IAuditableHandle, null)
+                .map { itemManager.fetchCompleteState(it as IAuditableHandle, null) as IWorkItem }
+                .sortedByDescending { it.modified() }
+                .first().modifiedBy
+        )
+    }
+
     override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String): String? {
         return when (val value = getValue(internalIssue, fieldName)) {
             is XMLString -> value.xmlText
@@ -287,6 +297,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun getContributorName(value: IContributorHandle): String {
         return auditableClient.resolveAuditable(value, ItemProfile.CONTRIBUTOR_DEFAULT, null).name
+    }
+
+    private fun getContributorUserId(value: IContributorHandle): String {
+        return auditableClient.resolveAuditable(value, ItemProfile.CONTRIBUTOR_DEFAULT, null).userId
     }
 
     private fun getDevelopmentLine(): IDevelopmentLine {
@@ -522,11 +536,13 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun toSyncIssue(workItem: IWorkItem): Issue {
-        return Issue(
+        val issue = Issue(
             workItem.id.toString(),
             setup.name,
             getLastUpdated(workItem)
         )
+        issue.lastUpdatedBy = getLastUpdatedByUser(workItem)
+        return issue
     }
 
     override fun getComments(internalIssue: IWorkItem): List<Comment> {
