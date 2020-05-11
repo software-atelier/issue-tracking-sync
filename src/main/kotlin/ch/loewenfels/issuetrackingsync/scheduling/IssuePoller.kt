@@ -49,11 +49,12 @@ class IssuePoller @Autowired constructor(
     fun checkForUpdatedIssues() {
         val polledIssues = pollChangedIssuesFromTrackingApps()
         updateLastPollingTimestamp()
+        resolveConflicts(polledIssues)
         processChangedIssues(polledIssues)
     }
 
-    private fun pollChangedIssuesFromTrackingApps(): MutableMap<IssueTrackingApplication, List<Issue>> {
-        val polledIssues = mutableMapOf<IssueTrackingApplication, List<Issue>>()
+    private fun pollChangedIssuesFromTrackingApps(): MutableMap<IssueTrackingApplication, MutableList<Issue>> {
+        val polledIssues = mutableMapOf<IssueTrackingApplication, MutableList<Issue>>()
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
             val issueTrackingClient = clientFactory.getClient(trackingApp)
@@ -93,7 +94,29 @@ class IssuePoller @Autowired constructor(
         appState.persist(objectMapper)
     }
 
-    private fun processChangedIssues(polledIssues: MutableMap<IssueTrackingApplication, List<Issue>>) {
+    private fun resolveConflicts(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
+        val allIssues = polledIssues.values.flatMap { it }
+        val sourceKeys = allIssues.map { it.key }
+        val allConflictingIssues = allIssues
+            .filter { sourceKeys.contains(it.targetKey) }
+        val outdatedIssues = allConflictingIssues.map { issue ->
+            val relatedIssue = allConflictingIssues.find { it.key == issue.targetKey }
+            listOf(issue, relatedIssue!!).stream().min(compareLastUpdatedDate()).get()
+        }
+        removeOutdatedIssues(polledIssues, outdatedIssues)
+    }
+
+    private fun removeOutdatedIssues(
+        polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>, issuesToRemove: List<Issue>
+    ) {
+        polledIssues.forEach { trackingApp ->
+            trackingApp.value.removeAll { issuesToRemove.contains(it) }
+        }
+    }
+
+    private fun compareLastUpdatedDate() = Comparator.comparing(Issue::lastUpdated)
+
+    private fun processChangedIssues(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
         polledIssues.forEach { (trackingApp, issues) ->
             issues.forEach { issue ->
                 if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, issue) != null) {

@@ -113,6 +113,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return issue.changelog?.sortedByDescending { it.created }?.first()?.author?.name ?: ""
     }
 
+    private fun getTargetKey(internalIssue: JiraProprietaryIssue): String {
+        return getValue(internalIssue, setup.extRefIdField).toString() ?: ""
+    }
+
     override fun getLastUpdated(internalIssue: JiraProprietaryIssue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
@@ -429,6 +433,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             getLastUpdated(jiraIssue)
         )
         issue.lastUpdatedBy = getLastUpdatedByUser(jiraIssue)
+        issue.targetKey = getTargetKey(jiraIssue)
         return issue
     }
 

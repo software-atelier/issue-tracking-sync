@@ -16,5 +16,6 @@ data class IssueTrackingApplication(
     /**
      * The [project] can be a JIRA project reference (eg. 'DEV') or an RTC project area name (eg. 'Development')
      */
-    var project: String? = null
+    var project: String? = null,
+    var extRefIdField: String = ""
 )

@@ -153,6 +153,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         )
     }
 
+    private fun getTargetKey(internalIssue: IWorkItem): String {
+        return getValue(internalIssue, setup.extRefIdField).toString()
+    }
+
     override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String): String? {
         return when (val value = getValue(internalIssue, fieldName)) {
             is XMLString -> value.xmlText
@@ -542,6 +546,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             getLastUpdated(workItem)
         )
         issue.lastUpdatedBy = getLastUpdatedByUser(workItem)
+        issue.targetKey = getTargetKey(workItem)
         return issue
     }
 
