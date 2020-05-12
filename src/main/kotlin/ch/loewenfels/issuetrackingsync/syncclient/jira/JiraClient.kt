@@ -113,14 +113,20 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         var lastUpdatedBy: String
         try {
             lastUpdatedBy = issue.changelog?.maxBy { it.created }?.author?.name ?: ""
-        } catch (e: Exception) {
+        } catch (e: NullPointerException) {
             lastUpdatedBy = ""
         }
         return lastUpdatedBy
     }
 
     private fun getTargetKey(internalIssue: JiraProprietaryIssue): String {
-        return getValue(internalIssue, setup.extRefIdField).toString() ?: ""
+        var targetKey: String
+        try {
+            targetKey = getValue(internalIssue, setup.extRefIdField).toString()
+        } catch (e: IllegalArgumentException) {
+            targetKey = ""
+        }
+        return targetKey
     }
 
     override fun getLastUpdated(internalIssue: JiraProprietaryIssue): LocalDateTime =
