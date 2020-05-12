@@ -110,7 +110,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             internalIssue.key,
             Collections.singletonList(IssueRestClient.Expandos.CHANGELOG)
         ).claim()
-        return issue.changelog?.sortedByDescending { it.created }?.first()?.author?.name ?: ""
+        var lastUpdatedBy: String
+        try {
+            lastUpdatedBy = issue.changelog?.maxBy { it.created }?.author?.name ?: ""
+        } catch (e: Exception) {
+            lastUpdatedBy = ""
+        }
+        return lastUpdatedBy
     }
 
     private fun getTargetKey(internalIssue: JiraProprietaryIssue): String {

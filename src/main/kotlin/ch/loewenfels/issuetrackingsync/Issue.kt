@@ -13,7 +13,7 @@ data class Issue(val key: String, val clientSourceName: String, val lastUpdated:
     /**
      * Initially empty, set by an issue client once a write operation takes place
      */
-    var lastUpdatedBy: String? = null
+    var lastUpdatedBy: String = ""
     var proprietaryTargetInstance: Any? = null
     var targetKey: String? = null
     val fieldMappings: MutableList<FieldMapping> = mutableListOf()
