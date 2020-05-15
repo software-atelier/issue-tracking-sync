@@ -112,5 +112,6 @@ interface IssueTrackingClient<T> {
         issue: Issue,
         exception: Exception,
         notificationObserver: NotificationObserver,
-        syncActions: Map<SyncActionName, SynchronizationAction>)
+        syncActions: Map<SyncActionName, SynchronizationAction>
+    ): Boolean
 }

@@ -72,7 +72,7 @@ class IssuePoller @Autowired constructor(
             val changedIssues: Collection<Issue> = try {
                 val timestamp = appState.lastPollingTimestamp ?: LocalDateTime.now()
                 issueTrackingClient.changedIssuesSince(timestamp, batchSize, offset)
-                    .filter { lastUpdatedByJira2Rtc(it).not() }
+                    .filter { lastUpdatedByIssueTrackingSyncTool(it).not() }
             } catch (e: Exception) {
                 logger().error(
                     "Could not load issues or polling. One common problem could be your authentication or authorisation." +
@@ -86,7 +86,7 @@ class IssuePoller @Autowired constructor(
         return allChangedIssues
     }
 
-    private fun lastUpdatedByJira2Rtc(it: Issue) =
+    private fun lastUpdatedByIssueTrackingSyncTool(it: Issue) =
         issueTrackingAppUsers.contains(it.lastUpdatedBy)
 
     private fun updateLastPollingTimestamp() {

@@ -562,17 +562,22 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     override fun logException(
         issue: Issue,
-        exception: java.lang.Exception,
+        exception: Exception,
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
-    ) {
+    ): Boolean {
         val errorMessage = getRestExceptionMessage(exception)
-        logger().debug(errorMessage)
-        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+        if (errorMessage != null) {
+            logger().debug(errorMessage)
+            notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+            return true
+        } else {
+            return false
+        }
     }
 
     private fun getRestExceptionMessage(exception: java.lang.Exception): String? {
-        val errorMessage = if (exception is RestClientException) {
+        if (exception is RestClientException) {
             val statusCode = exception.statusCode.or(0)
 
             val responseMessage = HttpStatus.valueOf(statusCode).reasonPhrase
@@ -582,10 +587,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                         " If a captcha is needed, please shutdown this tool, then manually login and then start this tool again."
                 else -> ""
             }
-            "Jira: $responseMessage ($statusCode)\n$additionalPhrase"
+            return "Jira: $responseMessage ($statusCode)\n$additionalPhrase"
         } else {
-            exception.message
+            return null
         }
-        return errorMessage
     }
 }

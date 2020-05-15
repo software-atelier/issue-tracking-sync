@@ -681,17 +681,18 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     override fun logException(
         issue: Issue,
-        exception: java.lang.Exception,
+        exception: Exception,
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
-    ) {
-        val errorMessage = if (exception is TeamRepositoryException) {
-            "RTC: ${exception.message}"
+    ): Boolean {
+        if (exception is TeamRepositoryException) {
+            val errorMessage = "RTC: ${exception.message}"
+            logger().debug(errorMessage)
+            notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+            return true
         } else {
-            exception.message
+            return false
         }
-        logger().debug(errorMessage)
-        notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
     }
 
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {

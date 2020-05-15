@@ -13,7 +13,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
 import java.time.temporal.ChronoUnit
-import java.util.Objects
+import java.util.*
 import kotlin.math.abs
 
 typealias SyncActionName = String
@@ -85,7 +85,9 @@ class SynchronizationFlow(
             syncActions.forEach { execute(it, issue) }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
         } catch (ex: Exception) {
-            sourceClient.logException(issue, ex, notificationObserver, syncActions)
+            if (sourceClient.logException(issue, ex, notificationObserver, syncActions))
+            else if (targetClient.logException(issue, ex, notificationObserver, syncActions))
+            else notificationObserver.notifyException(issue, ex, syncActions)
         } finally {
             writeBackKeyReference(issue)
         }
