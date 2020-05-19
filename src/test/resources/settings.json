@@ -120,7 +120,10 @@
       "name": "Sync changes from RTC to JIRA",
       "source": "RTC",
       "target": "JIRA",
-      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeFilter",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeCreationDateFilter",
+      "filterProperties": {
+        "someKey": "someValue"
+      },
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "RTC ID"

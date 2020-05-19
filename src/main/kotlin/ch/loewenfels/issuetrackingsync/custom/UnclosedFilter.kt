@@ -7,6 +7,9 @@ import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import com.ibm.team.workitem.common.model.IWorkItem
+import org.joda.time.DateTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * This is an example of a custom class, ie. a class where configuration elements are coded instead of defined in a
@@ -30,7 +33,7 @@ abstract class UnclosedFilter(
         }
     }
 
-    private fun testUnclosedIssueInJira(client: JiraClient, issue: Issue): Boolean {
+    open fun testUnclosedIssueInJira(client: JiraClient, issue: Issue): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as com.atlassian.jira.rest.client.api.domain.Issue
         val status = client.getValue(internalIssue, "status.name")
         val issueType = client.getValue(internalIssue, "issueType.name")
@@ -43,7 +46,7 @@ abstract class UnclosedFilter(
 
     abstract fun getAllowedJiraIssueTypes(): List<String>
 
-    private fun testUnclosedIssueInRtc(client: RtcClient, issue: Issue): Boolean {
+    open fun testUnclosedIssueInRtc(client: RtcClient, issue: Issue): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
         val status = client.getValue(internalIssue, "state2.stringIdentifier")
         val issueType = client.getValue(internalIssue, "workItemType")

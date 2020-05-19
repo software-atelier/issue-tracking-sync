@@ -7,6 +7,7 @@ data class SyncFlowDefinition(
     var source: TrackingApplicationName = "",
     var target: TrackingApplicationName = "",
     var filterClassname: String? = null,
+    var filterProperties: Map<String, String> = emptyMap(),
     var defaultsForNewIssue: DefaultsForNewIssue? = null,
     var keyFieldMappingDefinition: FieldMappingDefinition = FieldMappingDefinition(),
     @JsonFormat(with = [JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY])

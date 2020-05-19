@@ -415,6 +415,9 @@ list of action references.
       "source": "RTC",
       "target": "JIRA",
       "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeFilter",
+      "filterProperties": {
+        "someKey": "someValue"
+      },
       "keyFieldMappingDefinition": {
         "sourceName": "id",
         "targetName": "custom_field_12044"

@@ -48,6 +48,7 @@ class SynchronizationFlow(
             val filterClass = Class.forName(it) as Class<IssueFilter>
             filterClass.getDeclaredConstructor().newInstance()
         }
+        issueFilter?.defineParameters(syncFlowDefinition.filterProperties)
         defaultsForNewIssue = syncFlowDefinition.defaultsForNewIssue
     }
 

@@ -9,4 +9,6 @@ interface IssueFilter {
         client: IssueTrackingClient<out Any>, issue: Issue,
         syncFlowDefinition: SyncFlowDefinition
     ): Boolean
+
+    fun defineParameters(parameters: Map<String, String>) {}
 }
