@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.custom
 
-internal class UnclosedChangeCreationDateFilterTest : UnclosedFilterTest() {
+internal class UnclosedChangeCreationDateFilterTest : UnclosedIssueCreationDateFilterTest() {
     override fun getUnclosedFilter() = UnclosedChangeCreationDateFilter()
     override fun getIssueTypePassingFilterRtc() = "ch.igs.team.apt.workItemType.change"
 

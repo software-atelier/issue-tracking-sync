@@ -1,6 +1,6 @@
 package ch.loewenfels.issuetrackingsync.custom
 
-internal class UnclosedDefectCreationDateFilterTest : UnclosedFilterTest() {
+internal class UnclosedDefectCreationDateFilterTest : UnclosedIssueCreationDateFilterTest() {
     override fun getUnclosedFilter() = UnclosedDefectCreationDateFilter()
 
     override fun getIssueTypePassingFilterRtc() = "ch.igs.team.apt.workItemType.defect"

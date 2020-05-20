@@ -1,7 +1,5 @@
 package ch.loewenfels.issuetrackingsync.custom
 
-import java.time.LocalDateTime
-
 
 /**
  * This is an example of a custom class, ie. a class where configuration elements are coded instead of defined in a

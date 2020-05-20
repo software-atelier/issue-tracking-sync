@@ -7,9 +7,6 @@ import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import com.ibm.team.workitem.common.model.IWorkItem
-import org.joda.time.DateTime
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 /**
  * This is an example of a custom class, ie. a class where configuration elements are coded instead of defined in a

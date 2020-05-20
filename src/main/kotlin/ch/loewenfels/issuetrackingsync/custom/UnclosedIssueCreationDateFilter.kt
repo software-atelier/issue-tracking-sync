@@ -1,7 +1,6 @@
 package ch.loewenfels.issuetrackingsync.custom
 
 import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.executor.IssueFilter
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 import com.ibm.team.workitem.common.model.IWorkItem
@@ -18,25 +17,30 @@ abstract class UnclosedIssueCreationDateFilter : UnclosedFilter() {
 
     override fun testUnclosedIssueInJira(client: JiraClient, issue: Issue): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as com.atlassian.jira.rest.client.api.domain.Issue
-        val creationDate = (client.getValue(internalIssue, "creationDate") as DateTime)
-        val creationLocalDateTime = LocalDateTime.of(creationDate.year, creationDate.monthOfYear, creationDate.dayOfMonth, creationDate.hourOfDay, creationDate.minuteOfHour)
+        val creationDate = (client.getValue(internalIssue, "creationDate") as DateTime?)
+        val creationLocalDateTime = creationDate?.let{ LocalDateTime
+            .of(it.year, it.monthOfYear, it.dayOfMonth, it.hourOfDay, it.minuteOfHour)}
         return super.testUnclosedIssueInJira(client, issue) && isCrationDateCorrect(creationLocalDateTime)
     }
 
     override fun testUnclosedIssueInRtc(client: RtcClient, issue: Issue): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
-        val creationDate = (client.getValue(internalIssue, "creationDate") as java.sql.Timestamp).toLocalDateTime()
+        val creationDate = (client.getValue(internalIssue, "creationDate") as java.sql.Timestamp?)?.toLocalDateTime()
         return super.testUnclosedIssueInRtc(client, issue) && isCrationDateCorrect(creationDate)
     }
-    private fun isCrationDateCorrect(creationDate: LocalDateTime):Boolean{
-        return createdAfterDate()?.isBefore(creationDate) ?: createdBeforeDate()?.isAfter(creationDate) ?: true
-    }
+    private fun isCrationDateCorrect(creationDate: LocalDateTime?):Boolean =
+        creationDate?.let{checkCreationAfterDate(it)?: createdBeforeDate()?.isAfter(it)} ?: true
 
-    fun createdAfterDate(): LocalDateTime? {
-        return parameters["createdAfter"]?.let(LocalDateTime::parse)
-    }
 
-    fun createdBeforeDate(): LocalDateTime?  {
-        return parameters["createdBefore"]?.let(LocalDateTime::parse)
-    }
+    private fun checkCreationAfterDate(creationDate: LocalDateTime) =
+        createdAfterDate()?.let { creationDate.isEqual(it) || creationDate.isAfter(it) }
+
+
+    fun createdAfterDate(): LocalDateTime? =
+        parameters["createdAfter"]?.let(LocalDateTime::parse)
+
+
+    fun createdBeforeDate(): LocalDateTime?  =
+        parameters["createdBefore"]?.let(LocalDateTime::parse)
+
 }
