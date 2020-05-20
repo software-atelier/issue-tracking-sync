@@ -49,7 +49,7 @@ import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
  */
 open class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<JiraProprietaryIssue>, Logging {
-    private val backReferenceCommentId = "00000000"
+    private val targetNotYetCreatedForSourceKeys = mutableSetOf<String>()
     private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
         URI(setup.endpoint),
         setup.username,
@@ -224,20 +224,40 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
-        val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
+        val sourceIssueKey = issue.keyFieldMapping!!.getKeyForSourceIssue().toString()
         val targetIssue =
-            (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
-                targetKeyFieldname,
-                targetIssueKey
-            ) else null) as JiraProprietaryIssue?
+            getTargetIssue(issue, sourceIssueKey, targetKeyFieldname)
         when {
             targetIssue != null -> {
                 updateTargetIssue(targetIssue, issue)
             }
             defaultsForNewIssue != null -> {
-                createTargetIssue(defaultsForNewIssue, issue)
+                try {
+                    targetNotYetCreatedForSourceKeys.add(issue.key)
+                    createTargetIssue(defaultsForNewIssue, issue)
+                } finally {
+                    targetNotYetCreatedForSourceKeys.remove(issue.key)
+                }
             }
-            else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+            else -> throw SynchronizationAbortedException("No target issue found for $sourceIssueKey, and no defaults for creating issue were provided")
+        }
+    }
+
+    private fun getTargetIssue(
+        issue: Issue,
+        sourceIssueKey: String,
+        targetKeyFieldname: String
+    ): JiraProprietaryIssue? {
+        waitUntilIssueCreated(issue.key)
+        return (issue.proprietaryTargetInstance ?: if (sourceIssueKey.isNotEmpty()) getProprietaryIssue(
+            targetKeyFieldname,
+            sourceIssueKey
+        ) else null) as JiraProprietaryIssue?
+    }
+
+    private fun waitUntilIssueCreated(sourceIssueKey: String) {
+        while (targetNotYetCreatedForSourceKeys.contains(sourceIssueKey)) {
+            Thread.sleep(1000L)
         }
     }
 

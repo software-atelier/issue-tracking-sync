@@ -78,6 +78,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private val auditableClient: IAuditableClient
     private val projectArea: IProjectArea
     private val millisToMinutes = 1000 * 60
+    private val targetNotYetCreatedForSourceKeys = mutableSetOf<String>()
 
     init {
         teamRepository.registerLoginHandler(LoginHandler())
@@ -389,16 +390,37 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
         val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
-        val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        val targetIssue =
-            (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
-                targetKeyFieldname,
-                targetIssueKey
-            ) else null) as IWorkItem?
+        val sourceIssueKey = issue.keyFieldMapping!!.getKeyForSourceIssue().toString()
+        val targetIssue = getTargetIssue(issue, sourceIssueKey, targetKeyFieldname)
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
-            defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
-            else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+            defaultsForNewIssue != null -> {
+                try {
+                    targetNotYetCreatedForSourceKeys.add(issue.key)
+                    createTargetIssue(defaultsForNewIssue, issue)
+                } finally {
+                    targetNotYetCreatedForSourceKeys.remove(issue.key)
+                }
+            }
+            else -> throw SynchronizationAbortedException("No target issue found for $sourceIssueKey, and no defaults for creating issue were provided")
+        }
+    }
+
+    private fun getTargetIssue(
+        issue: Issue,
+        sourceIssueKey: String,
+        targetKeyFieldname: String
+    ): IWorkItem? {
+        waitUntilIssueCreated(issue.key)
+        return (issue.proprietaryTargetInstance ?: if (sourceIssueKey.isNotEmpty()) getProprietaryIssue(
+            targetKeyFieldname,
+            sourceIssueKey
+        ) else null) as IWorkItem?
+    }
+
+    private fun waitUntilIssueCreated(sourceIssueKey: String) {
+        while (targetNotYetCreatedForSourceKeys.contains(sourceIssueKey)) {
+            Thread.sleep(1000L)
         }
     }
 
