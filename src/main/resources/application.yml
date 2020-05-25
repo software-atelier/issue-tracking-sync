@@ -15,12 +15,6 @@ spring:
       enabled: false
 
 sync:
-  title: Jira2Rtc Test
-  debug: true
   settingsLocation: settings.json
-  appStateLocation: ${user.home}/
-  logfile: ${user.home}/issue-sync.log
-  pollingCron: 0 0 23 * * ?
+  pollingCron: 0 0 0 1 * ?
   notificationChannelProperties:
-    - classname: ch.loewenfels.issuetrackingsync.notification.CsvProtocol
-      endpoint: ${user.home}/protocol.csv
