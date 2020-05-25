@@ -28,13 +28,12 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        value?.let {
-            if (associations.containsKey(it)) {
-                val result = associations[it as String]
-                issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
-            } else {
-                issue.workLog.add("Cannot update $fieldname, there is not association entry for $it")
-            }
+        val associationKey = if (value == null) "null" else value
+        if (associations.containsKey(associationKey)) {
+            val result = associations[associationKey as String]
+            issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
+        } else {
+            issue.workLog.add("Cannot update $fieldname, there is not association entry for $associationKey")
         }
     }
 }

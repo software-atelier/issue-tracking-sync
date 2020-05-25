@@ -475,7 +475,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 writeComplexField(value, internalIssueBuilder, fld, jiraIssue, fieldName, writerName)
             }
             "option" -> {
-                val complexValue = ComplexIssueInputFieldValue.with("value", value.toString())
+                val complexValue = if (value == "null")
+                    ComplexIssueInputFieldValue.with("id", "-1")
+                else
+                    ComplexIssueInputFieldValue.with("value", value.toString())
                 setInternalFieldValue(internalIssueBuilder, fld.id, complexValue)
             }
         }
