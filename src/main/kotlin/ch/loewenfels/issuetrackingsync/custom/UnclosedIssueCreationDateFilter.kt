@@ -3,6 +3,7 @@ package ch.loewenfels.issuetrackingsync.custom
 import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
+import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import com.ibm.team.workitem.common.model.IWorkItem
 import org.joda.time.DateTime
 import java.time.LocalDateTime
@@ -15,21 +16,34 @@ abstract class UnclosedIssueCreationDateFilter : UnclosedFilter() {
     }
 
 
-    override fun testUnclosedIssueInJira(client: JiraClient, issue: Issue): Boolean {
+    override fun testUnclosedIssueInJira(
+        client: JiraClient,
+        issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as com.atlassian.jira.rest.client.api.domain.Issue
         val creationDate = (client.getValue(internalIssue, "creationDate") as DateTime?)
-        val creationLocalDateTime = creationDate?.let{ LocalDateTime
-            .of(it.year, it.monthOfYear, it.dayOfMonth, it.hourOfDay, it.minuteOfHour)}
-        return super.testUnclosedIssueInJira(client, issue) && isCrationDateCorrect(creationLocalDateTime)
+        val creationLocalDateTime = creationDate?.let {
+            LocalDateTime
+                .of(it.year, it.monthOfYear, it.dayOfMonth, it.hourOfDay, it.minuteOfHour)
+        }
+        return super.testUnclosedIssueInJira(client, issue, syncFlowDefinition) && isCrationDateCorrect(
+            creationLocalDateTime
+        )
     }
 
-    override fun testUnclosedIssueInRtc(client: RtcClient, issue: Issue): Boolean {
+    override fun testUnclosedIssueInRtc(
+        client: RtcClient,
+        issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
         val creationDate = (client.getValue(internalIssue, "creationDate") as java.sql.Timestamp?)?.toLocalDateTime()
-        return super.testUnclosedIssueInRtc(client, issue) && isCrationDateCorrect(creationDate)
+        return super.testUnclosedIssueInRtc(client, issue, syncFlowDefinition) && isCrationDateCorrect(creationDate)
     }
-    private fun isCrationDateCorrect(creationDate: LocalDateTime?):Boolean =
-        creationDate?.let{checkCreationAfterDate(it)?: createdBeforeDate()?.isAfter(it)} ?: true
+
+    private fun isCrationDateCorrect(creationDate: LocalDateTime?): Boolean =
+        creationDate?.let { checkCreationAfterDate(it) ?: createdBeforeDate()?.isAfter(it) } ?: true
 
 
     private fun checkCreationAfterDate(creationDate: LocalDateTime) =
@@ -40,7 +54,7 @@ abstract class UnclosedIssueCreationDateFilter : UnclosedFilter() {
         parameters["createdAfter"]?.let(LocalDateTime::parse)
 
 
-    fun createdBeforeDate(): LocalDateTime?  =
+    fun createdBeforeDate(): LocalDateTime? =
         parameters["createdBefore"]?.let(LocalDateTime::parse)
 
 }

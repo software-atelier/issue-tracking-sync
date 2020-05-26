@@ -23,14 +23,18 @@ abstract class UnclosedFilter(
         syncFlowDefinition: SyncFlowDefinition
     ): Boolean {
         return when (client) {
-            is RtcClient -> testUnclosedIssueInRtc(client, issue)
-            is JiraClient -> testUnclosedIssueInJira(client, issue)
+            is RtcClient -> testUnclosedIssueInRtc(client, issue, syncFlowDefinition)
+            is JiraClient -> testUnclosedIssueInJira(client, issue, syncFlowDefinition)
             // could also throw an exception here, but returning 'true' makes testing with mock clients a bit easier
             else -> true
         }
     }
 
-    open fun testUnclosedIssueInJira(client: JiraClient, issue: Issue): Boolean {
+    open fun testUnclosedIssueInJira(
+        client: JiraClient,
+        issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as com.atlassian.jira.rest.client.api.domain.Issue
         val status = client.getValue(internalIssue, "status.name")
         val issueType = client.getValue(internalIssue, "issueType.name")
@@ -43,7 +47,11 @@ abstract class UnclosedFilter(
 
     abstract fun getAllowedJiraIssueTypes(): List<String>
 
-    open fun testUnclosedIssueInRtc(client: RtcClient, issue: Issue): Boolean {
+    open fun testUnclosedIssueInRtc(
+        client: RtcClient,
+        issue: Issue,
+        syncFlowDefinition: SyncFlowDefinition
+    ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
         val status = client.getValue(internalIssue, "state2.stringIdentifier")
         val issueType = client.getValue(internalIssue, "workItemType")
