@@ -19,7 +19,6 @@ import com.atlassian.jira.rest.client.api.RestClientException
 import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.Resolution
-import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.Version
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
@@ -41,7 +40,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Collections
 import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
 
 /**
@@ -49,7 +48,6 @@ import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
  */
 open class JiraClient(private val setup: IssueTrackingApplication) :
     IssueTrackingClient<JiraProprietaryIssue>, Logging {
-    private val backReferenceCommentId = "00000000"
     private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
         URI(setup.endpoint),
         setup.username,
@@ -110,23 +108,19 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             internalIssue.key,
             Collections.singletonList(IssueRestClient.Expandos.CHANGELOG)
         ).claim()
-        var lastUpdatedBy: String
-        try {
-            lastUpdatedBy = issue.changelog?.maxBy { it.created }?.author?.name ?: ""
+        return try {
+            issue.changelog?.maxBy { it.created }?.author?.name ?: ""
         } catch (e: NullPointerException) {
-            lastUpdatedBy = ""
+            ""
         }
-        return lastUpdatedBy
     }
 
     private fun getTargetKey(internalIssue: JiraProprietaryIssue): String {
-        var targetKey: String
-        try {
-            targetKey = getValue(internalIssue, setup.extRefIdField).toString()
+        return try {
+            getValue(internalIssue, setup.extRefIdField).toString()
         } catch (e: IllegalArgumentException) {
-            targetKey = ""
+            ""
         }
-        return targetKey
     }
 
     override fun getLastUpdated(internalIssue: JiraProprietaryIssue): LocalDateTime =
@@ -159,7 +153,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             else if (internalIssueBuilder is IssueInputBuilder) {
                 val targetInternalIssue = (proprietaryJiraIssue
                     ?: throw IllegalStateException("Need a target issue for custom fields"))
-                if (fieldName == "timeTracking" && value is TimeTracking) {
+                if (fieldName.startsWith("timeTracking") && value is Any) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
                 } else if (fieldName == "labels" && value is List<*>) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
@@ -311,7 +305,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             lastPollingTimestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         var jql = "(updated >= '$lastPollingTimestampAsString' OR created >= '$lastPollingTimestampAsString')"
         setup.project?.let { jql += " AND project = '$it'" }
-        setup.pollingIssueType?.let { jql += " AND issueType = $it" }
+        setup.pollingIssueType?.let { jql += " AND issueType in ($it)" }
         try {
             return jiraRestClient.searchClient
                 .searchJql("$jql ORDER BY key", batchSize, offset, setOf("*all"))
@@ -492,15 +486,19 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String,
         fieldWriterName: String
     ): IssueInputBuilder? {
-        return if (value is List<*>) {
-            val complexValues = createComplexInputFieldValue(value, fieldWriterName)
-            internalIssueBuilder.setFieldValue(fld.id, complexValues)
-        } else if (value is String) {
-            val complexValue = createComplexInputFieldValue(listOf(value), fieldWriterName)
-            internalIssueBuilder.setFieldValue(fld.id, complexValue)
-        } else {
-            val fieldId = jiraIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
-            throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to receive an array, but was of type ${value::class.simpleName}")
+        return when (value) {
+            is List<*> -> {
+                val complexValues = createComplexInputFieldValue(value, fieldWriterName)
+                internalIssueBuilder.setFieldValue(fld.id, complexValues)
+            }
+            is String -> {
+                val complexValue = createComplexInputFieldValue(listOf(value), fieldWriterName)
+                internalIssueBuilder.setFieldValue(fld.id, complexValue)
+            }
+            else -> {
+                val fieldId = jiraIssue.getField(fieldName)?.name ?: "no corresponding fieldId"
+                throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to receive an array, but was of type ${value::class.simpleName}")
+            }
         }
     }
 
@@ -515,7 +513,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         fieldName: String
     ): Any? {
         val field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
-        return field.value?.let { getArrayForJsonArrayValue(it) }?.takeIf { !it.isEmpty() } ?: field.value
+        return field.value?.let { getArrayForJsonArrayValue(it) }?.takeIf { it.isNotEmpty() } ?: field.value
     }
 
     private fun getIssueFieldByNameOrId(
@@ -570,29 +568,29 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         syncActions: Map<SyncActionName, SynchronizationAction>
     ): Boolean {
         val errorMessage = getRestExceptionMessage(exception)
-        if (errorMessage != null) {
+        return if (errorMessage != null) {
             logger().debug(errorMessage)
             notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
-            return true
+            true
         } else {
-            return false
+            false
         }
     }
 
     private fun getRestExceptionMessage(exception: java.lang.Exception): String? {
-        if (exception is RestClientException) {
+        return if (exception is RestClientException) {
             val statusCode = exception.statusCode.or(0)
 
             val responseMessage = HttpStatus.valueOf(statusCode).reasonPhrase
             val additionalPhrase = when (statusCode) {
                 401, 403 -> "There seems to be a Problem with your Login. Please check your configuration." +
-                        " If your login credentials for the tool are correct, then make sure the User is not forced to enter a Captch" +
+                        " If your login credentials for the tool are correct, then make sure the User is not forced to enter a CAPTCHA." +
                         " If a captcha is needed, please shutdown this tool, then manually login and then start this tool again."
                 else -> ""
             }
-            return "Jira: $responseMessage ($statusCode)\n$additionalPhrase"
+            "Jira: $responseMessage ($statusCode)\n$additionalPhrase"
         } else {
-            return null
+            null
         }
     }
 }
