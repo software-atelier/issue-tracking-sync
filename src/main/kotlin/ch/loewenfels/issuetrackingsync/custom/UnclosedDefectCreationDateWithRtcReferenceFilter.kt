@@ -7,7 +7,6 @@ import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
 import com.ibm.team.workitem.common.model.IWorkItem
 import com.atlassian.jira.rest.client.api.domain.Issue as JiraRestClientIssue
 
-
 /**
  * This is an example of a custom class, ie. a class where configuration elements are coded instead of defined in a
  * JSON file. This implementation is specific to a certain JIRA / RTC setup, eeg. by using given internal state IDs

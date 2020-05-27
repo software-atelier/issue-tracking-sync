@@ -33,9 +33,7 @@ class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchro
             proprietaryIssue: T,
             fieldname: String,
             issueTrackingClient: IssueTrackingClient<in T>
-        ): List<Number?> {
-            return sourceNames.map { issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, it) }
-        }
+        ): List<Number?> = sourceNames.map { issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, it) }
 
 
         override
