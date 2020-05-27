@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
-class SimpleSynchronizationAction(val actionName: String) : AbstractSynchronizationAction(),
+open class SimpleSynchronizationAction(val actionName: String) : AbstractSynchronizationAction(),
     SynchronizationAction {
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,

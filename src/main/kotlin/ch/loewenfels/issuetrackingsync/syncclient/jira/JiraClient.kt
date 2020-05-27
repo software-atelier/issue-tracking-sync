@@ -19,6 +19,7 @@ import com.atlassian.jira.rest.client.api.RestClientException
 import com.atlassian.jira.rest.client.api.domain.IssueField
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.Resolution
+import com.atlassian.jira.rest.client.api.domain.TimeTracking
 import com.atlassian.jira.rest.client.api.domain.Transition
 import com.atlassian.jira.rest.client.api.domain.Version
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue
@@ -153,8 +154,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             else if (internalIssueBuilder is IssueInputBuilder) {
                 val targetInternalIssue = (proprietaryJiraIssue
                     ?: throw IllegalStateException("Need a target issue for custom fields"))
-                if (fieldName.startsWith("timeTracking") && value is Any) {
-                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, value)
+                if (fieldName.startsWith("timeTracking.") && it is TimeTracking) {
+                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, it)
                 } else if (fieldName == "labels" && value is List<*>) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
                 } else if (fieldName == "versions") {
