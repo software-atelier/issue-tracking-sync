@@ -9,7 +9,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
 
 class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchronizationAction(actionName) {
-    val fieldMapping: List<FieldMapping> = listOf(FieldMapping("", "", TimeSynchronizationFromRtcToJiraMapper()))
+    private val fieldMapping: List<FieldMapping> = listOf(FieldMapping("", "", TimeSynchronizationFromRtcToJiraMapper()))
 
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,
@@ -22,8 +22,8 @@ class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchro
     }
 
     inner class TimeSynchronizationFromRtcToJiraMapper : FieldMapper {
-        val sourceNames = listOf("duration", "correctedEstimate")
-        val targetNames = listOf(
+        private val sourceNames = listOf("duration", "correctedEstimate")
+        private val targetNames = listOf(
             "timeTracking.originalEstimateMinutes",
             "timeTracking.timeSpentMinutes",
             "timeTracking.remainingEstimateMinutes"
@@ -35,25 +35,24 @@ class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchro
             issueTrackingClient: IssueTrackingClient<in T>
         ): List<Number?> = sourceNames.map { issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, it) }
 
-
-        override
-        fun <T> setValue(
+        override fun <T> setValue(
             proprietaryIssueBuilder: Any,
             fieldname: String,
             issue: Issue,
             issueTrackingClient: IssueTrackingClient<in T>,
             value: Any?
         ) {
+            @Suppress("UNCHECKED_CAST")
             val newEstimatedTime = value as List<Number?>
-            val times = targetNames.map { fieldname ->
+            val times = targetNames.map { name ->
                 issue.proprietaryTargetInstance?.let {
-                    issueTrackingClient.getTimeValueInMinutes(it, fieldname)
+                    issueTrackingClient.getTimeValueInMinutes(it, name)
                 } ?: 0
             }
             val newRemaining = newEstimatedTime[1]?.toInt()?.let {
-                if (it > times[1]?.toInt()) it - times[1]?.toInt() else 0
+                if (it > times[1].toInt()) it - times[1].toInt() else 0
             }
-            val newTimes = TimeTracking(newEstimatedTime[0]?.toInt(), newRemaining, times[1]?.toInt())
+            val newTimes = TimeTracking(newEstimatedTime[0]?.toInt(), newRemaining, times[1].toInt())
             issueTrackingClient.setValue(
                 proprietaryIssueBuilder,
                 issue,

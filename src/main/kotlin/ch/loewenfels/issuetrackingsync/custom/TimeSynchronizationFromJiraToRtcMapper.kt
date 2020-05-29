@@ -18,9 +18,7 @@ class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
             .sum()
     }
 
-
-    override
-    fun <T> setValue(
+    override fun <T> setValue(
         proprietaryIssueBuilder: Any,
         fieldname: String,
         issue: Issue,
@@ -28,22 +26,15 @@ class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
         value: Any?
     ) {
         val splittedFieldName = fieldname.split(",")
-        when (splittedFieldName.size) {
-            2 -> {
-                val newEstimatedTime = value as Number
-                val originalEstimate =
-                    issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[0])
-                val oldCorrectedEstimatedTime =
-                    issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[1])
-                if (newEstimatedTime.toInt() != oldCorrectedEstimatedTime.toInt()
-                    && (originalEstimate.toInt() != newEstimatedTime.toInt() || oldCorrectedEstimatedTime.toInt() != 0)
-                ) {
-                    issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, splittedFieldName[1], value)
-                }
-
+        if (splittedFieldName.size == 2) {
+            val newEstimatedTime = value as Number
+            val originalEstimate = issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[0])
+            val oldCorrectedEstimatedTime = issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[1])
+            if (newEstimatedTime.toInt() != oldCorrectedEstimatedTime.toInt()
+                && (originalEstimate.toInt() != newEstimatedTime.toInt() || oldCorrectedEstimatedTime.toInt() != 0)
+            ) {
+                issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, splittedFieldName[1], value)
             }
         }
     }
-
-
 }

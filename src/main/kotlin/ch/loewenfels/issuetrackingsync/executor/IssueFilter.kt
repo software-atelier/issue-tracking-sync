@@ -10,5 +10,7 @@ interface IssueFilter {
         syncFlowDefinition: SyncFlowDefinition
     ): Boolean
 
-    fun defineParameters(parameters: Map<String, String>) {}
+    fun defineParameters(parameters: Map<String, String>) {
+        // no-op
+    }
 }
