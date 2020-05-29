@@ -125,4 +125,23 @@ abstract class UnclosedFilterTest {
         // assert
         Assertions.assertFalse(result)
     }
+
+    @Test
+    fun test_rtcClientOnClosedIssueButResolutionToSyncAndCorrectIssueType_true() {
+        // arrange
+        val issue = TestObjects.buildIssue("123456")
+        val internalIssue = Mockito.mock(IWorkItem::class.java)
+        val rtcClient = Mockito.mock(RtcClient::class.java)
+        Mockito.`when`(rtcClient.getProprietaryIssue(any(String::class.java))).thenReturn(internalIssue)
+        Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("workItemType")))
+            .thenReturn(getIssueTypePassingFilterRtc())
+        Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("state2.stringIdentifier")))
+            .thenReturn("ch.igs.team.workitem.workflow.change.state.s17")
+        Mockito.`when`(rtcClient.getValue(safeEq(internalIssue), safeEq("internalResolution")))
+            .thenReturn("Duplikat")
+        // act
+        val result = getUnclosedFilter().test(rtcClient, issue, SyncFlowDefinition())
+        // assert
+        Assertions.assertTrue(result)
+    }
 }

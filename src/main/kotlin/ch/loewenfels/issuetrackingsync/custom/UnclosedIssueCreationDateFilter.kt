@@ -27,7 +27,7 @@ abstract class UnclosedIssueCreationDateFilter : UnclosedFilter() {
             LocalDateTime
                 .of(it.year, it.monthOfYear, it.dayOfMonth, it.hourOfDay, it.minuteOfHour)
         }
-        return super.testUnclosedIssueInJira(client, issue, syncFlowDefinition) && isCrationDateCorrect(
+        return super.testUnclosedIssueInJira(client, issue, syncFlowDefinition) && isCreationDateCorrect(
             creationLocalDateTime
         )
     }
@@ -39,10 +39,10 @@ abstract class UnclosedIssueCreationDateFilter : UnclosedFilter() {
     ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
         val creationDate = (client.getValue(internalIssue, "creationDate") as java.sql.Timestamp?)?.toLocalDateTime()
-        return super.testUnclosedIssueInRtc(client, issue, syncFlowDefinition) && isCrationDateCorrect(creationDate)
+        return super.testUnclosedIssueInRtc(client, issue, syncFlowDefinition) && isCreationDateCorrect(creationDate)
     }
 
-    private fun isCrationDateCorrect(creationDate: LocalDateTime?): Boolean =
+    private fun isCreationDateCorrect(creationDate: LocalDateTime?): Boolean =
         creationDate?.let { checkCreationAfterDate(it) ?: createdBeforeDate()?.isAfter(it) } ?: true
 
 

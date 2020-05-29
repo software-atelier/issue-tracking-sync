@@ -14,6 +14,7 @@ import com.ibm.team.workitem.common.model.IWorkItem
  */
 abstract class UnclosedFilter(
     private val closedRtcStatus: List<String> = listOf("ch.igs.team.workitem.workflow.change.state.s17"),
+    private val closedRtcResolutionsToSync: List<String> = listOf("Duplikat", "Ungültig", "Nicht mehr benötigt"),
     private val closedJiraStatus: List<String> = listOf("Resolved", "Closed")
 ) :
     IssueFilter {
@@ -54,8 +55,10 @@ abstract class UnclosedFilter(
     ): Boolean {
         val internalIssue = client.getProprietaryIssue(issue.key) as IWorkItem
         val status = client.getValue(internalIssue, "state2.stringIdentifier")
+        val internalResolution = client.getValue(internalIssue, "internalResolution")
         val issueType = client.getValue(internalIssue, "workItemType")
-        return !closedRtcStatus.contains(status) && isAllowedIssueType(issueType, getAllowedRtcIssueTypes())
+        return (!closedRtcStatus.contains(status) || closedRtcResolutionsToSync.contains(internalResolution))
+                && isAllowedIssueType(issueType, getAllowedRtcIssueTypes())
     }
 
     abstract fun getAllowedRtcIssueTypes(): List<String>
