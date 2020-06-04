@@ -25,7 +25,7 @@ internal class SkipUnlessAllowedStateTest : AbstractSpringTest() {
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
         val testee = SkipUnlessAllowedState(fieldSkipDefinition)
         // act
-        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne")
+        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne", "bruce")
         // assert
         Assertions.assertFalse(result)
     }
@@ -43,7 +43,7 @@ internal class SkipUnlessAllowedStateTest : AbstractSpringTest() {
             TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
         val testee = SkipUnlessAllowedState(fieldSkipDefinition)
         // act
-        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne")
+        val result = testee.hasFieldToBeSkipped(targetClient, issue, issue, "wayne", "bruce")
         // assert
         Assertions.assertTrue(result)
     }
@@ -66,7 +66,8 @@ internal class SkipUnlessAllowedStateTest : AbstractSpringTest() {
                 targetClient,
                 issue,
                 issue,
-                "wayne"
+                "wayne",
+                "bruce"
             )
         }
     }
