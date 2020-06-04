@@ -13,6 +13,7 @@ abstract class FieldSkippingEvaluator(var fieldSkippingEvaluatorDefinition: Fiel
         issueClient: IssueTrackingClient<in T>,
         issueBuilder: Any,
         issue: Issue,
-        fieldname: String
+        fieldname: String,
+        sourceValue: Any?
     ): Boolean
 }

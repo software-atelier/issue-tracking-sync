@@ -4,8 +4,9 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldSkippingEvaluatorDefinition
 
-open class SkipUnlessAllowedState(fieldSkippingEvaluatorDefinition: FieldSkippingEvaluatorDefinition) :
+open class SkipFieldOnSpecificTargetValue(fieldSkippingEvaluatorDefinition: FieldSkippingEvaluatorDefinition) :
     FieldSkippingEvaluator(fieldSkippingEvaluatorDefinition) {
+
     override fun <T> hasFieldToBeSkipped(
         issueClient: IssueTrackingClient<in T>,
         issueBuilder: Any,
@@ -15,13 +16,13 @@ open class SkipUnlessAllowedState(fieldSkippingEvaluatorDefinition: FieldSkippin
     ): Boolean {
         @Suppress("UNCHECKED_CAST")
         val propIssue = issue.proprietaryTargetInstance as? T
-        val status = propIssue?.let { issueClient.getState(it) } ?: ""
-        if (status == "") {
+        val fieldValue: String = (propIssue?.let { issueClient.getValue(it, fieldname) } ?: "") as String
+        if (fieldValue == "") {
             return false
         }
-        val allowedStates = fieldSkippingEvaluatorDefinition.properties["allowedStates"]
-        if (allowedStates is List<*>) {
-            return !allowedStates.contains(status)
+        val fieldValues = fieldSkippingEvaluatorDefinition.properties["fieldValues"]
+        if (fieldValues is Map<*, *>) {
+            return fieldValues[sourceValue]?.let { (it as List<*>).contains(fieldValue) } ?: false
         }
         error("This class expects a property 'allowedStates' as a list of state IDs")
     }

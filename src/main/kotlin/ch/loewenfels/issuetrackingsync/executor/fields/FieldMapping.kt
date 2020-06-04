@@ -11,6 +11,7 @@ open class FieldMapping(
     private val fieldSkipEvalutors: List<FieldSkippingEvaluator> = mutableListOf()
 ) {
     protected var sourceValue: Any? = null
+
     @Suppress("UNCHECKED_CAST")
     fun <T> loadSourceValue(issue: Issue, issueTrackingClient: IssueTrackingClient<in T>) {
         if (issue.proprietarySourceInstance == null) {
@@ -20,7 +21,15 @@ open class FieldMapping(
     }
 
     fun <T> setTargetValue(issueBuilder: Any, issue: Issue, targetClient: IssueTrackingClient<in T>) {
-        if (!fieldSkipEvalutors.any { it.hasFieldToBeSkipped(targetClient, issueBuilder, issue, targetName) }) {
+        if (!fieldSkipEvalutors.any {
+                it.hasFieldToBeSkipped(
+                    targetClient,
+                    issueBuilder,
+                    issue,
+                    targetName,
+                    sourceValue
+                )
+            }) {
             mapper.setValue(issueBuilder, targetName, issue, targetClient, sourceValue)
         }
     }
