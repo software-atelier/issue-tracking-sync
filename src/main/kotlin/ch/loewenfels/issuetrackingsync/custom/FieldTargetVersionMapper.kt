@@ -112,9 +112,9 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                 }
                 val valueToWrite = jiraVersions.toMutableList()
                 valueToWrite.add(rtcVersion)
-                if (valueToWrite.any { regexMinorVersion.containsMatchIn(it) || regexBugfixVersion.containsMatchIn(it) } && !regexRemoveValue.containsMatchIn(
-                        rtcVersion
-                    )) {
+                if (valueToWrite.any { regexMinorVersion.containsMatchIn(it) || regexBugfixVersion.containsMatchIn(it) }
+                    && !regexRemoveValue.containsMatchIn(rtcVersion)
+                ) {
                     valueToWrite.removeIf { regexRemoveValue.containsMatchIn(it) }
                 }
                 super.setValue(
