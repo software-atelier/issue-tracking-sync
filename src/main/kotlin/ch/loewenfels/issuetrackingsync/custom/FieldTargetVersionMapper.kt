@@ -101,6 +101,7 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
             if (jiraVersions.contains(rtcVersion).not()) {
                 val regexMinorVersion = "^\\d\\.\\d{2,3}(?!\\.)".toRegex()
                 val regexBugfixVersion = "\\d\\.\\d{2,3}\\.\\d*(?!\\.)".toRegex()
+                val regexRemoveValue = "(Backlog-?F?C?B?)".toRegex()
                 val validTransformation = associations.keys.any { it.toRegex().containsMatchIn(rtcVersion) }
                 check(
                     regexMinorVersion.containsMatchIn(rtcVersion)
@@ -111,6 +112,11 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                 }
                 val valueToWrite = jiraVersions.toMutableList()
                 valueToWrite.add(rtcVersion)
+                if (valueToWrite.any { regexMinorVersion.containsMatchIn(it) || regexBugfixVersion.containsMatchIn(it) } && !regexRemoveValue.containsMatchIn(
+                        rtcVersion
+                    )) {
+                    valueToWrite.removeIf { regexRemoveValue.containsMatchIn(it) }
+                }
                 super.setValue(
                     proprietaryIssueBuilder,
                     fieldname,

@@ -28,8 +28,8 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun setValueForRtc_versionFoundAndSolved_setCorrectValue() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
         val iteration1 = trainIteration("I2001.1 - 2.3")
         val iteration2 = trainIteration("I2001.1 - 3.66")
         val targetClient = Mockito.mock(RtcClient::class.java)
@@ -83,8 +83,8 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun getValueFromRtc_rtcValueIsBacklog_exception() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("Backlog")
         val issue = createRtcIssue()
@@ -100,8 +100,8 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun getValueFromRtc_rtcValueIsSpecificValueWithRegexForIt_returnTransformedString() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "$1"
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "$1"
+        )
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.66")
         val issue = createRtcIssue()
@@ -118,9 +118,9 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun getValueFromRtc_rtcValueIsBacklogWithRegexForIt_noException() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1",
-                "Backlog" to ""
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1",
+            "Backlog" to ""
+        )
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("Backlog")
         val issue = createRtcIssue()
@@ -137,8 +137,8 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun setValueForJira_rtcValueIsBacklog_exception() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
         val targetClient = Mockito.mock(JiraClient::class.java)
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
         val issue = createJiraIssue()
@@ -154,8 +154,8 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     fun setValueForJira_validRtcVersion_addVersion() {
         // arrange
         val associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
         val targetClient = Mockito.mock(JiraClient::class.java)
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
         val issue = createJiraIssue()
@@ -168,8 +168,59 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         Mockito.verify(targetClient)
             .setValue(safeEq(issue), safeEq(issue), safeEq("target"), argumentCaptor.capture())
         @Suppress("UNCHECKED_CAST")
-        assertThat(argumentCaptor.value as List<String>,
+        assertThat(
+            argumentCaptor.value as List<String>,
             hasItems("3.66", "3.67", "3.88", "3.12")
+        )
+    }
+
+    @Test
+    fun setValueForJira_jiraHasBacklogSetRtcHasValidVersion_BacklogShouldBeRemoved() {
+        // arrange
+        val associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1",
+            "(Backlog-?F?C?B?)" to "$1"
+        )
+        val targetClient = Mockito.mock(JiraClient::class.java)
+        `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12", "Backlog"))
+        val issue = createJiraIssue()
+        val fieldDefinition = FieldMappingDefinition(associations = associations)
+        val testee = FieldTargetVersionMapper(fieldDefinition)
+        // act
+        testee.setValue(issue, "target", issue, targetClient, "3.66")
+        // assert
+        val argumentCaptor = ArgumentCaptor.forClass(List::class.java)
+        Mockito.verify(targetClient)
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), argumentCaptor.capture())
+        @Suppress("UNCHECKED_CAST")
+        assertThat(
+            argumentCaptor.value as List<String>,
+            hasItems("3.66", "3.67", "3.88", "3.12")
+        )
+    }
+
+    @Test
+    fun setValueForJira_jiraHasBacklogSetRtcHasBacklog_BacklogShouldNotBeRemoved() {
+        // arrange
+        val associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1",
+            "(Backlog-?F?C?B?)" to "$1"
+        )
+        val targetClient = Mockito.mock(JiraClient::class.java)
+        `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
+        val issue = createJiraIssue()
+        val fieldDefinition = FieldMappingDefinition(associations = associations)
+        val testee = FieldTargetVersionMapper(fieldDefinition)
+        // act
+        testee.setValue(issue, "target", issue, targetClient, "Backlog")
+        // assert
+        val argumentCaptor = ArgumentCaptor.forClass(List::class.java)
+        Mockito.verify(targetClient)
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), argumentCaptor.capture())
+        @Suppress("UNCHECKED_CAST")
+        assertThat(
+            argumentCaptor.value as List<String>,
+            hasItems("3.67", "3.88", "3.12", "Backlog")
         )
     }
 
