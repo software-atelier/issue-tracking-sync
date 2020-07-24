@@ -68,7 +68,8 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -239,10 +240,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 workItemClient
             )
             attribute.attributeType == "category" -> getCategoryIdentifier(value as String?)
-            attribute.attributeType == "interval"
-                    || attribute.attributeType == "deliverable" -> getIntervalIdentifier(value as String?)
+            attribute.attributeType == "interval" -> getIntervalIdentifier(value as String?)
+            attribute.attributeType == "deliverable" -> getDeliverableIdentifier(value as String?)
             // need to map 'internalTags' directly here, as this is in fact a list type, but has no enumeration
-            fieldName == "internalTags" -> value
+            fieldName == "internalTags"
+            -> value
             fieldName == "internalResolution" -> Identifier.create(IResolution::class.java, value as String)
             // handle multi-select values
             AttributeTypes.isEnumerationListAttributeType(attribute.attributeType) && value is List<*> ->
@@ -254,6 +256,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             else -> value
         }
     }
+
+    private fun getDeliverableIdentifier(s: String?): Any =
+        workItemClient.findDeliverableByName(projectArea, s, ItemProfile.createProfile(IDeliverable.ITEM_TYPE), null)
+
 
     private fun getEnumerationIdentifier(fieldName: String, value: Any?): Identifier<out ILiteral>? {
         try {
@@ -718,6 +724,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun toLocalDateTime(sqlTimestamp: Timestamp): LocalDateTime =
         sqlTimestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    open fun getAllDeliverables(): List<IDeliverable> =
+        workItemClient.findDeliverablesByProjectArea(
+            projectArea,
+            true,
+            ItemProfile.createProfile(IDeliverable.ITEM_TYPE),
+            null
+        )
 
     inner class LoginHandler : ITeamRepository.ILoginHandler, ITeamRepository.ILoginHandler.ILoginInfo {
         override fun getUserId(): String {

@@ -79,7 +79,8 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
             "No valid version ($jiraVersions) for issue ${issue.key} found."
         }
         val mappedRtcVersion =
-            issueTrackingClient.getAllIIteration().map { it.name }.firstOrNull { it.endsWith(jiraVersionToSync) }
+            issueTrackingClient.getAllDeliverables().map { it.name }
+                .firstOrNull { it.endsWith(jiraVersionToSync) }
         checkNotNull(mappedRtcVersion) { "The version $jiraVersionToSync is not yet defined for RTC." }
         super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, mappedRtcVersion)
     }

@@ -9,7 +9,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import com.atlassian.jira.rest.client.api.domain.Status
-import com.ibm.team.process.common.IIteration
+import com.ibm.team.workitem.common.model.IDeliverable
 import com.ibm.team.workitem.common.model.IWorkItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItems
@@ -30,11 +30,11 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         val associations = mutableMapOf(
             "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
         )
-        val iteration1 = trainIteration("I2001.1 - 2.3")
-        val iteration2 = trainIteration("I2001.1 - 3.66")
+        val iteration1 = trainDeliverable("I2001.1 - 2.3")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66")
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
-        `when`(targetClient.getAllIIteration()).thenReturn(listOf(iteration1, iteration2))
+        `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
         val fieldDefinition = FieldMappingDefinition(associations = associations)
@@ -231,10 +231,10 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         return issue
     }
 
-    private fun trainIteration(name: String): IIteration {
-        val iteration = Mockito.mock(IIteration::class.java)
-        `when`(iteration.name).thenReturn(name)
-        return iteration
+    private fun trainDeliverable(name: String): IDeliverable {
+        val deliverable = Mockito.mock(IDeliverable::class.java)
+        `when`(deliverable.name).thenReturn(name)
+        return deliverable
     }
 
     private fun createRtcIssue(): Issue {
