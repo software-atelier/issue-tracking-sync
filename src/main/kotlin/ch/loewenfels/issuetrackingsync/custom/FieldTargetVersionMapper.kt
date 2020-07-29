@@ -32,7 +32,8 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         jiraVersions: Any?
     ) {
         // check if at least one jira version is set
-        if (jiraVersions is List<*> && jiraVersions.isNotEmpty()) {
+        if (jiraVersions is List<*> && jiraVersions.filterIsInstance<String>().filterNot { it.isEmpty() }
+                .isNotEmpty()) {
             val rtcValue: String? = super.getValue(
                 issue.proprietaryTargetInstance as IWorkItem,
                 fieldname,
@@ -62,25 +63,17 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         proprietaryIssueBuilder: Any,
         fieldname: String
     ) {
-        val minorVersions = mutableListOf<String>()
-        val bugfixVersions = mutableListOf<String>()
-        for (version in jiraVersions) {
-            if (version is String) {
-                val regexMinorVersion = "^(\\d\\.\\d{2,3})(?!\\.)".toRegex()
-                val regexBugfixVersion = "^(\\d\\.\\d{2,3}\\.\\d*)".toRegex()
-                minorVersions.addAll(regexMinorVersion.findAll(version).toList().map { it.groupValues.get(1) })
-                bugfixVersions.addAll(regexBugfixVersion.findAll(version).toList().map { it.groupValues.get(1) })
-            }
-        }
-        minorVersions.sort()
-        bugfixVersions.sort()
-        val jiraVersionToSync = minorVersions.firstOrNull() ?: bugfixVersions.firstOrNull()
+        val sortedVersions = jiraVersions.filterIsInstance<String>()///
+            .map { createVersion(it) }
+            .filterNotNull()
+            .sorted()
+        val jiraVersionToSync = sortedVersions.firstOrNull()?.toString()
         checkNotNull(jiraVersionToSync) {
             "No valid version ($jiraVersions) for issue ${issue.key} found."
         }
-        val mappedRtcVersion =
-            issueTrackingClient.getAllDeliverables().map { it.name }
-                .firstOrNull { it.endsWith(jiraVersionToSync) }
+        val mappedRtcVersion = issueTrackingClient.getAllDeliverables()
+            .map { it.name }
+            .firstOrNull { it.endsWith(jiraVersionToSync) }
         checkNotNull(mappedRtcVersion) { "The version $jiraVersionToSync is not yet defined for RTC." }
         super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, mappedRtcVersion)
     }
@@ -128,4 +121,35 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
             }
         }
     }
+
+    private fun createVersion(version: String): Version? {
+        val versionRegex = "^(\\d)\\.(\\d+)\\.?(\\d*(?!.*\\.nil))".toRegex()
+        val extractedVersions = versionRegex.find(version)?.groupValues?.mapNotNull { it.toIntOrNull() }
+        extractedVersions?.let {
+            if (extractedVersions.size >= 2)
+                return Version(extractedVersions[0], extractedVersions[1], extractedVersions.getOrNull(2))
+        }
+        return null
+    }
+
+    inner class Version(val minor: Int, val major: Int, val bugfix: Int?) : Comparable<Version> {
+        override fun compareTo(other: Version): Int {
+            if (this.minor != other.minor) {
+                return this.minor - other.minor
+            } else if (this.major != other.major) {
+                return this.major - other.major
+            } else if (this.getBugFixOrZero() != other.getBugFixOrZero()) {
+                return this.getBugFixOrZero() - other.getBugFixOrZero()
+            }
+            return 0
+        }
+
+        fun getBugFixOrZero() = bugfix ?: 0
+
+        override fun toString(): String {
+            val delemiter = "."
+            return minor.toString() + delemiter + major.toString() + (bugfix?.let { delemiter + it } ?: "")
+        }
+    }
+
 }

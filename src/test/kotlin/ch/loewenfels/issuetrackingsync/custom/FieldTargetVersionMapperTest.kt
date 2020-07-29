@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 
 
 internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
@@ -44,6 +45,73 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         // assert
         Mockito.verify(targetClient)
             .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66"))
+    }
+
+    @Test
+    fun setValueForRtc_versionFoundAndSolvedBugFixVersionIsSmalest_setCorrectValue() {
+        // arrange
+        val associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
+        val iteration1 = trainDeliverable("I2001.1 - 2.3")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66.1")
+        val targetClient = Mockito.mock(RtcClient::class.java)
+        `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
+        `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
+        val issue = createRtcIssue()
+        issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
+        val fieldDefinition = FieldMappingDefinition(associations = associations)
+        val testee = FieldTargetVersionMapper(fieldDefinition)
+        // act
+        testee.setValue(issue, "target", issue, targetClient, listOf("3.71", "3.66.1", "3.66.3"))
+        // assert
+        Mockito.verify(targetClient)
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66.1"))
+    }
+
+
+    @Test
+    fun setValueForRtc_versionNotMappable_expectIllegalStateException() {
+        // arrange
+        val associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
+        val iteration1 = trainDeliverable("I2001.1 - 2.3")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66.1")
+        val targetClient = Mockito.mock(RtcClient::class.java)
+        `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
+        `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
+        val issue = createRtcIssue()
+        issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
+        val fieldDefinition = FieldMappingDefinition(associations = associations)
+        val testee = FieldTargetVersionMapper(fieldDefinition)
+        // act + assert
+        assertThrows<IllegalStateException> {
+
+            testee.setValue(issue, "target", issue, targetClient, listOf("3.71.1.nil"))
+        }
+    }
+
+    @Test
+    fun setValueForRtc_versionNotFoundEmptyString_noValueSet() {
+        // arrange
+        val associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
+        val iteration1 = trainDeliverable("I2001.1 - 2.3")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66.1")
+        val targetClient = Mockito.mock(RtcClient::class.java)
+        `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
+        `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
+        val issue = createRtcIssue()
+        issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
+        val fieldDefinition = FieldMappingDefinition(associations = associations)
+        val testee = FieldTargetVersionMapper(fieldDefinition)
+        // act
+        testee.setValue(issue, "target", issue, targetClient, listOf(""))
+        // assert
+        Mockito.verify(targetClient, times(0))
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66.1"))
     }
 
     @Test
