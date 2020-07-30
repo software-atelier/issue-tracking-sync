@@ -21,7 +21,7 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
                 val indexOf = oldVal.indexOf(it)
                 if (indexOf >= 0) {
                     sections[fieldname] =
-                        sections[fieldname] + oldVal.substring(oldVal.indexOf(it)).replace("\n", "<br>")
+                        sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
                 } else {
                     sections[fieldname] = sections[fieldname] + it + "<br>"
                 }
