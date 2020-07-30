@@ -63,10 +63,7 @@ internal class SlackChannelTest {
 
     private fun createSyncActions(): Map<SyncActionName, SynchronizationAction> {
         return mapOf<SyncActionName, SynchronizationAction>(
-            Pair(
-                "SynchronizeTimeJiraToRtc",
-                SimpleSynchronizationAction("Slack")
-            )
+            "SynchronizeTimeJiraToRtc" to SimpleSynchronizationAction("Slack")
         )
     }
 }

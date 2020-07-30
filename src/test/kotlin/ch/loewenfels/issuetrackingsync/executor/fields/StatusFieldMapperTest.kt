@@ -1,13 +1,18 @@
 package ch.loewenfels.issuetrackingsync.executor.fields
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.AbstractSpringTest
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.StateHistory
+import ch.loewenfels.issuetrackingsync.safeEq
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
@@ -52,12 +57,10 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     fun setValue_targetIssueAlreadyInSameState_noOp() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
-        val targetValue = Pair(
-            "In Umsetzung", listOf(
-                StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
-                StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
-                StateHistory(LocalDateTime.now(), "Bereit zur Umsetzung", "In Umsetzung")
-            )
+        val targetValue = "In Umsetzung" to listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
+            StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
+            StateHistory(LocalDateTime.now(), "Bereit zur Umsetzung", "In Umsetzung")
         )
         val testee = buildTestee()
         // act
@@ -70,13 +73,12 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     fun setValue_targetIssueStateBehind_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("Open")
-        val targetValue = Pair(
-            "In Umsetzung", listOf(
-                StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
-                StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
-                StateHistory(LocalDateTime.now(), "Bereit zur Umsetzung", "In Umsetzung")
-            )
+        val targetValue = "In Umsetzung" to listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
+            StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
+            StateHistory(LocalDateTime.now(), "Bereit zur Umsetzung", "In Umsetzung")
         )
+
         val testee = buildTestee()
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
@@ -89,15 +91,14 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     fun setValue_sourceIssueHasStateJumps_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
-        val targetValue = Pair(
-            "In Abnahme", listOf(
-                StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
-                StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
-                StateHistory(LocalDateTime.now().minusHours(3), "Bereit zur Umsetzung", "In Umsetzung"),
-                StateHistory(LocalDateTime.now().minusHours(2), "In Umsetzung", "Bereit zur Abnahme"),
-                StateHistory(LocalDateTime.now(), "Bereit zur Abnahme", "In Abnahme")
-            )
+        val targetValue = "In Abnahme" to listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
+            StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
+            StateHistory(LocalDateTime.now().minusHours(3), "Bereit zur Umsetzung", "In Umsetzung"),
+            StateHistory(LocalDateTime.now().minusHours(2), "In Umsetzung", "Bereit zur Abnahme"),
+            StateHistory(LocalDateTime.now(), "Bereit zur Abnahme", "In Abnahme")
         )
+
         val testee = buildTestee()
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
@@ -110,14 +111,12 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     fun setValue_sourceIssueIsWithinStateJump_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Test")
-        val targetValue = Pair(
-            "In Abnahme", listOf(
-                StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
-                StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
-                StateHistory(LocalDateTime.now().minusHours(3), "Bereit zur Umsetzung", "In Umsetzung"),
-                StateHistory(LocalDateTime.now().minusHours(2), "In Umsetzung", "Bereit zur Abnahme"),
-                StateHistory(LocalDateTime.now(), "Bereit zur Abnahme", "In Abnahme")
-            )
+        val targetValue = "In Abnahme" to listOf(
+            StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
+            StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
+            StateHistory(LocalDateTime.now().minusHours(3), "Bereit zur Umsetzung", "In Umsetzung"),
+            StateHistory(LocalDateTime.now().minusHours(2), "In Umsetzung", "Bereit zur Abnahme"),
+            StateHistory(LocalDateTime.now(), "Bereit zur Abnahme", "In Abnahme")
         )
         val testee = buildTestee()
         // act

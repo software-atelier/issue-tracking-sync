@@ -23,7 +23,7 @@ internal class DirectListMergeFieldMapperTest : AbstractSpringTest() {
     private val mockJiraValuesForArrayField = listOf("a", "b")
 
     @Test
-    fun setValue_getValueShouldReturnOneValueInsteadOfAListOfValues_valueGetsWrittenWithThisOneSingleElementInsideTheListContainingNewValuesAsWell() {
+    fun setValue_getValueShouldReturnOneValueInsteadOfAList_valueGetsWrittenWithOnePlusNewElemnts() {
         // arrange
         val issueTrackingApplication = TestObjects.buildIssueTrackingApplication("JiraClient")
         val issueTrackingClient = TestObjects.buildIssueTrackingClient(issueTrackingApplication, clientFactory)
