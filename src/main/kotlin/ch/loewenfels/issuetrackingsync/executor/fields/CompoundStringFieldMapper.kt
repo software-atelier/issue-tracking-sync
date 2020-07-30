@@ -14,8 +14,8 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * fields, using the same [associations] mechanism. Note that the order of properties matters;
  * the 'catch-all' property must be listed last
  */
-class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : HtmlFieldMapper(), Logging {
-    private val associations: Map<String, String> = fieldMappingDefinition.associations
+open class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : HtmlFieldMapper(), Logging {
+    val associations: Map<String, String> = fieldMappingDefinition.associations
 
     override fun <T> getValue(
         proprietaryIssue: T,
@@ -42,6 +42,18 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
+        val sections: MutableMap<String, String> = createSections(value, fieldname, issueTrackingClient, issue)
+        fieldname.split(",").forEach {
+            super.setValue(proprietaryIssueBuilder, it, issue, issueTrackingClient, sections[it]?.trim() ?: "")
+        }
+    }
+
+    open fun <T> createSections(
+        value: Any?,
+        fieldname: String,
+        issueTrackingClient: IssueTrackingClient<in T>,
+        issue: Issue
+    ): MutableMap<String, String> {
         val sections: MutableMap<String, String> = mutableMapOf()
         var remainingStringValue = value?.toString() ?: ""
         var propertyWithLastHeader = getPropertyWithLastHeader(remainingStringValue)
@@ -57,12 +69,11 @@ class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) 
             val catchAllProperty = fieldname.split(",").first { !sections.keys.contains(it) }
             sections[catchAllProperty] = remainingStringValue
         }
-        fieldname.split(",").forEach {
-            super.setValue(proprietaryIssueBuilder, it, issue, issueTrackingClient, sections[it]?.trim() ?: "")
-        }
+        return sections
     }
 
-    private fun getPropertyWithLastHeader(content: String): String? {
+
+    open fun getPropertyWithLastHeader(content: String): String? {
         var indexOfHeader = 0
         var propertyWithLastHeader: String? = null
         associations.forEach { (propertyName, header) ->
