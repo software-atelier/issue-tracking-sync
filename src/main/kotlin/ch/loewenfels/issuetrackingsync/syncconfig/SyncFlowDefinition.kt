@@ -12,5 +12,6 @@ data class SyncFlowDefinition(
     var keyFieldMappingDefinition: FieldMappingDefinition = FieldMappingDefinition(),
     @JsonFormat(with = [JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY])
     var writeBackFieldMappingDefinition: List<FieldMappingDefinition> = emptyList(),
+    var preActions: MutableList<PreActionDefinition> = mutableListOf(),
     var actions: MutableList<String> = mutableListOf()
 )

@@ -27,6 +27,12 @@ interface IssueTrackingClient<T> {
     fun getIssueFromWebhookBody(body: JsonNode): Issue
 
     /**
+     * Search for an issue based on a field value. If the search finds nothing, callback params will be tried.
+     * If more than 1 issue, an exception is thrown
+     */
+    fun getProprietaryIssue(issue: Issue): T?
+
+    /**
      * Get the issue instance as used by the implementation. For JIRA, this is a [com.atlassian.jira.rest.client.api.domain.Issue],
      * whereas for RTC it will be [IWorkItem]
      */
@@ -36,6 +42,11 @@ interface IssueTrackingClient<T> {
      * Search for an issue based on a field value. If the search finds more than 1 issue, an exception is thrown
      */
     fun getProprietaryIssue(fieldName: String, fieldValue: String): T?
+
+    /**
+     * Query for issues based on a field value
+     */
+    fun searchProprietaryIssues(fieldName: String, fieldValue: String): List<T>
 
     fun getLastUpdated(internalIssue: T): LocalDateTime
 
@@ -96,6 +107,8 @@ interface IssueTrackingClient<T> {
     ): Collection<Issue>
 
     fun getHtmlValue(internalIssue: T, fieldName: String): String?
+
+    fun prepareHtmlValue(htmlString: String): String
 
     fun setHtmlValue(
         internalIssueBuilder: Any,

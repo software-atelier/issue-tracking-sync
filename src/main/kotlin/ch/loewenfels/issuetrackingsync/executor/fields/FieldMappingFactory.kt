@@ -20,7 +20,8 @@ object FieldMappingFactory {
         KeyFieldMapping(
             fieldMappingDefinition.sourceName,
             fieldMappingDefinition.targetName,
-            getMapper(fieldMappingDefinition)
+            getMapper(fieldMappingDefinition),
+            fieldMappingDefinition.callback
         )
 
     private fun getMapper(fieldMappingDefinition: FieldMappingDefinition): FieldMapper {

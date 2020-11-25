@@ -73,19 +73,34 @@ class AsynchronousHtmlRenderingRestClient(private val baseUri: URI, client: Http
             val result = mutableListOf<Comment>()
             for (i in 0 until commentArray.length()) {
                 val commentNode = commentArray.getJSONObject(i)
-                result.add(
-                    Comment(
-                        commentNode.getJSONObject("author")?.getString("displayName") ?: "n/a",
-                        toLocalDateTime(commentNode.getString("created")),
-                        commentNode.getString("body"),
-                        commentNode.getString("id")
-                    )
-                )
+                val createdDate = toLocalDateTime(commentNode.getString("created"))
+                val updatedDate = toLocalDateTime(commentNode.getString("updated"))
+                result.add(buildComment(commentNode, createdDate))
+                if (updatedDate.isAfter(createdDate)) {
+                    result.add(buildComment(commentNode, updatedDate, true))
+                }
             }
             return result
         }
 
         private fun toLocalDateTime(s: String): LocalDateTime =
             LocalDateTime.parse(s, DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"))
+
+        private fun buildComment(node: JSONObject, time: LocalDateTime): Comment =
+                buildComment(node, time, false)
+
+        private fun buildComment(node: JSONObject, time: LocalDateTime, isUpdate: Boolean): Comment {
+            var id = node.getString("id")
+            if (isUpdate) {
+                id += " update[\${time}]".replace("\${time}", time.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
+            }
+            return Comment(
+                    node.getJSONObject("author")?.getString("displayName") ?: "n/a",
+                    time,
+                    node.getString("body"),
+                    id
+            )
+        }
+
     }
 }

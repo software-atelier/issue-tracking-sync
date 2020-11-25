@@ -13,8 +13,8 @@ import com.ibm.team.workitem.common.model.IWorkItem
  * JSON file. This implementation is specific to a certain JIRA / RTC setup, eeg. by using given internal state IDs
  */
 abstract class UnclosedFilter(
-    private val closedRtcStatus: List<String> = listOf("ch.igs.team.workitem.workflow.change.state.s17"),
-    private val closedRtcResolutionsToSync: List<String> = listOf("Duplikat", "Ungültig", "Nicht mehr benötigt"),
+    private val closedRtcStatus: List<String> = emptyList(),
+    private val closedRtcResolutionsToSync: List<String> = emptyList(),
     private val closedJiraStatus: List<String> = listOf("Resolved", "Closed")
 ) :
     IssueFilter {

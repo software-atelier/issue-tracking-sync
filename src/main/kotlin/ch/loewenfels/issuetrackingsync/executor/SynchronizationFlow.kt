@@ -6,12 +6,11 @@ import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
+import ch.loewenfels.issuetrackingsync.executor.preactions.PreAction
+import ch.loewenfels.issuetrackingsync.executor.preactions.PreActionEvent
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import ch.loewenfels.issuetrackingsync.syncconfig.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
@@ -33,6 +32,7 @@ class SynchronizationFlow(
     private val notificationObserver: NotificationObserver
 ) : Logging {
     private val sourceApplication: TrackingApplicationName = syncFlowDefinition.source
+    private val syncPreActions: List<PreAction>
     private val syncActions: Map<SyncActionName, SynchronizationAction>
     private val issueFilter: IssueFilter?
     private val defaultsForNewIssue: DefaultsForNewIssue?
@@ -42,6 +42,7 @@ class SynchronizationFlow(
     }
 
     init {
+        syncPreActions = syncFlowDefinition.preActions.map { buildSyncPreAction(it) }
         syncActions = syncFlowDefinition.actions.associateBy({ it }, { buildSyncAction(it, actionDefinitions) })
         issueFilter = syncFlowDefinition.filterClassname?.let {
             @Suppress("UNCHECKED_CAST")
@@ -50,6 +51,25 @@ class SynchronizationFlow(
         }
         issueFilter?.defineParameters(syncFlowDefinition.filterProperties)
         defaultsForNewIssue = syncFlowDefinition.defaultsForNewIssue
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun buildSyncPreAction(preActionDefinition: PreActionDefinition): PreAction {
+        val preActionClass = Class.forName(preActionDefinition.className) as Class<PreAction>
+
+        return try {
+            preActionClass.getConstructor(PreActionDefinition::class.java).newInstance(preActionDefinition)
+        } catch (ignore: Exception) {
+            // no ctor taking a PreActionDefinition, so look for empty ctor
+            try {
+                preActionClass.getDeclaredConstructor().newInstance()
+            } catch (ignore: Exception) {
+                throw IllegalArgumentException(
+                        "Failed to instantiate pre action class ${preActionDefinition.className}",
+                        ignore
+                )
+            }
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -83,6 +103,16 @@ class SynchronizationFlow(
     fun execute(issue: Issue) {
         try {
             loadInternalSourceIssue(issue)
+            val event = PreActionEvent(sourceClient, targetClient, issue)
+            for (preAction in syncPreActions) {
+                preAction.execute(event)
+                if (event.isStopPropagation) {
+                    break
+                }
+            }
+            if (event.isStopSynchronization) {
+                return
+            }
             syncActions.forEach { execute(it, issue) }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
         } catch (ex: Exception) {
@@ -106,7 +136,7 @@ class SynchronizationFlow(
         issue.proprietarySourceInstance = sourceIssue
         issue.sourceUrl = sourceClient.getIssueUrl(sourceIssue)
         val keyFieldMapping = FieldMappingFactory.getKeyMapping(syncFlowDefinition.keyFieldMappingDefinition)
-        keyFieldMapping.loadSourceValue(issue, sourceClient)
+        keyFieldMapping.loadSourceValueWithCallback(issue, sourceClient)
         issue.keyFieldMapping = keyFieldMapping
     }
 
@@ -160,7 +190,7 @@ class SynchronizationFlow(
                 invertedIssue.proprietaryTargetInstance = issue.proprietarySourceInstance
                 val invertedKeyFieldMapping = issue.keyFieldMapping?.invertMapping()
                 val writeBackList = writeBack.map { FieldMappingFactory.getKeyMapping(it) }.toList()
-                writeBackList.forEach { it.loadSourceValue(invertedIssue, targetClient) }
+                writeBackList.forEach { it.loadSourceValueWithCallback(invertedIssue, targetClient) }
                 invertedIssue.keyFieldMapping = invertedKeyFieldMapping
                 SimpleSynchronizationAction("ReferenceWriteBack").execute(
                     targetClient,

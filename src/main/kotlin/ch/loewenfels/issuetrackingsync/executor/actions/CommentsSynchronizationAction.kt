@@ -44,6 +44,9 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                     targetClient.addComment(internalTargetIssue, it)
                     issue.workLog.add("Added comment from ${it.author} created ${it.timestamp}")
                 }
+            if (!commentsToSync.isEmpty()) {
+                issue.hasChanges = true
+            }
         } else {
             logger().warn(
                 "This action relies on a previous action loading source and target issues." +

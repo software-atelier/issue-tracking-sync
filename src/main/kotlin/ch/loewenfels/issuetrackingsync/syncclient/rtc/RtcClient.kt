@@ -8,9 +8,12 @@ import ch.loewenfels.issuetrackingsync.StateHistory
 import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
+import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapper
+import ch.loewenfels.issuetrackingsync.executor.fields.KeyFieldMapping
 import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
+import ch.loewenfels.issuetrackingsync.syncclient.IssueQueryBuilder
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
@@ -24,20 +27,16 @@ import com.ibm.team.process.common.IProjectArea
 import com.ibm.team.repository.client.IItemManager
 import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
-import com.ibm.team.repository.common.IAuditableHandle
-import com.ibm.team.repository.common.IContent
-import com.ibm.team.repository.common.IContributor
-import com.ibm.team.repository.common.IContributorHandle
-import com.ibm.team.repository.common.TeamRepositoryException
+import com.ibm.team.repository.common.*
+import com.ibm.team.repository.common.internal.ImmutablePropertyException
+import com.ibm.team.repository.common.model.impl.ItemImpl
+import com.ibm.team.repository.transport.client.TeamRestServiceClient
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
-import com.ibm.team.workitem.common.expression.AttributeExpression
-import com.ibm.team.workitem.common.expression.IQueryableAttribute
-import com.ibm.team.workitem.common.expression.QueryableAttributes
-import com.ibm.team.workitem.common.expression.Term
+import com.ibm.team.workitem.common.expression.*
 import com.ibm.team.workitem.common.model.AttributeOperation
 import com.ibm.team.workitem.common.model.AttributeTypes
 import com.ibm.team.workitem.common.model.IAttachment
@@ -104,27 +103,70 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     override fun getIssueFromWebhookBody(body: JsonNode): Issue =
         throw UnsupportedOperationException("RTC does not support webhooks")
 
+    override fun getProprietaryIssue(issue: Issue): IWorkItem? {
+        if (issue.createNewOne) {
+            /** Property createNewOne use only first time */
+            issue.createNewOne = false
+            return null
+        }
+        val keyFieldMapping = issue.keyFieldMapping!!
+        val targetIssue = queryIssue(keyFieldMapping)
+        if (null == targetIssue) {
+            keyFieldMapping.getCallback()?.let {
+                val targetIssueKey = it.getKeyForTargetIssue()?.toString()
+                if (targetIssueKey != null && targetIssueKey.isNotEmpty()) {
+                    val source = issue.sourceUrl?.let { url -> "<$url|${issue.key}>" } ?: issue.key
+                    throw SynchronizationAbortedException("No target issue found for $source. " +
+                            "Check mapped RTC issue with ID $targetIssueKey")
+                }
+            }
+        }
+
+        return targetIssue
+    }
+
     override fun getProprietaryIssue(issueKey: String): IWorkItem? {
         return getRtcIssue(issueKey)
     }
 
     override fun getProprietaryIssue(fieldName: String, fieldValue: String): IWorkItem? {
-        val queryClient = workItemClient.queryClient
-        val attrExpression =
-            AttributeExpression(
-                getQueryableAttribute(fieldName),
-                AttributeOperation.EQUALS,
-                fieldValue
-            )
-        val resolvedResultOfWorkItems =
-            queryClient.getResolvedExpressionResults(projectArea, attrExpression, IWorkItem.FULL_PROFILE)
-        val workItems = toWorkItems(resolvedResultOfWorkItems)
+        val workItems = searchProprietaryIssues(fieldName, fieldValue)
         return when (workItems.size) {
             0 -> null
             // reload to get full issue incl. collections such as comments
             1 -> getProprietaryIssue(workItems[0].id.toString())
             else -> throw IssueClientException("Query too broad, multiple issues found for $fieldValue")
         }
+    }
+
+    override fun searchProprietaryIssues(
+            fieldName: String,
+            fieldValue: String
+    ): List<IWorkItem> {
+        val queryClient = workItemClient.queryClient
+        val issueQueryBuilder = getIssueQueryBuilder()
+        val attrExpression = issueQueryBuilder.build(getQueryableAttribute(fieldName), fieldValue) as Expression
+        val resolvedResultOfWorkItems =
+                queryClient.getResolvedExpressionResults(projectArea, attrExpression, IWorkItem.FULL_PROFILE)
+
+        return toWorkItems(resolvedResultOfWorkItems)
+    }
+
+    private fun getIssueQueryBuilder(): IssueQueryBuilder {
+        if (setup.proprietaryIssueQueryBuilder != null) {
+            val mapperClass = try {
+                Class.forName(setup.proprietaryIssueQueryBuilder)
+            } catch (e: Exception) {
+                throw IllegalArgumentException(
+                        "Failed to load issue query builder class ${setup.proprietaryIssueQueryBuilder}",
+                        e
+                )
+            }
+
+            return mapperClass.getDeclaredConstructor().newInstance() as IssueQueryBuilder
+        }
+
+        return RtcIssueQueryBuilder()
     }
 
     private fun getRtcIssue(key: String): IWorkItem? {
@@ -155,7 +197,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     private fun getTargetKey(internalIssue: IWorkItem): String {
-        return getValue(internalIssue, setup.extRefIdField).toString()
+        val value = getValue(internalIssue, setup.extRefIdField).toString()
+        if (setup.extRefIdFieldPattern != null && setup.extRefIdFieldPattern is String) {
+            return setup.extRefIdFieldPattern!!.toRegex().find(value)?.value?.get(0).toString()
+        }
+
+        return value
     }
 
     override fun getHtmlValue(internalIssue: IWorkItem, fieldName: String): String? {
@@ -175,6 +222,23 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 else
                     getPropertyValueForCustomFields(internalIssue, fieldName)
                 return internalValue?.let { convertFromMetadataId(fieldName, it) }
+            }
+        }
+    }
+
+    fun setOwner(internalIssue: IWorkItem, owner: IContributorHandle) {
+        internalIssue.owner = owner
+    }
+
+    fun getNonConvertedValue(internalIssue: IWorkItem, fieldName: String): Any? {
+        return when (fieldName) {
+            "internalResolution" -> getResolutionName(internalIssue)
+            else -> {
+                val beanWrapper = BeanWrapperImpl(internalIssue)
+                return if (beanWrapper.isReadableProperty(fieldName))
+                    beanWrapper.getPropertyValue(fieldName)
+                else
+                    getPropertyValueForCustomFields(internalIssue, fieldName)
             }
         }
     }
@@ -204,11 +268,35 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             logger().debug("Setting value $value on $fieldName")
             @Suppress("UNCHECKED_CAST")
             when {
-                it is IIterationHandle && fieldName == "target" -> workItem.target = it
-                it is ICategoryHandle -> workItem.category = it
-                it is Identifier<*> && it.type.simpleName == "IResolution" -> workItem.resolution2 =
-                    it as Identifier<IResolution>
-                else -> workItem.setValue(attribute, it)
+                it is IIterationHandle && fieldName == "target" -> {
+                    if (!issue.hasChanges && !it.sameItemId(workItem.target)) {
+                        issue.hasChanges = true
+                    }
+                    workItem.target = it
+                }
+                it is ICategoryHandle -> {
+                    if (!issue.hasChanges && !it.sameItemId(workItem.category)) {
+                        issue.hasChanges = true
+                    }
+                    workItem.category = it
+                }
+                it is Identifier<*> && it.type.simpleName == "IResolution" -> {
+                    workItem.resolution2 = it as Identifier<IResolution>
+                }
+                else -> {
+                    if (!issue.hasChanges) {
+                        val wValue = workItem.getValue(attribute)
+                        val hasChanges = when {
+                            wValue is Collection<*> && it is Collection<*> ->!wValue.containsAll(it)
+                            wValue is IItemHandle && it is IItemHandle -> !it.sameItemId(wValue)
+                            else -> wValue != it
+                        }
+                        if (hasChanges) {
+                            issue.hasChanges = true
+                        }
+                    }
+                    workItem.setValue(attribute, it)
+                }
             }
         }
     }
@@ -218,8 +306,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         return time / millisToMinutes
     }
 
+    override fun prepareHtmlValue(htmlString: String): String = htmlString
+
     override fun setHtmlValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, htmlString: String) =
-        setValue(internalIssueBuilder, issue, fieldName, htmlString)
+        setValue(internalIssueBuilder, issue, fieldName, prepareHtmlValue(htmlString))
 
     /**
      * Given a field and value, attempt to map the value to an RTC internal (metadata) ID. A value of
@@ -394,21 +484,30 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-        val targetKeyFieldname = issue.keyFieldMapping!!.getTargetFieldname()
-        val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-        val targetIssue =
-            (issue.proprietaryTargetInstance ?: if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
-                targetKeyFieldname,
-                targetIssueKey
-            ) else null) as IWorkItem?
+
+        val targetIssue = (issue.proprietaryTargetInstance ?: getProprietaryIssue(issue)) as IWorkItem?
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
             defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
-            else -> throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+            else -> {
+                val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
+                throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+            }
         }
     }
 
+    private fun queryIssue(keyFieldMapping: KeyFieldMapping): IWorkItem? {
+        val targetKeyFieldName = keyFieldMapping.getTargetFieldname()
+        val targetIssueKey = keyFieldMapping.getKeyForTargetIssue().toString()
+
+        return if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
+                targetKeyFieldName,
+                targetIssueKey
+        ) else null
+    }
+
     private fun createTargetIssue(defaultsForNewIssue: DefaultsForNewIssue, issue: Issue): IWorkItem {
+        issue.isNew = true
         val workItemType: IWorkItemType =
             workItemClient.findWorkItemType(projectArea, defaultsForNewIssue.issueType, progressMonitor)
         val path = defaultsForNewIssue.category.split("/")
@@ -655,12 +754,18 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             .map { itemManager.fetchCompleteState(it as IAuditableHandle, null) as IWorkItem }
             .sortedBy { it.modified() }
             .forEach {
-                if (previousState != null && it.state2 != previousState) {
+
+                val previousStateName = try {
+                    workflowInfo.getStateName(previousState)
+                } catch (e: Exception) {
+                    null
+                }
+                if (previousState != null && it.state2 != previousState && previousStateName != null) {
                     val updateTimestamp = LocalDateTime.ofInstant(it.modified().toInstant(), ZoneId.systemDefault())
                     result.add(
                         StateHistory(
                             updateTimestamp,
-                            workflowInfo.getStateName(previousState),
+                                previousStateName,
                             workflowInfo.getStateName(it.state2)
                         )
                     )
@@ -691,13 +796,20 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ): Boolean {
-        if (exception is TeamRepositoryException) {
-            val errorMessage = "RTC: ${exception.message}"
-            logger().debug(errorMessage)
-            notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
-            return true
-        } else {
-            return false
+        return when (exception) {
+            is TeamRepositoryException -> {
+                val errorMessage = "RTC: ${exception.message}"
+                logger().debug(errorMessage)
+                notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+                return true
+            }
+            is ImmutablePropertyException -> {
+                val errorMessage = "RTC: Immutable property - ${exception.property}"
+                logger().debug(errorMessage)
+                notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
+                return true
+            }
+            else -> false
         }
     }
 
@@ -745,5 +857,17 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         override fun challenge(repository: ITeamRepository?): ITeamRepository.ILoginHandler.ILoginInfo {
             return this
         }
+    }
+
+    inner class RtcIssueQueryBuilder: IssueQueryBuilder {
+
+        override fun build(field: Any, fieldValue: String): Any {
+            return AttributeExpression(
+                    field as IQueryableAttribute?,
+                    AttributeOperation.EQUALS,
+                    fieldValue
+            )
+        }
+
     }
 }
