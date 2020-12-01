@@ -28,7 +28,7 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        val associationKey = if (value == null) "null" else value
+        val associationKey = value ?: "null"
         if (associations.containsKey(associationKey)) {
             val result = associations[associationKey as String]
             issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)

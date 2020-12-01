@@ -15,7 +15,11 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  * the 'catch-all' property must be listed last
  */
 open class CompoundStringFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : HtmlFieldMapper(), Logging {
-    val associations: Map<String, String> = fieldMappingDefinition.associations
+    val associations: Map<String, String> =
+            fieldMappingDefinition.associations
+                    .filter { (key, _) -> key != "anchor.open" && key != "anchor.close" }
+    val anchorOpen: String? = fieldMappingDefinition.associations["anchor.open"]
+    val anchorClose: String? = fieldMappingDefinition.associations["anchor.close"]
 
     override fun <T> getValue(
         proprietaryIssue: T,

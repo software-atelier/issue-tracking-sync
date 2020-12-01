@@ -15,15 +15,48 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
         issue: Issue
     ): MutableMap<String, String> {
         val sections = super.createSections(value, fieldname, issueTrackingClient, issue)
-        if (fieldname.split(",").size == 1 && issue.proprietaryTargetInstance != null) {
-            val oldVal = issueTrackingClient.getHtmlValue(issue.proprietaryTargetInstance as T, fieldname) ?: ""
-            associations[""]?.let {
-                val indexOf = oldVal.indexOf(it)
-                if (indexOf >= 0) {
-                    sections[fieldname] =
-                        sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
+        if (fieldname.split(",").size == 1) {
+            sections[fieldname]?.let {
+                var preparedHtml = issueTrackingClient.prepareHtmlValue(it)
+                if (null != anchorOpen && null != anchorClose) {
+                    preparedHtml = "$anchorOpen\r\n\r\n$preparedHtml\r\n\r\n$anchorClose"
+                }
+                sections[fieldname] = preparedHtml
+            }
+            if (issue.proprietaryTargetInstance != null) {
+                val oldVal = (issueTrackingClient.getValue(issue.proprietaryTargetInstance as T, fieldname) ?: "").toString()
+                if (null != anchorOpen && null != anchorClose) {
+                    val indexOfOpen = oldVal.indexOf(anchorOpen)
+                    val indexOfClose = oldVal.indexOf(anchorClose)
+                    if (indexOfOpen > -1 && indexOfClose > -1) {
+                        val sectionFieldNameValue = sections[fieldname] ?: ""
+                        sections[fieldname] = oldVal.replaceRange(
+                                indexOfOpen,
+                                indexOfClose + anchorClose.length,
+                                sectionFieldNameValue
+                        )
+                    } else if (null != associations[""]) {
+                        var preserveOldValue = oldVal
+                        val catchAll = associations[""]!!
+                        val indexOf = oldVal.indexOf(catchAll)
+                        if (indexOf >= 0) {
+                            preserveOldValue = oldVal.substring(indexOf + catchAll.length)
+                        }
+
+                        sections[fieldname] = "$preserveOldValue\r\n\r\n$anchorOpen\r\n\r\n${sections[fieldname]}\r\n\r\n$anchorClose"
+                    } else {
+                        sections[fieldname] = "$oldVal\r\n\r\n$anchorOpen\r\n\r\n${sections[fieldname]}\r\n\r\n$anchorClose"
+                    }
                 } else {
-                    sections[fieldname] = sections[fieldname] + it + "<br>"
+                    associations[""]?.let {
+                        val indexOf = oldVal.indexOf(it)
+                        if (indexOf >= 0) {
+                            sections[fieldname] =
+                                    sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
+                        } else {
+                            sections[fieldname] = sections[fieldname] + it + "\r\n\r\n"
+                        }
+                    }
                 }
             }
         }
@@ -43,5 +76,18 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
             }
         }
         return value
+    }
+
+    override fun <T> setValue(
+            proprietaryIssueBuilder: Any,
+            fieldname: String,
+            issue: Issue,
+            issueTrackingClient: IssueTrackingClient<in T>,
+            value: Any?
+    ) {
+        val sections: MutableMap<String, String> = createSections(value, fieldname, issueTrackingClient, issue)
+        fieldname.split(",").forEach {
+            issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, sections[it]?.trim() ?: "")
+        }
     }
 }

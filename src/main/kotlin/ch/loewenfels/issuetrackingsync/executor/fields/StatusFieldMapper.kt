@@ -38,6 +38,7 @@ open class StatusFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : F
         getStatePath(value.second as List<StateHistory>, currentStateOfTarget).forEach {
             logger().info("Attempting to transition to state $it")
             issueTrackingClient.setState(internalTargetIssue as T, it)
+            issue.hasChanges = true
         }
     }
 

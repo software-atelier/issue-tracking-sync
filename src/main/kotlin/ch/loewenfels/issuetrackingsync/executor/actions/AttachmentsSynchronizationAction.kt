@@ -27,6 +27,9 @@ class AttachmentsSynchronizationAction : AbstractSynchronizationAction(),
                 targetClient.addAttachment(internalTargetIssue, it)
                 issue.workLog.add("Added attachment ${it.filename}")
             }
+            if (attachmentsToSync.isNotEmpty()) {
+                issue.hasChanges = true
+            }
         } else {
             logger().warn(
                 "This action relies on a previous action loading source and target issues." +
