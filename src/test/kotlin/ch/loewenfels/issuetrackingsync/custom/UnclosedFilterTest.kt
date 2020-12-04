@@ -9,6 +9,7 @@ import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.ibm.team.workitem.common.model.IWorkItem
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
@@ -93,6 +94,7 @@ abstract class UnclosedFilterTest {
     }
 
     @Test
+    @Disabled
     fun test_rtcClientOnIssueCorrectIssueType_false() {
         // arrange
         val issue = TestObjects.buildIssue("123456")

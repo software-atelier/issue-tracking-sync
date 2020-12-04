@@ -170,4 +170,16 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         notificationObserver.notifyException(issue, Exception(errorMessage), syncActions)
         return true
     }
+
+    override fun getProprietaryIssue(issue: Issue): Issue? {
+        TODO("Not yet implemented")
+    }
+
+    override fun searchProprietaryIssues(fieldName: String, fieldValue: String): List<Issue> {
+        TODO("Not yet implemented")
+    }
+
+    override fun prepareHtmlValue(htmlString: String): String {
+        TODO("Not yet implemented")
+    }
 }

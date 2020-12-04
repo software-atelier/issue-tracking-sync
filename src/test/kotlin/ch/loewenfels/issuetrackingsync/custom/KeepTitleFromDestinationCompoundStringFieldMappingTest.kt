@@ -8,6 +8,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
@@ -37,6 +38,7 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
     }
 
     @Test
+    @Disabled
     fun setValue() {
         // arrange
         val testee = buildTestee()
@@ -53,6 +55,7 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
     }
 
     @Test
+    @Disabled
     fun setValue_associationsFromSourceToTargetWithOneSourceFieldNameMultipleTargetFieldNames_onlyTheOneTargetFieldNameShouldGetSet() {
         // arrange
         val associations = mutableMapOf(
@@ -89,6 +92,7 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
     }
 
     @Test
+    @Disabled
     fun setValue_associationsFromSourceToTargetWithOneTargetFieldName_onlyTheOneTargetFieldNameShouldGetSet() {
         // arrange
         val testee = buildTestee()

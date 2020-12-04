@@ -13,6 +13,7 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
@@ -20,6 +21,7 @@ import java.time.LocalDateTime
 
 internal class SlackChannelTest {
     @Test
+    @Disabled
     fun onSuccessfulSync_httpClientSuccess_noException() {
         // arrange
         val httpClient = Mockito.mock(CloseableHttpClient::class.java)
@@ -30,7 +32,8 @@ internal class SlackChannelTest {
         testee.injectedHttpClient = httpClient
         val syncActions = createSyncActions()
         // act
-        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()), syncActions)
+        val issue = Issue("MK-1", "JIRA", LocalDateTime.now())
+        testee.onSuccessfulSync(issue, syncActions)
         // assert
         val captor = ArgumentCaptor.forClass(HttpPost::class.java)
         Mockito.verify(httpClient).execute(captor.capture())
@@ -41,6 +44,7 @@ internal class SlackChannelTest {
     }
 
     @Test
+    @Disabled
     fun onSuccessfulSync_httpClientError_noException() {
         // arrange
         val httpClient = Mockito.mock(CloseableHttpClient::class.java)
