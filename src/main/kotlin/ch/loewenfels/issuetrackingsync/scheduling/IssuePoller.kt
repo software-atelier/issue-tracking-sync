@@ -27,7 +27,7 @@ class IssuePoller @Autowired constructor(
     private val clientFactory: ClientFactory,
     private val synchronizationFlowFactory: SynchronizationFlowFactory
 ) : Logging {
-    private val batchSize = 200
+    private val batchSize = 50
     private val issueTrackingAppUsers = settings.trackingApplications.map { it.username }
 
     @PostConstruct
