@@ -62,7 +62,7 @@ internal class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNilTest : Abstra
 
         val fieldDefinition = FieldMappingDefinition(
             rtcFieldname, jiraFieldname,
-            MultiSelectionFieldMapper::class.toString(), associations
+            MultiSelectionFieldMapper::class.toString()
         )
         return SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil(fieldDefinition)
     }

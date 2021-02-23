@@ -40,7 +40,7 @@ internal class SupplementaryMultiSelectionFieldMapperTest : AbstractSpringTest()
 
         val fieldDefinition = FieldMappingDefinition(
             rtcFieldname, jiraFieldname,
-            MultiSelectionFieldMapper::class.toString(), associations
+            MultiSelectionFieldMapper::class.toString()
         )
         return SupplementaryMultiSelectionFieldMapper(fieldDefinition)
     }
