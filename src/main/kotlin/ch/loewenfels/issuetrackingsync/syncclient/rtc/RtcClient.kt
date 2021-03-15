@@ -8,7 +8,6 @@ import ch.loewenfels.issuetrackingsync.StateHistory
 import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
-import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapper
 import ch.loewenfels.issuetrackingsync.executor.fields.KeyFieldMapping
 import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
@@ -30,8 +29,6 @@ import com.ibm.team.repository.client.ITeamRepository
 import com.ibm.team.repository.client.TeamPlatform
 import com.ibm.team.repository.common.*
 import com.ibm.team.repository.common.internal.ImmutablePropertyException
-import com.ibm.team.repository.common.model.impl.ItemImpl
-import com.ibm.team.repository.transport.client.TeamRestServiceClient
 import com.ibm.team.workitem.client.IAuditableClient
 import com.ibm.team.workitem.client.IWorkItemClient
 import com.ibm.team.workitem.client.WorkItemWorkingCopy
@@ -607,11 +604,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             AttributeOperation.EQUALS,
             projectArea
         )
-        val pollingFilter = AttributeExpression(
-            getQueryableAttribute(IWorkItem.TYPE_PROPERTY),
-            AttributeOperation.EQUALS,
-            setup.pollingIssueType
-        )
+        val pollingIssueTypeFilter = Term(Term.Operator.OR)
+        setup.pollingIssueType?.split(",")?.forEach{it ->
+            val typeExpression = AttributeExpression(
+                getQueryableAttribute(IWorkItem.TYPE_PROPERTY),
+                AttributeOperation.EQUALS,
+                it)
+            pollingIssueTypeFilter.add(typeExpression)
+        }
         val relevantIssuesTerm = Term(Term.Operator.OR)
         relevantIssuesTerm.add(modifiedRecently)
         relevantIssuesTerm.add(createdRecently)
@@ -619,7 +619,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val searchTerm = Term(Term.Operator.AND)
         searchTerm.add(relevantIssuesTerm)
         searchTerm.add(projectAreaExpression)
-        searchTerm.add(pollingFilter)
+        searchTerm.add(pollingIssueTypeFilter)
         return searchTerm
     }
 
