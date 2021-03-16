@@ -34,7 +34,6 @@ class SingleSelectionFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue() {
         // arrange
         val testee = buildTestee()
@@ -72,6 +71,7 @@ class SingleSelectionFieldMapperTest : AbstractSpringTest() {
             rtcFieldname, jiraFieldname,
             SingleSelectionFieldMapper::class.toString()
         )
+        fieldDefinition.associations = associations
         return SingleSelectionFieldMapper(fieldDefinition)
     }
 }

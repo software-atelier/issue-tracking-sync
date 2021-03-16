@@ -69,6 +69,7 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
             "description,defectdescription,conduct",
             KeepTitleFromDestinationCompoundStringFieldMapping::class.toString()
         )
+        fieldDefinitions.associations = associations
         val testee = KeepTitleFromDestinationCompoundStringFieldMapping(fieldDefinitions)
         val issue = TestObjects.buildIssue("MK-1")
         val targetClient =
@@ -125,6 +126,7 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
             "text,text2,text3", "description",
             KeepTitleFromDestinationCompoundStringFieldMapping::class.toString()
         )
+        fieldDefinition.associations = associations
         return KeepTitleFromDestinationCompoundStringFieldMapping(fieldDefinition)
     }
 }

@@ -40,7 +40,6 @@ internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue() {
         // arrange
         val testee = buildTestee()
@@ -57,7 +56,6 @@ internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_fallback() {
         // arrange
         val testee = buildTestee()
@@ -85,6 +83,7 @@ internal class PriorityAndSeverityFieldMapperTest : AbstractSpringTest() {
             "priority,severity", "priorityId",
             PriorityAndSeverityFieldMapper::class.toString()
         )
+        fieldDefinition.associations = associations
         return PriorityAndSeverityFieldMapper(fieldDefinition)
     }
 }

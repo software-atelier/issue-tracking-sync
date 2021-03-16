@@ -14,7 +14,6 @@ import com.ibm.team.workitem.common.model.IWorkItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItems
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentCaptor
@@ -22,59 +21,59 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
+import java.lang.IllegalArgumentException
 
 
 internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
 
     @Test
-    @Disabled
     fun setValueForRtc_versionFoundAndSolved_setCorrectValue() {
         // arrange
         val associations = mutableMapOf(
             "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
         )
         val iteration1 = trainDeliverable("I2001.1 - 2.3")
-        val iteration2 = trainDeliverable("I2001.1 - 3.66")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66.3")
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
         `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, listOf("3.66", "3.66.1", "3.66.3"))
         // assert
         Mockito.verify(targetClient)
-            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66"))
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66.3"))
     }
 
     @Test
-    @Disabled
-    fun setValueForRtc_versionFoundAndSolvedBugFixVersionIsSmalest_setCorrectValue() {
+    fun setValueForRtc_versionFoundAndSolvedBugFixVersionIsHighest_setCorrectValue() {
         // arrange
         val associations = mutableMapOf(
             "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
         )
         val iteration1 = trainDeliverable("I2001.1 - 2.3")
-        val iteration2 = trainDeliverable("I2001.1 - 3.66.1")
+        val iteration2 = trainDeliverable("I2001.1 - 3.66.3")
         val targetClient = Mockito.mock(RtcClient::class.java)
         `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.67")
         `when`(targetClient.getAllDeliverables()).thenReturn(listOf(iteration1, iteration2))
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, listOf("3.71", "3.66.1", "3.66.3"))
         // assert
         Mockito.verify(targetClient)
-            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66.1"))
+            .setValue(safeEq(issue), safeEq(issue), safeEq("target"), safeEq("I2001.1 - 3.66.3"))
     }
 
 
     @Test
-    @Disabled
     fun setValueForRtc_versionNotMappable_expectIllegalStateException() {
         // arrange
         val associations = mutableMapOf(
@@ -88,6 +87,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act + assert
         assertThrows<IllegalStateException> {
@@ -110,6 +110,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("erledigt")
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, listOf(""))
@@ -119,7 +120,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValueForRtc_versionFoundButNotSolved_valueNotSet() {
         // arrange
         val associations = mutableMapOf(
@@ -129,15 +129,17 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         val issue = createRtcIssue()
         issue.proprietarySourceInstance = trainJiraIssueWithStatus("open")
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
-        testee.setValue(issue, "target", issue, targetClient, listOf("3.66", "3.66.1", "3.66.3"))
+        assertThrows<IllegalStateException> {
+            testee.setValue(issue, "target", issue, targetClient, listOf("3.66", "3.66.1", "3.66.3"))
+        }
         // assert
         Mockito.verify(targetClient, never()).setValue(any(), any(), any(), any())
     }
 
     @Test
-    @Disabled
     fun setValueForRtc_noVersionSetInJiraAndRtc_valueNotSet() {
         // arrange
         val associations = mutableMapOf(
@@ -146,6 +148,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         val targetClient = Mockito.mock(RtcClient::class.java)
         val issue = createRtcIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, listOf<String>())
@@ -163,6 +166,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getValue(any(), any())).thenReturn("Backlog")
         val issue = createRtcIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act + assert (expected exception)
         assertThrows<IllegalStateException> {
@@ -171,7 +175,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun getValueFromRtc_rtcValueIsSpecificValueWithRegexForIt_returnTransformedString() {
         // arrange
         val associations = mutableMapOf(
@@ -181,6 +184,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getValue(any(), any())).thenReturn("I2001.1 - 3.66")
         val issue = createRtcIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         val actualValue =
@@ -190,7 +194,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun getValueFromRtc_rtcValueIsBacklogWithRegexForIt_noException() {
         // arrange
         val associations = mutableMapOf(
@@ -201,6 +204,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getValue(any(), any())).thenReturn("Backlog")
         val issue = createRtcIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         val actualValue =
@@ -210,7 +214,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValueForJira_rtcValueIsBacklog_exception() {
         // arrange
         val associations = mutableMapOf(
@@ -220,6 +223,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
         val issue = createJiraIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act + assert (expected exception)
         assertThrows<IllegalStateException> {
@@ -237,6 +241,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
         val issue = createJiraIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, "3.66")
@@ -262,6 +267,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12", "Backlog"))
         val issue = createJiraIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, "3.66")
@@ -277,7 +283,6 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValueForJira_jiraHasBacklogSetRtcHasBacklog_BacklogShouldNotBeRemoved() {
         // arrange
         val associations = mutableMapOf(
@@ -288,6 +293,7 @@ internal class FieldTargetVersionMapperTest : AbstractSpringTest() {
         `when`(targetClient.getMultiSelectValues(any(), any())).thenReturn(listOf("3.67", "3.88", "3.12"))
         val issue = createJiraIssue()
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         val testee = FieldTargetVersionMapper(fieldDefinition)
         // act
         testee.setValue(issue, "target", issue, targetClient, "Backlog")

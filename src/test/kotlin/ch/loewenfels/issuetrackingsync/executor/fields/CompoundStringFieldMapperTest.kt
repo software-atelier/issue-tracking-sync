@@ -20,7 +20,6 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
     private lateinit var clientFactory: ClientFactory
 
     @Test
-    @Disabled
     fun getValue() {
         // arrange
         val testee = buildTestee()
@@ -38,7 +37,6 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue() {
         // arrange
         val testee = buildTestee()
@@ -55,7 +53,6 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_associationsFromSourceToTargetWithOneSourceFieldNameMultipleTargetFieldNames_onlyTheOneTargetFieldNameShouldGetSet() {
         // arrange
         val associations = mutableMapOf(
@@ -67,6 +64,7 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
             "description,defectdescription,conduct",
             CompoundStringFieldMapper::class.toString()
         )
+        fieldDefinitions.associations = associations
         val testee = CompoundStringFieldMapper(fieldDefinitions)
         val issue = TestObjects.buildIssue("MK-1")
         val targetClient =
@@ -91,7 +89,6 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_associationsFromSourceToTargetWithOneTargetFieldName_onlyTheOneTargetFieldNameShouldGetSet() {
         // arrange
         val testee = buildTestee()
@@ -120,6 +117,7 @@ internal class CompoundStringFieldMapperTest : AbstractSpringTest() {
             "text,text2,text3", "description",
             CompoundStringFieldMapper::class.toString()
         )
+        fieldDefinition.associations = associations
         return CompoundStringFieldMapper(fieldDefinition)
     }
 }

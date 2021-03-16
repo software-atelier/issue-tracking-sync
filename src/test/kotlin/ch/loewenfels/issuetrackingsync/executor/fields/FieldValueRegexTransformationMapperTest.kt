@@ -18,12 +18,11 @@ internal class FieldValueRegexTransformationMapperTest : AbstractSpringTest() {
     private lateinit var clientFactory: ClientFactory
 
     @Test
-    @Disabled
     fun regexIncludeAllLeadingAndTrailingChars_getValue_newValueGenerated() {
         // arrange
-        val testee = FieldValueRegexTransformationMapper(
-            FieldMappingDefinition()
-        )
+        val fieldMappingDefinition = FieldMappingDefinition()
+        fieldMappingDefinition.associations = mutableMapOf(Pair(".*(\\d{1}).*", "$1"))
+        val testee = FieldValueRegexTransformationMapper(fieldMappingDefinition)
         val issue = Mockito.mock(Issue::class.java)
         val sourceClient = Mockito.mock(JiraClient::class.java)
         Mockito.`when`(sourceClient.getValue(issue, "description"))
@@ -35,12 +34,11 @@ internal class FieldValueRegexTransformationMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun notIncludedTrailingAndLeadingChars_getValue_newValueGenerated() {
         // arrange
-        val testee = FieldValueRegexTransformationMapper(
-            FieldMappingDefinition()
-        )
+        val fieldMappingDefinition = FieldMappingDefinition()
+        fieldMappingDefinition.associations = mutableMapOf(Pair("(\\d{1})", "$1"))
+        val testee = FieldValueRegexTransformationMapper(fieldMappingDefinition)
         val issue = Mockito.mock(Issue::class.java)
         val sourceClient = Mockito.mock(JiraClient::class.java)
         Mockito.`when`(sourceClient.getValue(issue, "description"))
@@ -52,7 +50,6 @@ internal class FieldValueRegexTransformationMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun readingFromRtcClientGeplantFuer_getValue_newStringGeneratedBasedOnAssociations() {
         // arrange
         val testee = buildTestee()
@@ -73,6 +70,7 @@ internal class FieldValueRegexTransformationMapperTest : AbstractSpringTest() {
             )
 
         val fieldDefinition = FieldMappingDefinition()
+        fieldDefinition.associations = associations
         return FieldValueRegexTransformationMapper(fieldDefinition)
     }
 }

@@ -21,7 +21,6 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
     private val rtcFieldname = "multiSelectCustomFieldRtc"
 
     @Test
-    @Disabled
     fun getValue() {
         // arrange
         val testee = buildTestee()
@@ -39,7 +38,6 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue() {
         // arrange
         val testee = buildTestee()
@@ -56,7 +54,6 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun getValue_oneKnownAndOneUnknownValue_onlyKnownValueSet() {
         // arrange
         val testee = buildTestee()
@@ -96,7 +93,6 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun getValue_oneUnknownValueWithWildcardConfig_valueShouldBeReturned() {
         // arrange
         val testee = buildTestee("*" to "*")
@@ -124,6 +120,7 @@ class MultiSelectionFieldMapperTest : AbstractSpringTest() {
             rtcFieldname, jiraFieldname,
             MultiSelectionFieldMapper::class.toString()
         )
+        fieldDefinition.associations = associations
         return MultiSelectionFieldMapper(fieldDefinition)
     }
 }

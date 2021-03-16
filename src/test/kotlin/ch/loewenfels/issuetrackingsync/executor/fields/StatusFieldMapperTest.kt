@@ -71,7 +71,6 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_targetIssueStateBehind_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("Open")
@@ -90,7 +89,6 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_sourceIssueHasStateJumps_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
@@ -111,7 +109,6 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     }
 
     @Test
-    @Disabled
     fun setValue_sourceIssueIsWithinStateJump_updatedState() {
         // arrange
         Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Test")
@@ -147,6 +144,7 @@ class StatusFieldMapperTest : AbstractSpringTest() {
             rtcFieldname, jiraFieldname,
             StatusFieldMapper::class.toString()
         )
+        fieldDefinition.associations = associations
         return StatusFieldMapper(fieldDefinition)
     }
 }
