@@ -21,7 +21,6 @@ import java.time.LocalDateTime
 
 internal class SlackChannelTest {
     @Test
-    @Disabled
     fun onSuccessfulSync_httpClientSuccess_noException() {
         // arrange
         val httpClient = Mockito.mock(CloseableHttpClient::class.java)
@@ -33,6 +32,7 @@ internal class SlackChannelTest {
         val syncActions = createSyncActions()
         // act
         val issue = Issue("MK-1", "JIRA", LocalDateTime.now())
+        issue.hasChanges = true
         testee.onSuccessfulSync(issue, syncActions)
         // assert
         val captor = ArgumentCaptor.forClass(HttpPost::class.java)
@@ -44,7 +44,6 @@ internal class SlackChannelTest {
     }
 
     @Test
-    @Disabled
     fun onSuccessfulSync_httpClientError_noException() {
         // arrange
         val httpClient = Mockito.mock(CloseableHttpClient::class.java)
@@ -54,7 +53,9 @@ internal class SlackChannelTest {
         testee.injectedHttpClient = httpClient
         val syncActions = createSyncActions()
         // act
-        testee.onSuccessfulSync(Issue("MK-1", "JIRA", LocalDateTime.now()), syncActions)
+        val issue = Issue("MK-1", "JIRA", LocalDateTime.now())
+        issue.hasChanges = true
+        testee.onSuccessfulSync(issue, syncActions)
         // assert
         Mockito.verify(httpClient).execute(Mockito.any(HttpPost::class.java))
     }
