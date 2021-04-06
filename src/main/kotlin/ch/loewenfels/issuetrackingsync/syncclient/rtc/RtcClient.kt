@@ -197,7 +197,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     private fun getTargetKey(internalIssue: IWorkItem): String {
         val value = getValue(internalIssue, setup.extRefIdField).toString()
         if (setup.extRefIdFieldPattern != null && setup.extRefIdFieldPattern is String) {
-            return setup.extRefIdFieldPattern!!.toRegex().find(value)?.value?.get(0).toString()
+            return setup.extRefIdFieldPattern!!.toRegex().find(value)?.value.toString()
         }
 
         return value
