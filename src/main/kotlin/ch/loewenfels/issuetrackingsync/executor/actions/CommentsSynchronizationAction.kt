@@ -9,6 +9,7 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.AdditionalProperties
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import java.time.format.DateTimeFormatter
+import ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter as configCommentFilter
 
 class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     SynchronizationAction, Logging {
@@ -78,7 +79,7 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     private fun getSourceCommentsNotPresentInTarget(
         sourceComments: List<Comment>,
         targetComments: List<Comment>,
-        commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>?
+        commentFilters: List<configCommentFilter>?
     ): List<Comment> =
         sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }
             .filter(CommentFilterFactory.create(commentFilters)).toList()
@@ -101,7 +102,7 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
 
     class CommentFilterFactory {
         companion object : Logging {
-            fun create(commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>?): (Comment) -> Boolean {
+            fun create(commentFilters: List<configCommentFilter>?): (Comment) -> Boolean {
                 if (commentFilters == null) {
                     return { (_) -> true }
                 }
@@ -112,7 +113,7 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                 }
             }
 
-            private fun getListOfCommentFilterInstances(commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>): MutableList<(Comment) -> Boolean> {
+            private fun getListOfCommentFilterInstances(commentFilters: List<configCommentFilter>): MutableList<(Comment) -> Boolean> {
                 val someList: MutableList<(Comment) -> Boolean> = mutableListOf()
                 commentFilters.forEach {
                     try {

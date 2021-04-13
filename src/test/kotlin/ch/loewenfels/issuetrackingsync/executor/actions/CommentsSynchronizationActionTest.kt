@@ -12,6 +12,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
+import ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter as configCommentFilter
 
 internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
     @Autowired
@@ -30,7 +31,7 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysFalseStub"))
+            listOf(configCommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysFalseStub"))
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetIssue
         val testee = CommentsSynchronizationAction()
@@ -52,7 +53,7 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysTrueStub"))
+            listOf(configCommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysTrueStub"))
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetIssue
         val testee = CommentsSynchronizationAction()
@@ -74,7 +75,7 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
+            listOf(configCommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
                 Pair("createdBefore", LocalDateTime.now().toString()))))
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetIssue
@@ -97,7 +98,7 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
+            listOf(configCommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
                 Pair("createdBefore", LocalDateTime.now().minusHours(48).toString())
             )))
         issue.proprietarySourceInstance = issue
