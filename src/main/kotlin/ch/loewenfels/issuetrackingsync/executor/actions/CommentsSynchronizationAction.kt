@@ -78,10 +78,10 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     private fun getSourceCommentsNotPresentInTarget(
         sourceComments: List<Comment>,
         targetComments: List<Comment>,
-        commentFilter: List<String>?
+        commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>?
     ): List<Comment> =
         sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }
-            .filter(CommentFilterFactory.create(commentFilter)).toList()
+            .filter(CommentFilterFactory.create(commentFilters)).toList()
 
     companion object {
         fun isSourcePresentInTarget(
@@ -101,22 +101,22 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
 
     class CommentFilterFactory {
         companion object : Logging {
-            fun create(commentFilterClassName: List<String>?): (Comment) -> Boolean {
-                if (commentFilterClassName == null) {
+            fun create(commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>?): (Comment) -> Boolean {
+                if (commentFilters == null) {
                     return { (_) -> true }
                 }
                 val someList: MutableList<(Comment) -> Boolean> =
-                    getListOfCommentFilterInstances(commentFilterClassName)
+                    getListOfCommentFilterInstances(commentFilters)
                 return { comment ->
                     !someList.map { it(comment) }.contains(false)
                 }
             }
 
-            private fun getListOfCommentFilterInstances(commentFilterClassName: List<String>): MutableList<(Comment) -> Boolean> {
+            private fun getListOfCommentFilterInstances(commentFilters: List<ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter>): MutableList<(Comment) -> Boolean> {
                 val someList: MutableList<(Comment) -> Boolean> = mutableListOf()
-                commentFilterClassName.forEach {
+                commentFilters.forEach {
                     try {
-                        someList.add((Class.forName(it).getDeclaredConstructor().newInstance() as CommentFilter).getFilter())
+                        someList.add((Class.forName(it.filterClassname).getDeclaredConstructor(Map::class.java).newInstance(it.filterProperties) as CommentFilter).getFilter())
                     } catch (e: Exception) {
                         logger().error("Failed to create $it" +
                                 "\nException was: ${e.message}")

@@ -30,7 +30,7 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysFalseStub")
+            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysFalseStub"))
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetIssue
         val testee = CommentsSynchronizationAction()
@@ -52,7 +52,54 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
         val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         val additionalProperties = AdditionalProperties()
         additionalProperties.commentFilter =
-            listOf("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysTrueStub")
+            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.executor.actions.CommentFilterAlwaysTrueStub"))
+        issue.proprietarySourceInstance = issue
+        issue.proprietaryTargetInstance = targetIssue
+        val testee = CommentsSynchronizationAction()
+        // act
+        testee.execute(sourceClient, targetClient, issue, fieldMappings, null, additionalProperties)
+        // assert
+        Mockito.verify(targetClient).addComment(safeEq(targetIssue), any(Comment::class.java))
+    }
+
+    @Test
+    fun execute_commentsAreBeforeCreatedAfterOfFilter_NoSync() {
+        // arrange
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val fieldMappings = TestObjects.buildFieldMappingList()
+        val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
+        val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
+        val additionalProperties = AdditionalProperties()
+        additionalProperties.commentFilter =
+            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
+                Pair("createdBefore", LocalDateTime.now().toString()))))
+        issue.proprietarySourceInstance = issue
+        issue.proprietaryTargetInstance = targetIssue
+        val testee = CommentsSynchronizationAction()
+        // act
+        testee.execute(sourceClient, targetClient, issue, fieldMappings, null, additionalProperties)
+        // assert
+        Mockito.verify(targetClient, never()).addComment(safeEq(targetIssue), any(Comment::class.java))
+    }
+
+    @Test
+    fun execute_commentsAreAfterCreatedAfterOfFilter_CommentsShouldGetSynced() {
+        // arrange
+        val sourceClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient =
+            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val fieldMappings = TestObjects.buildFieldMappingList()
+        val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
+        val targetIssue = targetClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
+        val additionalProperties = AdditionalProperties()
+        additionalProperties.commentFilter =
+            listOf(ch.loewenfels.issuetrackingsync.syncconfig.CommentFilter("ch.loewenfels.issuetrackingsync.custom.CreatedBeforeCommentFilter", mapOf(
+                Pair("createdBefore", LocalDateTime.now().minusHours(48).toString())
+            )))
         issue.proprietarySourceInstance = issue
         issue.proprietaryTargetInstance = targetIssue
         val testee = CommentsSynchronizationAction()
@@ -136,12 +183,12 @@ internal class CommentsSynchronizationActionTest : AbstractSpringTest() {
 
 }
 
-class CommentFilterAlwaysFalseStub : CommentFilter {
+class CommentFilterAlwaysFalseStub(val filterProperties: Map<String, String> = emptyMap()) : CommentFilter {
     override fun getFilter(): (Comment) -> Boolean = { (_) -> false }
 
 }
 
-class CommentFilterAlwaysTrueStub : CommentFilter {
+class CommentFilterAlwaysTrueStub(val filterProperties: Map<String, String> = emptyMap()) : CommentFilter {
     override fun getFilter(): (Comment) -> Boolean = { (_) -> true }
 
 }
