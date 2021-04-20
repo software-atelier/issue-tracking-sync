@@ -118,15 +118,12 @@ class SynchronizationFlow(
                 try {
                     execute(it, issue)
                 } catch (e: Exception) {
-                    logger().error("Failed to execute action ${it.key}" +
-                            "\nException was: ${e.message}")
+                    if (sourceClient.logException(issue, e, notificationObserver, syncActions))
+                    else if (targetClient.logException(issue, e, notificationObserver, syncActions))
+                    else notificationObserver.notifyException(issue, e, syncActions)
                 }
             }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
-        } catch (ex: Exception) {
-            if (sourceClient.logException(issue, ex, notificationObserver, syncActions))
-            else if (targetClient.logException(issue, ex, notificationObserver, syncActions))
-            else notificationObserver.notifyException(issue, ex, syncActions)
         } finally {
             writeBackKeyReference(issue)
         }
