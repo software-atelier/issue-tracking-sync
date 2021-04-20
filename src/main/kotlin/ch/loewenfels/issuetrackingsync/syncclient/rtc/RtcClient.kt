@@ -57,6 +57,7 @@ import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
 import org.eclipse.core.runtime.AssertionFailedException
 import org.eclipse.core.runtime.NullProgressMonitor
+import org.jsoup.Jsoup
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -215,13 +216,21 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             "internalResolution" -> getResolutionName(internalIssue)
             else -> {
                 val beanWrapper = BeanWrapperImpl(internalIssue)
-                val internalValue = if (beanWrapper.isReadableProperty(fieldName))
+                var internalValue = if (beanWrapper.isReadableProperty(fieldName))
                     beanWrapper.getPropertyValue(fieldName)
                 else
                     getPropertyValueForCustomFields(internalIssue, fieldName)
-                return internalValue?.let { convertFromMetadataId(fieldName, it) }
+                internalValue = internalValue?.let { convertFromMetadataId(fieldName, it) }
+                if (internalValue is String) {
+                    internalValue = removeHtmlTags(internalValue)
+                }
+                return internalValue
             }
         }
+    }
+
+    private fun removeHtmlTags(value: String): String {
+        return Jsoup.parse(value.replace("<br/>", "<br/>\n")).wholeText()
     }
 
     fun setOwner(internalIssue: IWorkItem, owner: IContributorHandle) {
