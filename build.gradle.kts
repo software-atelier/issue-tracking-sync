@@ -39,6 +39,7 @@ dependencies {
     implementation("com.ibm.team.rtc:plain-java-client:6.0.3")
     implementation("com.atlassian.jira:jira-rest-java-client-core:5.1.0-476bd700")
     implementation("io.atlassian.fugue:fugue:4.7.2")
+    implementation("org.jsoup:jsoup:1.13.1")
     implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
         exclude("javax.activation:activation:1.0.2")
     }

@@ -8,6 +8,7 @@ import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
 import ch.loewenfels.issuetrackingsync.executor.preactions.PreAction
 import ch.loewenfels.issuetrackingsync.executor.preactions.PreActionEvent
+import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
@@ -113,7 +114,14 @@ class SynchronizationFlow(
             if (event.isStopSynchronization) {
                 return
             }
-            syncActions.forEach { execute(it, issue) }
+            syncActions.forEach {
+                try {
+                    execute(it, issue)
+                } catch (e: Exception) {
+                    logger().error("Failed to execute action ${it.key}" +
+                            "\nException was: ${e.message}")
+                }
+            }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
         } catch (ex: Exception) {
             if (sourceClient.logException(issue, ex, notificationObserver, syncActions))
