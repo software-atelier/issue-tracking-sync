@@ -16,8 +16,9 @@ class CsvController(
     @GetMapping("/protocolCsv")
     fun downloadCsv(response: HttpServletResponse) {
         val file = (properties.notificationChannels.first { it is CsvProtocol } as CsvProtocol).file
-        response.contentType = "text/csv"
+        response.setContentType("text/csv")
         response.setHeader("Content-Disposition", "attachment; filename=\"protocol.csv\"")
         FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
+        response.outputStream.close()
     }
 }
