@@ -124,6 +124,10 @@ class SynchronizationFlow(
                 }
             }
             notificationObserver.notifySuccessfulSync(issue, syncActions)
+        } catch (ex: Exception) {
+            if (sourceClient.logException(issue, ex, notificationObserver, syncActions))
+            else if (targetClient.logException(issue, ex, notificationObserver, syncActions))
+            else notificationObserver.notifyException(issue, ex, syncActions)
         } finally {
             writeBackKeyReference(issue)
         }
