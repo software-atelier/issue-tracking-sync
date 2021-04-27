@@ -84,7 +84,7 @@ class InteractivceSyncController(
 
     private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? {
         return try {
-            clientFactory.getClient(trackingApplication).getIssue(key)
+            clientFactory.getClient(trackingApplication).use{ client -> client.getIssue(key) }
         } catch (ex: Exception) {
             when (ex) {
                 is RestClientException, is NumberFormatException -> null
