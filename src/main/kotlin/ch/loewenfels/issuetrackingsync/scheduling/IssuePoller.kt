@@ -57,8 +57,9 @@ class IssuePoller @Autowired constructor(
         val polledIssues = mutableMapOf<IssueTrackingApplication, MutableList<Issue>>()
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
-            val issueTrackingClient = clientFactory.getClient(trackingApp)
-            polledIssues.put(trackingApp, pollIssuesInBatches(issueTrackingClient))
+            clientFactory.getClient(trackingApp).use{
+                    client -> polledIssues.put(trackingApp, pollIssuesInBatches(client))
+            }
         }
         return polledIssues
     }

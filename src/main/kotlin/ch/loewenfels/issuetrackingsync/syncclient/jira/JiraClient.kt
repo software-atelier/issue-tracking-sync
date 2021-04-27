@@ -58,6 +58,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     )
     private val log = setup.log
 
+    override fun close() {
+        jiraRestClient.close()
+    }
+
     override fun getProprietaryIssue(issue: Issue): JiraProprietaryIssue? {
         if (issue.createNewOne) {
             /** Property createNewOne use only first time */

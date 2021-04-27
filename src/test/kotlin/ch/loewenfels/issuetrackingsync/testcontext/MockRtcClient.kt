@@ -171,6 +171,9 @@ open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTra
         return true
     }
 
+    override fun close() {
+    }
+
     override fun getProprietaryIssue(issue: Issue): Issue? {
         TODO("Not yet implemented")
     }

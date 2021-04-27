@@ -27,7 +27,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         verifySetup(testee)
         // act
-        val issue = testee.getIssue("DEV-44692")
+        val issue = testee.use{ client -> client.getIssue("DEV-44692") }
         // assert
         assertNotNull(issue)
         assertEquals("DEV-44692", issue?.key)
@@ -40,7 +40,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         verifySetup(testee)
         val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
         // act
-        val html = testee.getHtmlValue(issue, "description")
+        val html = testee.use{ client -> client.getHtmlValue(issue, "description") }
         // assert
         assertNotNull(issue)
         assertThat(html, containsString("<h4>"))
@@ -53,7 +53,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         verifySetup(testee)
         val lastUpdated = LocalDateTime.now().minusDays(2)
         // act
-        val issues = testee.changedIssuesSince(lastUpdated, 0, 50)
+        val issues = testee.use{ client -> client.changedIssuesSince(lastUpdated, 0, 50) }
         // assert
         assertNotNull(issues)
     }
@@ -64,7 +64,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         verifySetup(testee)
         // act
-        testee.listFields()
+        testee.use{ client -> client.listFields() }
     }
 
     @Test
@@ -73,7 +73,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
         // act
-        val comments = testee.getComments(issue)
+        val comments = testee.use{ client -> client.getComments(issue) }
         // assert
         assertNotNull(comments)
         assertEquals(2, comments.size)
@@ -89,7 +89,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val listOfLabels = arrayListOf("nextSprint", "bug")
         val testee = JiraClient(buildSetup())
         // act
-        testee.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels)
+        testee.use{ client -> client.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels) }
         // assert
         Mockito.verify(issueInputBuilder).setFieldValue(IssueFieldId.LABELS_FIELD.id, listOfLabels)
     }
@@ -103,7 +103,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
         val testee = JiraClient(buildSetup())
         // act
-        testee.setValue(issueInputBuilder, sourceIssue, "labels", arrayListOf<String>())
+        testee.use{ client -> client.setValue(issueInputBuilder, sourceIssue, "labels", arrayListOf<String>()) }
         // assert
         Mockito.verifyNoInteractions(issueInputBuilder)
     }

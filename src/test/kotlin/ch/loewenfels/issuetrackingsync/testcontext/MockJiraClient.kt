@@ -180,6 +180,9 @@ open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTr
         return true
     }
 
+    override fun close() {
+    }
+
     override fun getProprietaryIssue(issue: Issue): Issue? {
         TODO("Not yet implemented")
     }

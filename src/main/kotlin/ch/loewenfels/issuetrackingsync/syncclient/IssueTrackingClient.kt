@@ -10,10 +10,11 @@ import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.fasterxml.jackson.databind.JsonNode
 import com.ibm.team.workitem.common.model.IWorkItem
+import java.io.Closeable
 import java.time.LocalDateTime
 
 @Suppress("ComplexInterface", "LongParameterList", "TooManyFunctions")
-interface IssueTrackingClient<T> {
+interface IssueTrackingClient<T> : Closeable {
     /**
      * Attempt to load an issue by unique key. Returns absent value if no issue is found, or if the client
      * is not authorized to load the issue
@@ -127,4 +128,6 @@ interface IssueTrackingClient<T> {
         notificationObserver: NotificationObserver,
         syncActions: Map<SyncActionName, SynchronizationAction>
     ): Boolean
+
+    override fun close()
 }

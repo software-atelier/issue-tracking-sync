@@ -838,6 +838,9 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
+    override fun close() {
+    }
+
     private fun doWithWorkingCopy(originalWorkItem: IWorkItem, consumer: (WorkItemWorkingCopy) -> Unit) {
         val copyManager = workItemClient.workItemWorkingCopyManager
         copyManager.connect(originalWorkItem, IWorkItem.FULL_PROFILE, progressMonitor)

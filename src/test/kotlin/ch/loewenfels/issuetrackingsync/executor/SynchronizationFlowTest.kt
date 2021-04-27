@@ -63,7 +63,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = TestObjects.buildIssue()
         // act
-        val result = testee.applies(syncFlowDefinition.source, issue)
+        val result = testee.use{ flow -> flow.applies(syncFlowDefinition.source, issue) }
         // assert
         assertTrue(result)
     }
@@ -83,7 +83,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = TestObjects.buildIssue()
         // act
-        val result = testee.applies(syncFlowDefinition.source, issue)
+        val result = testee.use{ flow -> flow.applies(syncFlowDefinition.source, issue) }
         // assert
         assertFalse(result)
     }
@@ -102,7 +102,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = TestObjects.buildIssue()
         // act
-        val result = testee.applies("foobar", issue)
+        val result = testee.use{ flow -> flow.applies("foobar", issue) }
         // assert
         assertFalse(result)
     }
@@ -121,7 +121,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = TestObjects.buildIssue("MK-1")
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertEquals(1, TestNotificationChannel.erroneousIssueKeys.distinct().size)
     }
@@ -144,7 +144,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         doAnswer { throw exception }//
             .`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase}"))
     }
@@ -167,7 +167,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         doAnswer { throw exception }//
             .`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
     }
@@ -190,7 +190,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         doAnswer { throw exception }//
             .`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertThat(TestNotificationChannel.erroneousMessages, hasItem("Rtc: ${error.reasonPhrase}"))
     }
@@ -213,7 +213,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         doAnswer { throw exception }//
             .`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
     }
@@ -232,7 +232,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
         // act
-        testee.execute(issue)
+        testee.use{ flow -> flow.execute(issue) }
         // assert
         assertEquals(1, TestNotificationChannel.successfulIssueKeys.size)
         Mockito.verify(sourceClient, times(1))

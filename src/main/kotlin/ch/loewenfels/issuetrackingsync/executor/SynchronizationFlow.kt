@@ -12,6 +12,7 @@ import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
+import java.io.Closeable
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
@@ -31,7 +32,7 @@ class SynchronizationFlow(
     private val sourceClient: IssueTrackingClient<Any>,
     private val targetClient: IssueTrackingClient<Any>,
     private val notificationObserver: NotificationObserver
-) : Logging {
+) : Closeable, Logging {
     private val sourceApplication: TrackingApplicationName = syncFlowDefinition.source
     private val syncPreActions: List<PreAction>
     private val syncActions: Map<SyncActionName, SynchronizationAction>
@@ -210,5 +211,10 @@ class SynchronizationFlow(
                 )
             }
         }
+    }
+
+    override fun close() {
+        sourceClient.close()
+        targetClient.close()
     }
 }
