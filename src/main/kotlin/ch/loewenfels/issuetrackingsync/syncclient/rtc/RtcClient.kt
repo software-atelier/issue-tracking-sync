@@ -222,15 +222,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     getPropertyValueForCustomFields(internalIssue, fieldName)
                 internalValue = internalValue?.let { convertFromMetadataId(fieldName, it) }
                 if (internalValue is String) {
-                    internalValue = removeHtmlTags(internalValue)
+                    internalValue = HtmlConverter.htmlToText(internalValue)
                 }
                 return internalValue
             }
         }
-    }
-
-    private fun removeHtmlTags(value: String): String {
-        return Jsoup.parse(value.replace("<br/>", "<br/>\n")).wholeText()
     }
 
     fun setOwner(internalIssue: IWorkItem, owner: IContributorHandle) {
