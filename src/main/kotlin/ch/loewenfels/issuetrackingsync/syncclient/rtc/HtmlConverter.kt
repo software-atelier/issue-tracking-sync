@@ -26,13 +26,9 @@ class HtmlConverter {
         fun htmlToText(html: String): String {
             var text: String = html
             // Add bulletpoints into <ul> lists
-            text = ulPattern.matcher(text).replaceAll{
-                    mr: MatchResult -> addBulletpoints(mr.group().toString())
-            }.toString()
+            text = ulPattern.matcher(text).replaceAll{ mr: MatchResult -> addBulletpoints(mr.group()) }
             // Add numbers into <ol> lists
-            text = olPattern.matcher(text).replaceAll{
-                    mr: MatchResult -> addNumbers(mr.group().toString())
-            }.toString()
+            text = olPattern.matcher(text).replaceAll{ mr: MatchResult -> addNumbers(mr.group()) }
             // New line before each list item
             text = text.replace("<li>".toRegex(), "<li>\n")
             // New line after each list
@@ -57,9 +53,7 @@ class HtmlConverter {
 
         private fun addNumbers(value: String): String {
             val counter = Counter()
-            return liPattern.matcher(value).replaceAll{
-                "<li>" + counter.getAndIncrement() + ". "
-            }.toString()
+            return liPattern.matcher(value).replaceAll{ "<li>" + counter.getAndIncrement() + ". " }
         }
 
         internal class Counter {

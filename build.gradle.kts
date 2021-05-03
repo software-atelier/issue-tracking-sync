@@ -13,7 +13,7 @@ plugins {
 group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
 val springProfile = "test"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_11
 // Atlassian JIRA and IBM RTC JARs are not available on maven central
 // you'll need to set this property in your $HOME/.gradle/gradle.properties file to point to a maven repo holding these
 // JARs. https://packages.atlassian.com/maven-public/ might work for JIRA
@@ -35,7 +35,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("com.ibm.team.rtc:plain-java-client:6.0.3")
     implementation("com.atlassian.jira:jira-rest-java-client-core:5.1.0-476bd700")
     implementation("io.atlassian.fugue:fugue:4.7.2")
@@ -66,7 +66,7 @@ detekt {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
 
@@ -82,5 +82,5 @@ tasks.withType<ShadowJar> {
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt> {
     // Target version of the generated JVM bytecode. It is used for type resolution.
-    this.jvmTarget = "1.8"
+    this.jvmTarget = "11"
 }
