@@ -36,15 +36,16 @@ class HtmlConverter {
             text = text.replace("</ol>".toRegex(), "</ol>\n")
             // New line after each <br/>
             text = text.replace("<br/>".toRegex(), "<br/>\n")
-            // Two new lines (but not more) after each paragraph
-            // This one needs to be first in case of back to back paragraphs (since the newlines of <p> are hidden behind the tag)
-            text = text.replace("\n*</p>\n*".toRegex(), "</p>\n\n")
-            // Two new lines (but not more) at the start of each paragraph
-            text = text.replace("\n*<p>\n*".toRegex(), "<p>\n\n")
+            // Two new lines at the start of each paragraph
+            text = text.replace("<p>".toRegex(), "<p>\n\n")
+            // Two new lines after each paragraph
+            text = text.replace("</p>".toRegex(), "</p>\n\n")
             // Cleanup unnecessary new lines
             text = text.trim()
             // Convert html to text while keeping previously inserted new lines
-            return Jsoup.parse(text).wholeText()
+            text = Jsoup.parse(text).wholeText()
+            // Cleanup occurrences of more than two new lines
+            return text.replace("\n\n\n+", "\n\n")
         }
 
         private fun addBulletpoints(value: String): String {
