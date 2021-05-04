@@ -40,10 +40,10 @@ class HtmlConverter {
             text = text.replace("<p>".toRegex(), "<p>\n\n")
             // Two new lines after each paragraph
             text = text.replace("</p>".toRegex(), "</p>\n\n")
-            // Cleanup unnecessary new lines
-            text = text.trim()
             // Convert html to text while keeping previously inserted new lines
             text = Jsoup.parse(text).wholeText()
+            // Cleanup unnecessary new lines
+            text = text.trim()
             // Cleanup occurrences of more than two new lines
             return text.replace("\n\n\n+", "\n\n")
         }
