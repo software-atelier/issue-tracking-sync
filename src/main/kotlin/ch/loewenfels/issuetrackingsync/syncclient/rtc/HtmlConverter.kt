@@ -16,6 +16,15 @@ class HtmlConverter {
         private val liPattern: Pattern = Pattern.compile("<li>")
 
         /**
+         * Checks if the given text is HTML.
+         *
+         * @return true if the text contains HTML elements, false otherwise.
+         */
+        fun isHtml(text: String): Boolean {
+            return Jsoup.parse(text).wholeText() != text
+        }
+
+        /**
          * Converts the given html string into plain text.
          *
          * Will convert <br>, <p>, <ul> and <ol> tags into plain text representations.
@@ -45,7 +54,7 @@ class HtmlConverter {
             // Cleanup unnecessary new lines
             text = text.trim()
             // Cleanup occurrences of more than two new lines
-            return text.replace("\n\n\n+", "\n\n")
+            return text.replace("[ ]*\n[ ]*\n[ ]*\n[ \n]*".toRegex(), "\n\n")
         }
 
         private fun addBulletpoints(value: String): String {

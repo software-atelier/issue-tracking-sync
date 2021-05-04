@@ -221,7 +221,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 else
                     getPropertyValueForCustomFields(internalIssue, fieldName)
                 internalValue = internalValue?.let { convertFromMetadataId(fieldName, it) }
-                if (internalValue is String) {
+                if (internalValue is String && HtmlConverter.isHtml(internalValue)) {
                     internalValue = HtmlConverter.htmlToText(internalValue)
                 }
                 return internalValue
