@@ -64,10 +64,10 @@ class SynchronizationFlow(
             // no ctor taking a PreActionDefinition, so look for empty ctor
             try {
                 preActionClass.getDeclaredConstructor().newInstance()
-            } catch (ignore: Exception) {
+            } catch (e: Exception) {
                 throw IllegalArgumentException(
                     "Failed to instantiate pre action class ${preActionDefinition.className}",
-                    ignore
+                    e
                 )
             }
         }

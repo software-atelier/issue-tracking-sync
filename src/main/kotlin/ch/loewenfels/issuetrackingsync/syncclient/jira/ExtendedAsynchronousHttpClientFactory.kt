@@ -12,12 +12,9 @@ import com.atlassian.sal.api.UrlMode
 import com.atlassian.sal.api.executor.ThreadLocalContextManager
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.IOException
-import java.io.InputStream
 import java.net.URI
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.annotation.Nonnull
 
 class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
 
@@ -40,19 +37,13 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
         val defaultHttpClientFactory: DefaultHttpClientFactory<*> = DefaultHttpClientFactory(NoOpEventPublisher(),
             RestClientApplicationProperties(serverUri),
             object : ThreadLocalContextManager<Any?> {
-                override fun getThreadLocalContext(): Any? {
-                    return null
-                }
-
+                override fun getThreadLocalContext(): Any? = null
                 override fun setThreadLocalContext(context: Any?) {}
                 override fun clearThreadLocalContext() {}
             })
         val httpClient = defaultHttpClientFactory.create(options)
         return object : AtlassianHttpClientDecorator(httpClient, authenticationHandler) {
-            @Throws(Exception::class)
-            override fun destroy() {
-                defaultHttpClientFactory.dispose(httpClient)
-            }
+            override fun destroy() = defaultHttpClientFactory.dispose(httpClient)
         }
     }
 
@@ -68,53 +59,21 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
      */
     private class RestClientApplicationProperties(jiraURI: URI) : ApplicationProperties {
         private val baseUrl: String = jiraURI.path
-        override fun getBaseUrl(): String {
-            return baseUrl
-        }
+        override fun getBaseUrl(): String = baseUrl
 
-        /**
-         * We'll always have an absolute URL as a client.
-         */
-        @Nonnull
-        override fun getBaseUrl(urlMode: UrlMode): String {
-            return baseUrl
-        }
+        /** We'll always have an absolute URL as a client.*/
+        override fun getBaseUrl(urlMode: UrlMode): String = baseUrl
+        override fun getDisplayName(): String = "Atlassian JIRA Rest Java Client"
+        override fun getPlatformId(): String = ApplicationProperties.PLATFORM_JIRA
+        override fun getVersion(): String =
+            MavenUtils.getVersion("com.atlassian.jira", "jira-rest-java-com.atlassian.jira.rest.client")
 
-        @Nonnull
-        override fun getDisplayName(): String {
-            return "Atlassian JIRA Rest Java Client"
-        }
+        override fun getBuildDate(): Date = throw UnsupportedOperationException()
 
-        @Nonnull
-        override fun getPlatformId(): String {
-            return ApplicationProperties.PLATFORM_JIRA
-        }
-
-        @Nonnull
-        override fun getVersion(): String {
-            return MavenUtils.getVersion("com.atlassian.jira", "jira-rest-java-com.atlassian.jira.rest.client")
-        }
-
-        @Nonnull
-        override fun getBuildDate(): Date {
-            // TODO implement using MavenUtils, JRJC-123
-            throw UnsupportedOperationException()
-        }
-
-        @Nonnull
-        override fun getBuildNumber(): String {
-            // TODO implement using MavenUtils, JRJC-123
-            return 0.toString()
-        }
-
-        override fun getHomeDirectory(): File {
-            return File(".")
-        }
-
-        override fun getPropertyValue(s: String): String {
-            throw UnsupportedOperationException("Not implemented")
-        }
-
+        // TODO implement using MavenUtils, JRJC-123
+        override fun getBuildNumber(): String = 0.toString()
+        override fun getHomeDirectory(): File = File(".")
+        override fun getPropertyValue(s: String): String = throw UnsupportedOperationException("Not implemented")
     }
 
     private object MavenUtils {
@@ -122,29 +81,17 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
         private const val UNKNOWN_VERSION = "unknown"
         fun getVersion(groupId: String?, artifactId: String?): String {
             val props = Properties()
-            var resourceAsStream: InputStream? = null
             return try {
-                resourceAsStream = MavenUtils::class.java.getResourceAsStream(
-                    String.format(
-                        "/META-INF/maven/%s/%s/pom.properties",
-                        groupId,
-                        artifactId
-                    )
-                )
-                props.load(resourceAsStream)
-                props.getProperty("version", UNKNOWN_VERSION)
+                MavenUtils::class.java
+                    .getResourceAsStream("/META-INF/maven/$groupId/$artifactId/pom.properties")
+                    .use { resourceAsStream ->
+                        props.load(resourceAsStream)
+                        props.getProperty("version", UNKNOWN_VERSION)
+                    }
             } catch (e: Exception) {
                 logger.debug("Could not find version for maven artifact {}:{}", groupId, artifactId)
                 logger.debug("Got the following exception", e)
                 UNKNOWN_VERSION
-            } finally {
-                if (resourceAsStream != null) {
-                    try {
-                        resourceAsStream.close()
-                    } catch (ioe: IOException) {
-                        // ignore
-                    }
-                }
             }
         }
     }

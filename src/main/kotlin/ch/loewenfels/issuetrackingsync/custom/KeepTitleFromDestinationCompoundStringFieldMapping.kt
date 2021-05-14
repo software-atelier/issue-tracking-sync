@@ -56,12 +56,7 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(
                 } else {
                     associations[""]?.let {
                         val indexOf = oldVal.indexOf(it)
-                        if (indexOf >= 0) {
-                            sections[fieldname] =
-                                sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
-                        } else {
-                            sections[fieldname] = sections[fieldname] + it + "\r\n\r\n"
-                        }
+                        sections[fieldname] += if (indexOf < 0) it + "\r\n\r\n" else oldVal.substring(oldVal.indexOf(it))
                     }
                 }
             }

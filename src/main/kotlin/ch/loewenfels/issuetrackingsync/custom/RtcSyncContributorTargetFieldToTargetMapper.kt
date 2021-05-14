@@ -38,14 +38,14 @@ class RtcSyncContributorTargetFieldToTargetMapper(
             val contributor = sourceTargetField?.let { trackingClient.getNonConvertedValue(propIssue, it) }
             contributor?.let {
                 check(contributor is IContributorHandle) {
-                    "Failed to change ${fieldname}. Source filed must be of type ${IContributorHandle::class}"
+                    "Failed to change $fieldname. Source filed must be of type ${IContributorHandle::class}"
                 }
                 val oldValue = trackingClient.getNonConvertedValue(propIssue, fieldname)
                 check(oldValue == null || oldValue is IContributorHandle) {
-                    "Failed to change ${fieldname}. Target filed must be of type ${IContributorHandle::class}"
+                    "Failed to change $fieldname. Target filed must be of type ${IContributorHandle::class}"
                 }
-                if (null == oldValue || (oldValue as IContributorHandle).sameItemId(contributor as IItemHandle?)
-                        .not()
+                if (null == oldValue
+                    || (oldValue as IContributorHandle).sameItemId(contributor as IItemHandle?).not()
                 ) {
                     trackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, it)
                 }

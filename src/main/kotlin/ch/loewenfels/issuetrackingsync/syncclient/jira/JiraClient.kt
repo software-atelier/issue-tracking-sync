@@ -37,26 +37,27 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import com.atlassian.jira.rest.client.api.domain.Issue as JiraProprietaryIssue
+import com.atlassian.jira.rest.client.api.domain.Issue as JiraIssue
 
 /**
  * JIRA Java client, see (https://ecosystem.atlassian.net/wiki/spaces/JRJC/overview)
  */
 open class JiraClient(private val setup: IssueTrackingApplication) :
-    IssueTrackingClient<JiraProprietaryIssue>, Logging {
-    private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory().extendedCreateWithBasicHttpAuthentication(
-        URI(setup.endpoint),
-        setup.username,
-        setup.password,
-        setup.socketTimeout
-    )
+    IssueTrackingClient<JiraIssue>, Logging {
+    private val jiraRestClient = ExtendedAsynchronousJiraRestClientFactory()
+        .extendedCreateWithBasicHttpAuthentication(
+            URI(setup.endpoint),
+            setup.username,
+            setup.password,
+            setup.socketTimeout
+        )
     private val log = setup.log
 
     override fun close() {
         jiraRestClient.close()
     }
 
-    override fun getProprietaryIssue(issue: Issue): JiraProprietaryIssue? {
+    override fun getProprietaryIssue(issue: Issue): JiraIssue? {
         if (issue.createNewOne) {
             /** Property createNewOne use only first time */
             issue.createNewOne = false
@@ -71,14 +72,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return targetIssue
     }
 
-    override fun getProprietaryIssue(issueKey: String): JiraProprietaryIssue? {
-        return getJiraIssue(issueKey)
-    }
-
-    override fun getProprietaryIssue(
-        fieldName: String,
-        fieldValue: String
-    ): JiraProprietaryIssue? {
+    override fun getProprietaryIssue(issueKey: String): JiraIssue? = getJiraIssue(issueKey)
+    override fun getProprietaryIssue(fieldName: String, fieldValue: String): JiraIssue? {
         val foundIssues = searchProprietaryIssues(fieldName, fieldValue)
         return when (foundIssues.size) {
             0 -> null
@@ -88,14 +83,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    override fun searchProprietaryIssues(
-        fieldName: String,
-        fieldValue: String
-    ): List<com.atlassian.jira.rest.client.api.domain.Issue> {
+    override fun searchProprietaryIssues(fieldName: String, fieldValue: String): List<JiraIssue> {
         val issueQueryBuilder = getIssueQueryBuilder()
         val jql = issueQueryBuilder.build(fieldName, fieldValue) as String
-
-        return jiraRestClient.searchClient.searchJql(jql).claim().issues.toList()
+        return jiraRestClient.searchClient
+            .searchJql(jql)
+            .claim()
+            .issues.toList()
     }
 
     override fun getIssue(key: String): Issue? {
@@ -108,37 +102,33 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return Issue(
             body.get("issue")?.get("key")?.asText() ?: "",
             setup.name,
-            OffsetDateTime.parse(
-                body.get("issue")?.get("fields")?.get("updated")?.asText() ?: "",
-                formatter
-            ).toLocalDateTime()
+            OffsetDateTime.parse(body.get("issue")?.get("fields")?.get("updated")?.asText() ?: "", formatter)
+                .toLocalDateTime()
         )
     }
 
-    override fun getKey(internalIssue: JiraProprietaryIssue): String =
+    override fun getKey(internalIssue: JiraIssue): String =
         internalIssue.key
 
-    override fun getIssueUrl(internalIssue: JiraProprietaryIssue): String {
-        val endpoint =
-            if (setup.endpoint.endsWith("/")) setup.endpoint.substring(0, setup.endpoint.length - 1) else setup.endpoint
+    override fun getIssueUrl(internalIssue: JiraIssue): String {
+        val endpoint = setup.endpoint.replace("/$".toRegex(), "")
         return "$endpoint/browse/${internalIssue.key}"
     }
 
-    private fun queryIssue(keyFieldMapping: KeyFieldMapping): JiraProprietaryIssue? {
+    private fun queryIssue(keyFieldMapping: KeyFieldMapping): JiraIssue? {
         val targetKeyFieldName = keyFieldMapping.getTargetFieldname()
         return keyFieldMapping.getKeyForTargetIssue()?.let { key ->
             val targetIssueKey = key.toString()
-            if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
-                targetKeyFieldName,
-                targetIssueKey
-            ) else null
+            if (targetIssueKey.isNotEmpty())
+                getProprietaryIssue(targetKeyFieldName, targetIssueKey)
+            else null
         }
     }
 
-    private fun getLastUpdatedByUser(internalIssue: JiraProprietaryIssue): String {
+    private fun getLastUpdatedByUser(internalIssue: JiraIssue): String {
         val issue = jiraRestClient.issueClient.getIssue(
             internalIssue.key,
-            Collections.singletonList(IssueRestClient.Expandos.CHANGELOG)
+            listOf(IssueRestClient.Expandos.CHANGELOG)
         ).claim()
         return try {
             issue.changelog?.maxBy { it.created }?.author?.name ?: ""
@@ -147,7 +137,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    private fun getTargetKey(internalIssue: JiraProprietaryIssue): String {
+    private fun getTargetKey(internalIssue: JiraIssue): String {
         return try {
             getValue(internalIssue, setup.extRefIdField).toString()
         } catch (e: IllegalArgumentException) {
@@ -155,13 +145,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    override fun getLastUpdated(internalIssue: JiraProprietaryIssue): LocalDateTime =
+    override fun getLastUpdated(internalIssue: JiraIssue): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(internalIssue.updateDate.millis), ZoneId.systemDefault())
 
-    override fun getHtmlValue(internalIssue: JiraProprietaryIssue, fieldName: String) =
+    override fun getHtmlValue(internalIssue: JiraIssue, fieldName: String) =
         jiraRestClient.getHtmlRenderingRestClient().getRenderedHtml(internalIssue.key, fieldName)
 
-    override fun getValue(internalIssue: JiraProprietaryIssue, fieldName: String): Any? {
+    override fun getValue(internalIssue: JiraIssue, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
         val internalValue = if (beanWrapper.isReadableProperty(fieldName))
             beanWrapper.getPropertyValue(fieldName)
@@ -179,10 +169,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     ) {
         logger().debug("Setting value $value on $fieldName")
         val proprietaryJiraIssue = issue.proprietaryTargetInstance
-        convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraProprietaryIssue?)?.let {
+        convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraIssue?)?.let {
             val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
             if (beanWrapper.isWritableProperty(fieldName)) {
-                if (!issue.hasChanges && proprietaryJiraIssue is JiraProprietaryIssue) {
+                if (!issue.hasChanges && proprietaryJiraIssue is JiraIssue) {
                     val finalValue = when (fieldName) {
                         "priorityId" -> (getValue(proprietaryJiraIssue, "priority") as IdentifiableEntity<Long>).id
                         "issueTypeId" -> (getValue(proprietaryJiraIssue, "issueType") as IdentifiableEntity<Long>).id
@@ -238,10 +228,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                             }
                         }
                     }
-
-                    if (hasChanges) {
-                        issue.hasChanges = true
-                    }
+                    if (hasChanges) issue.hasChanges = true
                 }
                 beanWrapper.setPropertyValue(fieldName, it)
             } else if (internalIssueBuilder is IssueInputBuilder) {
@@ -314,7 +301,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         setValue(internalIssueBuilder, issue, fieldName, convertedValue)
     }
 
-    private fun convertToMetadataId(fieldName: String, value: Any?, jiraIssue: JiraProprietaryIssue?): Any? {
+    private fun convertToMetadataId(fieldName: String, value: Any?, jiraIssue: JiraIssue?): Any? {
         val projectKey: String? = jiraIssue?.project?.key
         return when (fieldName) {
             "priorityId" -> JiraMetadata.getPriorityId(value?.toString() ?: "", jiraRestClient)
@@ -350,7 +337,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
      */
     private fun getFirstVersion(value: Any) = ((value as List<*>)[0] as Version).name ?: ""
 
-    private fun getJiraIssue(key: String): JiraProprietaryIssue {
+    private fun getJiraIssue(key: String): JiraIssue {
         return jiraRestClient.issueClient.getIssue(key).claim()
     }
 
@@ -358,7 +345,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-        val targetIssue = (issue.proprietaryTargetInstance ?: getProprietaryIssue(issue)) as JiraProprietaryIssue?
+        val targetIssue = (issue.proprietaryTargetInstance ?: getProprietaryIssue(issue)) as JiraIssue?
         when {
             targetIssue != null -> {
                 updateTargetIssue(targetIssue, issue)
@@ -376,7 +363,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     private fun createTargetIssue(
         defaultsForNewIssue: DefaultsForNewIssue,
         issue: Issue
-    ): JiraProprietaryIssue {
+    ): JiraIssue {
         issue.isNew = true
         val issueType = JiraMetadata.getIssueTypeId(defaultsForNewIssue.issueType, jiraRestClient)
         val issueBuilder = IssueInputBuilder()
@@ -410,7 +397,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         return targetIssue
     }
 
-    private fun updateTargetIssue(targetIssue: JiraProprietaryIssue, issue: Issue) {
+    private fun updateTargetIssue(targetIssue: JiraIssue, issue: Issue) {
         val issueBuilder = IssueInputBuilder()
         setTargetPropertiesOnSyncIssue(targetIssue, issue)
 
@@ -428,7 +415,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun setTargetPropertiesOnSyncIssue(
-        targetIssue: JiraProprietaryIssue,
+        targetIssue: JiraIssue,
         issue: Issue
     ) {
         issue.proprietaryTargetInstance = targetIssue
@@ -459,16 +446,16 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    override fun getComments(internalIssue: JiraProprietaryIssue): List<Comment> =
+    override fun getComments(internalIssue: JiraIssue): List<Comment> =
         jiraRestClient.getHtmlRenderingRestClient().getHtmlComments(internalIssue.key)
 
-    override fun addComment(internalIssue: JiraProprietaryIssue, comment: Comment) {
+    override fun addComment(internalIssue: JiraIssue, comment: Comment) {
         val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(comment.content)
         val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(convertedValue)
         jiraRestClient.issueClient.addComment(internalIssue.commentsUri, jiraComment).claim()
     }
 
-    override fun getAttachments(internalIssue: JiraProprietaryIssue): List<Attachment> =
+    override fun getAttachments(internalIssue: JiraIssue): List<Attachment> =
         internalIssue.attachments?.map { jiraAttachment ->
             val attachmentInputStreamPromise = jiraRestClient.issueClient.getAttachment(jiraAttachment.contentUri)
             attachmentInputStreamPromise.get().use {
@@ -479,7 +466,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             }
         } ?: listOf()
 
-    override fun addAttachment(internalIssue: JiraProprietaryIssue, attachment: Attachment) {
+    override fun addAttachment(internalIssue: JiraIssue, attachment: Attachment) {
         jiraRestClient.issueClient.addAttachment(
             internalIssue.attachmentsUri,
             ByteArrayInputStream(attachment.content),
@@ -488,7 +475,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     override fun getMultiSelectValues(
-        internalIssue: JiraProprietaryIssue,
+        internalIssue: JiraIssue,
         fieldName: String
     ): List<String> {
         val value = getValue(internalIssue, fieldName) ?: listOf<String>()
@@ -503,11 +490,11 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         throw IllegalArgumentException("The field $fieldName ($fieldId) was expected to return an array, got $value instead. Did you forget to configure the MultiSelectionFieldMapper?")
     }
 
-    override fun getState(internalIssue: JiraProprietaryIssue): String {
+    override fun getState(internalIssue: JiraIssue): String {
         return jiraRestClient.issueClient.getIssue(internalIssue.key).claim().status.name
     }
 
-    override fun getStateHistory(internalIssue: JiraProprietaryIssue): List<StateHistory> {
+    override fun getStateHistory(internalIssue: JiraIssue): List<StateHistory> {
         val result =
             jiraRestClient.issueClient.getIssue(internalIssue.key, listOf(IssueRestClient.Expandos.CHANGELOG)).claim()
                 .changelog
@@ -525,7 +512,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
      * ID, and a `fields` collection holding optional/required fields for the transition.
      */
     override fun setState(
-        internalIssue: JiraProprietaryIssue,
+        internalIssue: JiraIssue,
         targetState: String
     ) {
         val transition = jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
@@ -539,7 +526,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun setResolution(
-        internalIssue: JiraProprietaryIssue,
+        internalIssue: JiraIssue,
         targetResolution: String
     ): Boolean {
         if (internalIssue.resolution?.name ?: "" == targetResolution) return false
@@ -577,7 +564,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         }
     }
 
-    private fun mapJiraIssue(jiraIssue: JiraProprietaryIssue): Issue {
+    private fun mapJiraIssue(jiraIssue: JiraIssue): Issue {
         val issue = Issue(
             jiraIssue.key,
             setup.name,
@@ -595,7 +582,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
      */
     private fun setInternalFieldValue(
         internalIssueBuilder: IssueInputBuilder,
-        jiraIssue: JiraProprietaryIssue,
+        jiraIssue: JiraIssue,
         fieldName: String,
         value: Any
     ) {
@@ -636,7 +623,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
 
     private fun prepareValue(
-        jiraIssue: JiraProprietaryIssue,
+        jiraIssue: JiraIssue,
         fieldName: String,
         value: Any
     ): Any? {
@@ -670,7 +657,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         value: Any,
         internalIssueBuilder: IssueInputBuilder,
         fld: IssueField,
-        jiraIssue: JiraProprietaryIssue,
+        jiraIssue: JiraIssue,
         fieldName: String,
         fieldWriterName: String
     ): IssueInputBuilder? {
@@ -696,7 +683,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     ) = value.map { ComplexIssueInputFieldValue.with(fieldWriterName, it) }
 
     private fun getCustomFields(
-        internalIssue: JiraProprietaryIssue,
+        internalIssue: JiraIssue,
         fieldName: String
     ): Any? {
         val field: IssueField = getIssueFieldByNameOrId(internalIssue, fieldName)
@@ -704,7 +691,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     }
 
     private fun getIssueFieldByNameOrId(
-        internalIssue: JiraProprietaryIssue,
+        internalIssue: JiraIssue,
         fieldName: String
     ): IssueField {
         return internalIssue.getFieldByName(fieldName) ?: internalIssue.getField(fieldName)
@@ -739,7 +726,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         internalIssue: Any,
         fieldName: String
     ): Number {
-        return (getValue(internalIssue as JiraProprietaryIssue, fieldName) ?: 0) as Number
+        return (getValue(internalIssue as JiraIssue, fieldName) ?: 0) as Number
     }
 
     override fun setTimeValue(internalIssueBuilder: Any, issue: Issue, fieldName: String, timeInMinutes: Number?) {

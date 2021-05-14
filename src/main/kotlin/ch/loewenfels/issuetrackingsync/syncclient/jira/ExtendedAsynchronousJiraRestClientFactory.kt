@@ -10,7 +10,8 @@ class ExtendedAsynchronousJiraRestClientFactory : AsynchronousJiraRestClientFact
         serverUri: URI,
         authenticationHandler: AuthenticationHandler
     ): ExtendedAsynchronousJiraRestClient {
-        val httpClient = ExtendedAsynchronousHttpClientFactory().createClient(serverUri, authenticationHandler)
+        val httpClient = ExtendedAsynchronousHttpClientFactory()
+            .createClient(serverUri, authenticationHandler)
         return ExtendedAsynchronousJiraRestClient(serverUri, httpClient)
     }
 
@@ -26,18 +27,12 @@ class ExtendedAsynchronousJiraRestClientFactory : AsynchronousJiraRestClientFact
         username: String,
         password: String,
         socketTimeout: Int?
-    ): ExtendedAsynchronousJiraRestClient = socketTimeout?.let {
-        extendedCreate(serverUri, BasicHttpAuthenticationHandler(username, password), socketTimeout)
-    } ?: create(serverUri, BasicHttpAuthenticationHandler(username, password))
-
-    private fun extendedCreate(
-        serverUri: URI,
-        authenticationHandler: AuthenticationHandler,
-        socketTimeout: Int
     ): ExtendedAsynchronousJiraRestClient {
-        val httpClient =
-            ExtendedAsynchronousHttpClientFactory().createClient(serverUri, authenticationHandler, socketTimeout)
-        return ExtendedAsynchronousJiraRestClient(serverUri, httpClient)
+        return socketTimeout?.let {
+            val httpClient = ExtendedAsynchronousHttpClientFactory()
+                .createClient(serverUri, BasicHttpAuthenticationHandler(username, password), socketTimeout)
+            ExtendedAsynchronousJiraRestClient(serverUri, httpClient)
+        } ?: create(serverUri, BasicHttpAuthenticationHandler(username, password))
     }
 
 }

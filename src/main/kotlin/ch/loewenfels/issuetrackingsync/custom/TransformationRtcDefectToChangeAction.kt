@@ -6,6 +6,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
+import com.atlassian.jira.rest.client.api.domain.Issue as JiraIssue
 
 class TransformationRtcDefectToChangeAction(
     actionName: String
@@ -19,8 +20,7 @@ class TransformationRtcDefectToChangeAction(
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
         val jiraClient = targetClient as JiraClient
-        val jiraIssue = (issue.proprietaryTargetInstance
-            ?: jiraClient.getProprietaryIssue(issue)) as com.atlassian.jira.rest.client.api.domain.Issue?
+        val jiraIssue = (issue.proprietaryTargetInstance ?: jiraClient.getProprietaryIssue(issue)) as JiraIssue?
         if ("Defekt" == jiraIssue?.issueType?.name) {
             // Remove references from JIRA Defect
             super.execute(sourceClient, targetClient, issue, fieldMappings, defaultsForNewIssue)
