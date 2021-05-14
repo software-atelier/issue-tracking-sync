@@ -12,4 +12,5 @@ fun <T : Any> getClassForLogging(javaClass: Class<T>): Class<*> {
     } ?: javaClass
 }
 
-inline fun <reified T : Logging> T.logger(): Logger = LoggerFactory.getLogger(getClassForLogging(T::class.java))
+inline fun <reified T : Logging> T.logger(): Logger =
+    LoggerFactory.getLogger(getClassForLogging(T::class.java))

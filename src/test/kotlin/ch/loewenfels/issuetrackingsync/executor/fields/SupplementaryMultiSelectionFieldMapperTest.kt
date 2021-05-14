@@ -3,9 +3,11 @@ package ch.loewenfels.issuetrackingsync.executor.fields
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class SupplementaryMultiSelectionFieldMapperTest : AbstractSpringTest() {
@@ -19,30 +21,19 @@ internal class SupplementaryMultiSelectionFieldMapperTest : AbstractSpringTest()
     fun setValue() {
         // arrange
         val testee = buildTestee()
-        val issue = TestObjects.buildIssue("MK-1")
+        val issue = buildIssue("MK-1")
         issue.proprietaryTargetInstance = issue
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
         val value = listOf("congress")
         // act
         testee.setValue(issue, jiraFieldname, issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient)
+        verify(targetClient)
             .setValue(issue, issue, jiraFieldname, arrayListOf("fooJira", "barJira", "congress"))
     }
 
-    private fun buildTestee(): SupplementaryMultiSelectionFieldMapper {
-        val associations =
-            mutableMapOf(
-                "fooRtc" to "fooJira",
-                "barRtc" to "barJira"
-            )
-
-        val fieldDefinition = FieldMappingDefinition(
-            rtcFieldname, jiraFieldname,
-            MultiSelectionFieldMapper::class.toString()
-        )
-        return SupplementaryMultiSelectionFieldMapper(fieldDefinition)
-    }
+    private fun buildTestee(): SupplementaryMultiSelectionFieldMapper = SupplementaryMultiSelectionFieldMapper(
+        FieldMappingDefinition(rtcFieldname, jiraFieldname)
+    )
 
 }

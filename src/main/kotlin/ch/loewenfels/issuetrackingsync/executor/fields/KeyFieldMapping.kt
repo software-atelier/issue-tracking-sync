@@ -18,7 +18,6 @@ class KeyFieldMapping(
     fun invertMapping(): KeyFieldMapping {
         val inverted = KeyFieldMapping(targetName, sourceName, mapper)
         inverted.callback = callback?.invertMapping()
-
         return inverted
     }
 

@@ -1,15 +1,9 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
-import ch.loewenfels.issuetrackingsync.Attachment
-import ch.loewenfels.issuetrackingsync.Comment
-import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.Logging
-import ch.loewenfels.issuetrackingsync.StateHistory
-import ch.loewenfels.issuetrackingsync.SynchronizationAbortedException
+import ch.loewenfels.issuetrackingsync.*
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.KeyFieldMapping
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueClientException
 import ch.loewenfels.issuetrackingsync.syncclient.IssueQueryBuilder
@@ -35,29 +29,11 @@ import com.ibm.team.workitem.client.WorkItemWorkingCopy
 import com.ibm.team.workitem.common.IAuditableCommon
 import com.ibm.team.workitem.common.IWorkItemCommon
 import com.ibm.team.workitem.common.expression.*
-import com.ibm.team.workitem.common.model.AttributeOperation
-import com.ibm.team.workitem.common.model.AttributeTypes
-import com.ibm.team.workitem.common.model.IAttachment
-import com.ibm.team.workitem.common.model.IAttachmentHandle
-import com.ibm.team.workitem.common.model.IAttribute
-import com.ibm.team.workitem.common.model.ICategoryHandle
-import com.ibm.team.workitem.common.model.IDeliverable
-import com.ibm.team.workitem.common.model.IDeliverableHandle
-import com.ibm.team.workitem.common.model.ILiteral
-import com.ibm.team.workitem.common.model.IResolution
-import com.ibm.team.workitem.common.model.IState
-import com.ibm.team.workitem.common.model.IWorkItem
-import com.ibm.team.workitem.common.model.IWorkItemHandle
-import com.ibm.team.workitem.common.model.IWorkItemType
-import com.ibm.team.workitem.common.model.Identifier
-import com.ibm.team.workitem.common.model.ItemProfile
-import com.ibm.team.workitem.common.model.WorkItemEndPoints
-import com.ibm.team.workitem.common.model.WorkItemLinkTypes
+import com.ibm.team.workitem.common.model.*
 import com.ibm.team.workitem.common.query.IQueryResult
 import com.ibm.team.workitem.common.query.IResolvedResult
 import org.eclipse.core.runtime.AssertionFailedException
 import org.eclipse.core.runtime.NullProgressMonitor
-import org.jsoup.Jsoup
 import org.springframework.beans.BeanWrapperImpl
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -66,8 +42,7 @@ import java.net.URLEncoder
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
-import java.util.LinkedList
+import java.util.*
 
 open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<IWorkItem>, Logging {
     private val progressMonitor = NullProgressMonitor()
@@ -115,12 +90,13 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 val targetIssueKey = it.getKeyForTargetIssue()?.toString()
                 if (targetIssueKey != null && targetIssueKey.isNotEmpty()) {
                     val source = issue.sourceUrl?.let { url -> "<$url|${issue.key}>" } ?: issue.key
-                    throw SynchronizationAbortedException("No target issue found for $source. " +
-                            "Check mapped RTC issue with ID $targetIssueKey")
+                    throw SynchronizationAbortedException(
+                        "No target issue found for $source. " +
+                                "Check mapped RTC issue with ID $targetIssueKey"
+                    )
                 }
             }
         }
-
         return targetIssue
     }
 
@@ -139,14 +115,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
     }
 
     override fun searchProprietaryIssues(
-            fieldName: String,
-            fieldValue: String
+        fieldName: String,
+        fieldValue: String
     ): List<IWorkItem> {
         val queryClient = workItemClient.queryClient
         val issueQueryBuilder = getIssueQueryBuilder()
         val attrExpression = issueQueryBuilder.build(getQueryableAttribute(fieldName), fieldValue) as Expression
         val resolvedResultOfWorkItems =
-                queryClient.getResolvedExpressionResults(projectArea, attrExpression, IWorkItem.FULL_PROFILE)
+            queryClient.getResolvedExpressionResults(projectArea, attrExpression, IWorkItem.FULL_PROFILE)
 
         return toWorkItems(resolvedResultOfWorkItems)
     }
@@ -157,8 +133,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                 Class.forName(setup.proprietaryIssueQueryBuilder)
             } catch (e: Exception) {
                 throw IllegalArgumentException(
-                        "Failed to load issue query builder class ${setup.proprietaryIssueQueryBuilder}",
-                        e
+                    "Failed to load issue query builder class ${setup.proprietaryIssueQueryBuilder}",
+                    e
                 )
             }
 
@@ -291,7 +267,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     if (!issue.hasChanges) {
                         val hasChanges = when {
                             fieldName == "duration" || fieldName == "timeSpent" -> false
-                            wValue is Collection<*> && it is Collection<*> ->!wValue.containsAll(it)
+                            wValue is Collection<*> && it is Collection<*> -> !wValue.containsAll(it)
                             wValue is IItemHandle && it is IItemHandle -> !it.sameItemId(wValue)
                             else -> wValue != it
                         }
@@ -326,7 +302,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
      * "Needs analysis" might thus become "com.foobar.rtc.process_state.1"
      */
     private fun convertToMetadataId(fieldName: String, value: Any?): Any? {
-        //
+
         val attribute = getAttribute(fieldName)
         return when {
             attribute.attributeType == "priority" -> RtcMetadata.getPriorityId(
@@ -363,11 +339,10 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
 
     private fun getEnumerationIdentifier(fieldName: String, value: Any?): Identifier<out ILiteral>? {
         try {
-            return workItemClient.resolveEnumeration(
-                getAttribute(fieldName),
-                null
-            ).enumerationLiterals//
-                .find { it.name == value?.toString() ?: "" }?.identifier2
+            return workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+                .enumerationLiterals
+                .find { it.name == value?.toString() ?: "" }
+                ?.identifier2
         } catch (ex: AssertionFailedException) {
             throw IllegalArgumentException("Attempted to enumerate field $fieldName, which isn't an enumeration", ex)
         }
@@ -380,12 +355,11 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             .name
     }
 
-    private fun getEnumerationValues(fieldName: String, value: List<*>): List<Identifier<out ILiteral>> {
-        val enumerations = workItemClient.resolveEnumeration(getAttribute(fieldName), null)
-        return enumerations.enumerationLiterals//
-            .filter { value.contains(it.name) }//
+    private fun getEnumerationValues(fieldName: String, value: List<*>): List<Identifier<out ILiteral>> =
+        workItemClient.resolveEnumeration(getAttribute(fieldName), null)
+            .enumerationLiterals
+            .filter { value.contains(it.name) }
             .map { it.identifier2 }
-    }
 
     private fun getCategoryName(value: ICategoryHandle): String {
         val common = teamRepository.getClientLibrary(IWorkItemCommon::class.java) as IWorkItemCommon
@@ -494,14 +468,16 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         issue: Issue,
         defaultsForNewIssue: DefaultsForNewIssue?
     ) {
-
         val targetIssue = (issue.proprietaryTargetInstance ?: getProprietaryIssue(issue)) as IWorkItem?
         when {
             targetIssue != null -> updateTargetIssue(targetIssue, issue)
             defaultsForNewIssue != null -> createTargetIssue(defaultsForNewIssue, issue)
             else -> {
                 val targetIssueKey = issue.keyFieldMapping!!.getKeyForTargetIssue().toString()
-                throw SynchronizationAbortedException("No target issue found for $targetIssueKey, and no defaults for creating issue were provided")
+                throw SynchronizationAbortedException(
+                    "No target issue found for $targetIssueKey," +
+                            " and no defaults for creating issue were provided"
+                )
             }
         }
     }
@@ -511,8 +487,8 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         val targetIssueKey = keyFieldMapping.getKeyForTargetIssue().toString()
 
         return if (targetIssueKey.isNotEmpty()) getProprietaryIssue(
-                targetKeyFieldName,
-                targetIssueKey
+            targetKeyFieldName,
+            targetIssueKey
         ) else null
     }
 
@@ -610,11 +586,12 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
             projectArea
         )
         val pollingIssueTypeFilter = Term(Term.Operator.OR)
-        setup.pollingIssueType?.split(",")?.forEach{it ->
+        setup.pollingIssueType?.split(",")?.forEach { it ->
             val typeExpression = AttributeExpression(
                 getQueryableAttribute(IWorkItem.TYPE_PROPERTY),
                 AttributeOperation.EQUALS,
-                it)
+                it
+            )
             pollingIssueTypeFilter.add(typeExpression)
         }
         val relevantIssuesTerm = Term(Term.Operator.OR)
@@ -739,14 +716,14 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         if (values is List<*>) {
             val fieldValues = values.filterIsInstance<Identifier<ILiteral>>()
             val stringIdentifiers = fieldValues.map { it.stringIdentifier }
-            return enumeration.enumerationLiterals//
-                .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }//
+            return enumeration.enumerationLiterals
+                .filter { stringIdentifiers.contains(it.identifier2.stringIdentifier) }
                 .map { it.name }
         }
         if (values is Identifier<*>) {
             val stringIdentifier = values.stringIdentifier
-            return enumeration.enumerationLiterals//
-                .filter { it.identifier2.stringIdentifier == stringIdentifier }//
+            return enumeration.enumerationLiterals
+                .filter { it.identifier2.stringIdentifier == stringIdentifier }
                 .map { it.name }
         }
         throw IllegalArgumentException("The field $fieldName was expected to return an array, got $values instead. Did you forget to configure the MultiSelectionFieldMapper?")
@@ -778,7 +755,7 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
                     result.add(
                         StateHistory(
                             updateTimestamp,
-                                previousStateName,
+                            previousStateName,
                             workflowInfo.getStateName(it.state2)
                         )
                     )
@@ -883,13 +860,13 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    inner class RtcIssueQueryBuilder: IssueQueryBuilder {
+    inner class RtcIssueQueryBuilder : IssueQueryBuilder {
 
         override fun build(field: Any, fieldValue: String): Any {
             return AttributeExpression(
-                    field as IQueryableAttribute?,
-                    AttributeOperation.EQUALS,
-                    fieldValue
+                field as IQueryableAttribute?,
+                AttributeOperation.EQUALS,
+                fieldValue
             )
         }
 

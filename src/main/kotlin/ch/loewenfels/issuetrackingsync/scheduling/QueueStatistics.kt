@@ -27,9 +27,6 @@ data class QueueStatistics(
     val memoryUsage: Long,
     val memoryUsageInPercent: Long
 ) {
-    val memoryPercentUsage: Double
+    val memoryPercentUsage: Double = memoryUsageInPercent / 100.0
 
-    init {
-        memoryPercentUsage = memoryUsageInPercent / 100.0
-    }
 }

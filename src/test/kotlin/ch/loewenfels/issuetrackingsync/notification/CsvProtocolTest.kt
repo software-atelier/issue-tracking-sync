@@ -32,14 +32,10 @@ internal class CsvProtocolTest {
         return properties
     }
 
-    private fun createSyncActions(): Map<SyncActionName, SynchronizationAction> {
-        return mapOf<SyncActionName, SynchronizationAction>(
-            Pair(
-                "SynchronizeTimeJiraToRtc",
-                SimpleSynchronizationAction("CSV")
-            )
+    private fun createSyncActions(): Map<SyncActionName, SynchronizationAction> =
+        mapOf<SyncActionName, SynchronizationAction>(
+            "SynchronizeTimeJiraToRtc" to SimpleSynchronizationAction("CSV")
         )
-    }
 
     private fun assertCsvEntry(issue: Issue, properties: NotificationChannelProperties) {
         val file = File(properties.endpoint)

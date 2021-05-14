@@ -2,7 +2,6 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import com.atlassian.event.api.EventPublisher
 import com.atlassian.httpclient.apache.httpcomponents.DefaultHttpClientFactory
-import com.atlassian.httpclient.api.HttpClient
 import com.atlassian.httpclient.api.factory.HttpClientOptions
 import com.atlassian.jira.rest.client.api.AuthenticationHandler
 import com.atlassian.jira.rest.client.internal.async.AsynchronousHttpClientFactory
@@ -23,9 +22,9 @@ import javax.annotation.Nonnull
 class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
 
     fun createClient(
-            serverUri: URI,
-            authenticationHandler: AuthenticationHandler,
-            socketTimeout: Int
+        serverUri: URI,
+        authenticationHandler: AuthenticationHandler,
+        socketTimeout: Int
     ): DisposableHttpClient {
         val options = HttpClientOptions()
         options.setSocketTimeout(socketTimeout, TimeUnit.MILLISECONDS)
@@ -33,20 +32,21 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
         return createHttpClient(serverUri, authenticationHandler, options)
     }
 
-    private fun createHttpClient(serverUri: URI,
-                                 authenticationHandler: AuthenticationHandler,
-                                 options: HttpClientOptions
+    private fun createHttpClient(
+        serverUri: URI,
+        authenticationHandler: AuthenticationHandler,
+        options: HttpClientOptions
     ): AtlassianHttpClientDecorator {
         val defaultHttpClientFactory: DefaultHttpClientFactory<*> = DefaultHttpClientFactory(NoOpEventPublisher(),
-                RestClientApplicationProperties(serverUri),
-                object : ThreadLocalContextManager<Any?> {
-                    override fun getThreadLocalContext(): Any? {
-                        return null
-                    }
+            RestClientApplicationProperties(serverUri),
+            object : ThreadLocalContextManager<Any?> {
+                override fun getThreadLocalContext(): Any? {
+                    return null
+                }
 
-                    override fun setThreadLocalContext(context: Any?) {}
-                    override fun clearThreadLocalContext() {}
-                })
+                override fun setThreadLocalContext(context: Any?) {}
+                override fun clearThreadLocalContext() {}
+            })
         val httpClient = defaultHttpClientFactory.create(options)
         return object : AtlassianHttpClientDecorator(httpClient, authenticationHandler) {
             @Throws(Exception::class)
@@ -107,7 +107,7 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
             return 0.toString()
         }
 
-        override fun getHomeDirectory(): File? {
+        override fun getHomeDirectory(): File {
             return File(".")
         }
 
@@ -124,7 +124,13 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
             val props = Properties()
             var resourceAsStream: InputStream? = null
             return try {
-                resourceAsStream = MavenUtils::class.java.getResourceAsStream(String.format("/META-INF/maven/%s/%s/pom.properties", groupId, artifactId))
+                resourceAsStream = MavenUtils::class.java.getResourceAsStream(
+                    String.format(
+                        "/META-INF/maven/%s/%s/pom.properties",
+                        groupId,
+                        artifactId
+                    )
+                )
                 props.load(resourceAsStream)
                 props.getProperty("version", UNKNOWN_VERSION)
             } catch (e: Exception) {

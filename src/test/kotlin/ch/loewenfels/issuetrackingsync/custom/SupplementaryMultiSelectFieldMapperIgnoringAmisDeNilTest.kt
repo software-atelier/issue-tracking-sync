@@ -7,8 +7,8 @@ import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNilTest : AbstractSpringTest() {
@@ -31,7 +31,7 @@ internal class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNilTest : Abstra
         // act
         testee.setValue(issue, jiraFieldname, issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient)
+        verify(targetClient)
             .setValue(issue, issue, jiraFieldname, arrayListOf("AKB", "IAS", "GE"))
     }
 
@@ -49,17 +49,11 @@ internal class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNilTest : Abstra
         // act
         testee.setValue(issue, jiraFieldname, issue, targetClient, value)
         // assert
-        Mockito.verify(targetClient)
+        verify(targetClient)
             .setValue(issue, issue, jiraFieldname, arrayListOf("AKB", "IAS"))
     }
 
     private fun buildTestee(): SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil {
-        val associations =
-            mutableMapOf(
-                "BE" to "BE",
-                "TI" to "TI"
-            )
-
         val fieldDefinition = FieldMappingDefinition(
             rtcFieldname, jiraFieldname,
             MultiSelectionFieldMapper::class.toString()

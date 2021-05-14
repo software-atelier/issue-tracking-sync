@@ -9,7 +9,10 @@ import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 
 @Component
-class SyncRequestProducer(private val jmsTemplate: JmsTemplate, private val objectMapper: ObjectMapper) : Logging {
+class SyncRequestProducer(
+    private val jmsTemplate: JmsTemplate,
+    private val objectMapper: ObjectMapper
+) : Logging {
     fun queue(issue: Issue) {
         logger().debug("Queueing {}", issue)
         val syncRequestAsJson = objectMapper.writeValueAsString(

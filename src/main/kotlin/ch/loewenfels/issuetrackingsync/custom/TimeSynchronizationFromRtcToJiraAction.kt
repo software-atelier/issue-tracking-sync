@@ -8,8 +8,12 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import com.atlassian.jira.rest.client.api.domain.TimeTracking
 
-class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchronizationAction(actionName) {
-    private val fieldMapping: List<FieldMapping> = listOf(FieldMapping("", "", TimeSynchronizationFromRtcToJiraMapper()))
+class TimeSynchronizationFromRtcToJiraAction(
+    actionName: String
+) : SimpleSynchronizationAction(actionName) {
+
+    private val fieldMapping: List<FieldMapping> =
+        listOf(FieldMapping("", "", TimeSynchronizationFromRtcToJiraMapper()))
 
     override fun execute(
         sourceClient: IssueTrackingClient<Any>,
@@ -28,7 +32,6 @@ class TimeSynchronizationFromRtcToJiraAction(actionName: String) : SimpleSynchro
             "timeTracking.timeSpentMinutes",
             "timeTracking.remainingEstimateMinutes"
         )
-        private val ignoreCorrectionState = listOf("Bereit zur Abnahme", "In Abnahme", "Abnahme angehalten", "Resolved", "Closed")
 
         override fun <T> getValue(
             proprietaryIssue: T,

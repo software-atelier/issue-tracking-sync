@@ -63,9 +63,8 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         proprietaryIssueBuilder: Any,
         fieldname: String
     ) {
-        val sortedVersions = jiraVersions.filterIsInstance<String>()///
-            .map { createVersion(it) }
-            .filterNotNull()
+        val sortedVersions = jiraVersions.filterIsInstance<String>()
+            .mapNotNull { createVersion(it) }
             .sorted()
         val jiraVersionToSync = sortedVersions.firstOrNull()?.toString()
         checkNotNull(jiraVersionToSync) {
@@ -132,24 +131,23 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         return null
     }
 
-    inner class Version(val minor: Int, val major: Int, val bugfix: Int?) : Comparable<Version> {
+    inner class Version(
+        private val minor: Int,
+        private val major: Int,
+        private val bugfix: Int?
+    ) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
-            if (this.minor != other.minor) {
-                return this.minor - other.minor
-            } else if (this.major != other.major) {
-                return this.major - other.major
-            } else if (this.getBugFixOrZero() != other.getBugFixOrZero()) {
-                return other.getBugFixOrZero() - this.getBugFixOrZero()
+            return when {
+                this.minor != other.minor -> this.minor - other.minor
+                this.major != other.major -> this.major - other.major
+                this.getBugFixOrZero() != other.getBugFixOrZero() -> other.getBugFixOrZero() - this.getBugFixOrZero()
+                else -> 0
             }
-            return 0
         }
 
-        fun getBugFixOrZero() = bugfix ?: 0
+        private fun getBugFixOrZero() = bugfix ?: 0
 
-        override fun toString(): String {
-            val delemiter = "."
-            return minor.toString() + delemiter + major.toString() + (bugfix?.let { delemiter + it } ?: "")
-        }
+        override fun toString(): String = """$minor.$major${bugfix?.let { ".$it" } ?: ""}"""
     }
 
 }

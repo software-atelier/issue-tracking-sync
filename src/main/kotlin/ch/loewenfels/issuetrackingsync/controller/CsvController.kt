@@ -6,6 +6,8 @@ import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import java.io.FileInputStream
+import java.io.IOException
+import java.io.PrintStream
 import javax.servlet.http.HttpServletResponse
 
 @Controller
@@ -15,10 +17,16 @@ class CsvController(
 
     @GetMapping("/protocolCsv")
     fun downloadCsv(response: HttpServletResponse) {
-        val file = (properties.notificationChannels.first { it is CsvProtocol } as CsvProtocol).file
-        response.setContentType("text/csv")
-        response.setHeader("Content-Disposition", "attachment; filename=\"protocol.csv\"")
-        FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
+        val file = properties.notificationChannels.filterIsInstance<CsvProtocol>().first().file
+        response.contentType = "text/csv"
+        response.setHeader(
+            "Content-Disposition", "attachment; filename=\"protocol.csv\""
+        )
+        try {
+            FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
+        } catch (e: IOException) {
+            e.printStackTrace(PrintStream(response.outputStream))
+        }
         response.outputStream.close()
     }
 }

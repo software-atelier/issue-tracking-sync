@@ -2,7 +2,7 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
@@ -10,10 +10,10 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.*
 import java.time.LocalDateTime
 
 /**
@@ -27,7 +27,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         verifySetup(testee)
         // act
-        val issue = testee.use{ client -> client.getIssue("DEV-44692") }
+        val issue = testee.use { client -> client.getIssue("DEV-44692") }
         // assert
         assertNotNull(issue)
         assertEquals("DEV-44692", issue?.key)
@@ -40,7 +40,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         verifySetup(testee)
         val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
         // act
-        val html = testee.use{ client -> client.getHtmlValue(issue, "description") }
+        val html = testee.use { client -> client.getHtmlValue(issue, "description") }
         // assert
         assertNotNull(issue)
         assertThat(html, containsString("<h4>"))
@@ -53,7 +53,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         verifySetup(testee)
         val lastUpdated = LocalDateTime.now().minusDays(2)
         // act
-        val issues = testee.use{ client -> client.changedIssuesSince(lastUpdated, 0, 50) }
+        val issues = testee.use { client -> client.changedIssuesSince(lastUpdated, 0, 50) }
         // assert
         assertNotNull(issues)
     }
@@ -64,7 +64,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         verifySetup(testee)
         // act
-        testee.use{ client -> client.listFields() }
+        testee.use { client -> client.listFields() }
     }
 
     @Test
@@ -73,7 +73,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         val testee = JiraClient(buildSetup())
         val issue = testee.getProprietaryIssue("DEV-44692") ?: throw IllegalArgumentException("Unknown key")
         // act
-        val comments = testee.use{ client -> client.getComments(issue) }
+        val comments = testee.use { client -> client.getComments(issue) }
         // assert
         assertNotNull(comments)
         assertEquals(2, comments.size)
@@ -82,30 +82,30 @@ internal class JiraClientTest : AbstractSpringTest() {
     @Test
     fun setValue_listOfLabels_setLabelsFieldCalled() {
         // arrange
-        val sourceIssue = TestObjects.buildIssue("MK-1")
-        val targetIssue = Mockito.mock(Issue::class.java)
+        val sourceIssue = buildIssue("MK-1")
+        val targetIssue = mock(Issue::class.java)
         sourceIssue.proprietaryTargetInstance = targetIssue
-        val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
+        val issueInputBuilder = mock(IssueInputBuilder::class.java)
         val listOfLabels = arrayListOf("nextSprint", "bug")
         val testee = JiraClient(buildSetup())
         // act
-        testee.use{ client -> client.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels) }
+        testee.use { client -> client.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels) }
         // assert
-        Mockito.verify(issueInputBuilder).setFieldValue(IssueFieldId.LABELS_FIELD.id, listOfLabels)
+        verify(issueInputBuilder).setFieldValue(IssueFieldId.LABELS_FIELD.id, listOfLabels)
     }
 
     @Test
     fun setValue_emptyLabel_setLabelsFieldNotCalled() {
         // arrange
-        val sourceIssue = TestObjects.buildIssue("MK-1")
-        val targetIssue = Mockito.mock(Issue::class.java)
+        val sourceIssue = buildIssue("MK-1")
+        val targetIssue = mock(Issue::class.java)
         sourceIssue.proprietaryTargetInstance = targetIssue
-        val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
+        val issueInputBuilder = mock(IssueInputBuilder::class.java)
         val testee = JiraClient(buildSetup())
         // act
-        testee.use{ client -> client.setValue(issueInputBuilder, sourceIssue, "labels", arrayListOf<String>()) }
+        testee.use { client -> client.setValue(issueInputBuilder, sourceIssue, "labels", arrayListOf<String>()) }
         // assert
-        Mockito.verifyNoInteractions(issueInputBuilder)
+        verifyNoInteractions(issueInputBuilder)
     }
 
     private fun buildSetup(): IssueTrackingApplication {
@@ -123,9 +123,9 @@ internal class JiraClientTest : AbstractSpringTest() {
     private fun verifySetup(client: JiraClient) {
         try {
             val greeting = client.verifySetup()
-            Assumptions.assumeTrue(greeting.isNotEmpty())
+            assumeTrue(greeting.isNotEmpty())
         } catch (ex: Exception) {
-            Assumptions.assumeTrue(false)
+            assumeTrue(false)
         }
     }
 }

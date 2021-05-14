@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 import java.io.IOException
-import java.util.Objects
+import java.util.*
 
 data class Settings(
     var earliestSyncDate: String? = null,
@@ -43,7 +43,7 @@ data class Settings(
         actionDefinitions.flatMap { it.fieldMappingDefinitions }.forEach { fldMapping ->
             mapAssociations(fldMapping)
 
-            fldMapping.fieldSkipEvalutors.map { fldSkipEvaluator ->
+            fldMapping.fieldSkipEvaluators.map { fldSkipEvaluator ->
                 mapAssociations(fldSkipEvaluator)
             }
         }
@@ -53,7 +53,7 @@ data class Settings(
             fieldMapping.associations.remove("#common")
             fieldMapping.associations.putAll(
                 if (invert) {
-                    it.entries.associate { (k, v) -> v to k }.toMutableMap()
+                    it.entries.associate { (k, v) -> v to k }.toMap()
                 } else {
                     it
                 }
@@ -70,5 +70,4 @@ data class Settings(
             }
         }
     }
-
 }

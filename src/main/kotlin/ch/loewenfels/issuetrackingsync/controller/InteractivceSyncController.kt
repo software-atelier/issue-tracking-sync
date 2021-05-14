@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.util.*
 
 @RestController
 class InteractivceSyncController(
@@ -44,7 +44,8 @@ class InteractivceSyncController(
         val nextPollingDate = cronTrigger.next(Date())
         return mapOf(
             "Next run" to SimpleDateFormat(dateFormat).format(nextPollingDate),
-            "Process issues updated after" to DateTimeFormatter.ofPattern(dateFormat).format(appState.lastPollingTimestamp)
+            "Process issues updated after" to DateTimeFormatter.ofPattern(dateFormat)
+                .format(appState.lastPollingTimestamp)
         )
     }
 
@@ -52,9 +53,9 @@ class InteractivceSyncController(
     fun manualSync(@RequestBody body: Map<String, String>): Map<String, String> {
         val trackingApplications = settings.trackingApplications
         val issueKey = body.getValue(HTTP_PARAMNAME_ISSUEKEY)
-        val trackingApplication = trackingApplications.map { it to retrieveIssue(issueKey, it) }//
-            .sortedByDescending { (_, issue) -> issue?.lastUpdated }//
-            .first()//
+        val trackingApplication = trackingApplications.map { it to retrieveIssue(issueKey, it) }
+            .sortedByDescending { (_, issue) -> issue?.lastUpdated }
+            .first()
             .first
         val resultMessage = loadAndQueueIssue(issueKey, trackingApplication)
         return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to resultMessage)
@@ -62,12 +63,12 @@ class InteractivceSyncController(
 
     @PutMapping("/earliestSyncDate")
     fun updateStartDateTime(@RequestBody body: Map<String, String>): Map<String, String> {
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyyHH:mm");
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyyHH:mm")
         val date = body.getValue("date")
         val time = body.getValue("time")
 
         try {
-            val dateTime = LocalDateTime.parse(date + time, formatter);
+            val dateTime = LocalDateTime.parse(date + time, formatter)
             appState.lastPollingTimestamp = dateTime
         } catch (e: Exception) {
             return mapOf(HTTP_PARAMNAME_RESPONSEMESSAGE to "Could not update earliest sync date")
@@ -84,10 +85,11 @@ class InteractivceSyncController(
 
     private fun retrieveIssue(key: String, trackingApplication: IssueTrackingApplication): Issue? {
         return try {
-            clientFactory.getClient(trackingApplication).use{ client -> client.getIssue(key) }
+            clientFactory.getClient(trackingApplication).use { client -> client.getIssue(key) }
         } catch (ex: Exception) {
             when (ex) {
-                is RestClientException, is NumberFormatException -> null
+                is RestClientException,
+                is NumberFormatException -> null
                 else -> throw ex
             }
         }

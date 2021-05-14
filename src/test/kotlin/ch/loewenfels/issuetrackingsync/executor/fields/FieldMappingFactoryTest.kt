@@ -24,5 +24,9 @@ internal class FieldMappingFactoryTest {
         assertThrows(IllegalArgumentException::class.java) { FieldMappingFactory.getMapping(unknownMapping) }
     }
 
-    private fun buildFieldMappingDefinition(className: String) = FieldMappingDefinition("", "", className)
+    private fun buildFieldMappingDefinition(className: String) = FieldMappingDefinition(
+        "", "", className, associations = mutableMapOf(
+            "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+        )
+    )
 }

@@ -34,8 +34,8 @@ object JiraMetadata {
         name: String,
         jiraRestClient: JiraRestClient
     ): Long {
-        return name.toLongOrNull() //
-            ?: collection[name] //
+        return name.toLongOrNull()
+            ?: collection[name]
             ?: run {
                 loadIssueTypes(jiraRestClient)
                 loadPriorities(jiraRestClient)
@@ -61,7 +61,7 @@ object JiraMetadata {
         internalId: Long?,
         jiraRestClient: JiraRestClient
     ): String {
-        return collection[internalName] as String? //
+        return collection[internalName] as String?
             ?: collection.filterValues { it == internalId }.keys.firstOrNull() as String?
             ?: run {
                 loadPriorities(jiraRestClient)

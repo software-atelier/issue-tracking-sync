@@ -16,6 +16,7 @@ import java.io.File
 internal class SettingsTest : AbstractSpringTest() {
     @Autowired
     lateinit var objectMapper: ObjectMapper
+
     @Autowired
     lateinit var syncApplicationProperties: SyncApplicationProperties
 
@@ -39,12 +40,12 @@ internal class SettingsTest : AbstractSpringTest() {
         assertEquals("cantons", cantonMapping.sourceName, "Source property of third field mapping")
         assertEquals(23, cantonMapping.associations.size, "Size of 'associations' map")
         assertEquals("NW,OW", cantonMapping.associations["Unterwalden"], "Common entry loading")
-        //
+
         val cantonMappingExtended = actionDefinition.fieldMappingDefinitions[3]
         assertEquals("cantons_ext", cantonMappingExtended.sourceName, "Source property of fourth field mapping")
         assertEquals(24, cantonMappingExtended.associations.size, "Size of 'associations' map")
         assertEquals("BE", cantonMappingExtended.associations["AKB"], "Additional mappings are loaded")
-        //
+
         val cantonMappingTwoCommonEntries = actionDefinition.fieldMappingDefinitions[4]
         assertEquals(
             "cantons_two_commons",
@@ -53,13 +54,13 @@ internal class SettingsTest : AbstractSpringTest() {
         )
         assertEquals(24, cantonMappingTwoCommonEntries.associations.size, "Size of 'associations' map")
         assertEquals("BE", cantonMappingTwoCommonEntries.associations["AKB"], "Additional mappings are loaded")
-        //
+
         val jiraToRtcAction = result.actionDefinitions[1]
         assertEquals("SimpleFieldsJiraToRtc", jiraToRtcAction.name, "Name of first action definition")
         val reversedCantonMapping = jiraToRtcAction.fieldMappingDefinitions[2]
         assertEquals(23, reversedCantonMapping.associations.size, "Size of 'associations' map")
         assertEquals("Unterwalden", reversedCantonMapping.associations["NW,OW"], "Common entry loading, reversed")
-        //
+
         assertEquals(1, result.syncFlowDefinitions.size, "Count of configured flows")
         val syncFlow = result.syncFlowDefinitions[0]
         assertEquals("id", syncFlow.keyFieldMappingDefinition.sourceName, "source property name for key field mapping")

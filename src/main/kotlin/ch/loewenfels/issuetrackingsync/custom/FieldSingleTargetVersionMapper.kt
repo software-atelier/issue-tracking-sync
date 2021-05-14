@@ -6,7 +6,6 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.syncclient.rtc.RtcClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
-import com.atlassian.jira.rest.client.api.domain.Version
 import com.ibm.team.workitem.common.model.IWorkItem
 import org.codehaus.jettison.json.JSONObject
 
@@ -52,14 +51,6 @@ class FieldSingleTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinit
 
         }
     }
-
-    private fun isJiraIssueSolved(issue: Issue): Boolean {
-        val jiraStatus = getJiraStatus(issue)
-        return jiraStatus == "erledigt" || jiraStatus == "geschlossen"
-    }
-
-    private fun getJiraStatus(issue: Issue): String =
-        (issue.proprietarySourceInstance as com.atlassian.jira.rest.client.api.domain.Issue).status.name
 
     private fun mergeToRtc(
         jiraVersion: String,
@@ -118,35 +109,4 @@ class FieldSingleTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinit
             }
         }
     }
-
-    private fun createVersion(version: String): Version? {
-        val versionRegex = "^(\\d)\\.(\\d+)\\.?(\\d*(?!.*\\.nil))".toRegex()
-        val extractedVersions = versionRegex.find(version)?.groupValues?.mapNotNull { it.toIntOrNull() }
-        extractedVersions?.let {
-            if (extractedVersions.size >= 2)
-                return Version(extractedVersions[0], extractedVersions[1], extractedVersions.getOrNull(2))
-        }
-        return null
-    }
-
-    inner class Version(val minor: Int, val major: Int, val bugfix: Int?) : Comparable<Version> {
-        override fun compareTo(other: Version): Int {
-            if (this.minor != other.minor) {
-                return this.minor - other.minor
-            } else if (this.major != other.major) {
-                return this.major - other.major
-            } else if (this.getBugFixOrZero() != other.getBugFixOrZero()) {
-                return this.getBugFixOrZero() - other.getBugFixOrZero()
-            }
-            return 0
-        }
-
-        fun getBugFixOrZero() = bugfix ?: 0
-
-        override fun toString(): String {
-            val delemiter = "."
-            return minor.toString() + delemiter + major.toString() + (bugfix?.let { delemiter + it } ?: "")
-        }
-    }
-
 }

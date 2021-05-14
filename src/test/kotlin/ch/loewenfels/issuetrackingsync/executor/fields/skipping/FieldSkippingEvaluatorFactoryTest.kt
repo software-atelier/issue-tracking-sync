@@ -2,7 +2,7 @@ package ch.loewenfels.issuetrackingsync.executor.fields.skipping
 
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldSkippingEvaluatorDefinition
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class FieldSkippingEvaluatorFactoryTest {
@@ -13,8 +13,8 @@ class FieldSkippingEvaluatorFactoryTest {
         // act
         val evaluator = FieldSkippingEvaluatorFactory.getEvaluators(mapping)
         // assert
-        Assertions.assertTrue(evaluator.size > 0)
-        Assertions.assertNotNull(evaluator[0])
+        assertTrue(evaluator.size > 0)
+        assertNotNull(evaluator[0])
     }
 
     @Test
@@ -22,18 +22,15 @@ class FieldSkippingEvaluatorFactoryTest {
         // arrange
         val unknownMapping = buildFieldMappingDefinition(mutableListOf("ch.loewenfels.MapperDoesntExist"))
         // act
-        Assertions.assertThrows(IllegalArgumentException::class.java) {
-            FieldSkippingEvaluatorFactory.getEvaluators(
-                unknownMapping
-            )
+        assertThrows(IllegalArgumentException::class.java) {
+            FieldSkippingEvaluatorFactory.getEvaluators(unknownMapping)
         }
     }
 
     private fun buildFieldMappingDefinition(evaluatorClassNames: MutableList<String>) =
         FieldMappingDefinition(
-            "",
-            "",
-            "",
-            fieldSkipEvalutors = evaluatorClassNames.map { FieldSkippingEvaluatorDefinition(classname = it) }.toMutableList()
+            "", "", "",
+            fieldSkipEvaluators = evaluatorClassNames.map { FieldSkippingEvaluatorDefinition(classname = it) }
+                .toMutableList()
         )
 }

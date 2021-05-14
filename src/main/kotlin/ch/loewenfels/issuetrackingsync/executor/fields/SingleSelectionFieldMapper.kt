@@ -38,14 +38,6 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         }
     }
 
-    private fun computeValue(key: String): String? {
-        if (associations.containsKey(key)) {
-            return associations[key]
-        }
-        if (associations.containsKey(keyFallback)) {
-            return associations[keyFallback]
-        }
-
-        return null
-    }
+    private fun computeValue(key: String): String? =
+        associations[key] ?: associations[keyFallback]
 }

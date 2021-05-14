@@ -20,13 +20,13 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 @SpringBootApplication(
-    scanBasePackages = ["ch.loewenfels.issuetrackingsync.controller",//
-        "ch.loewenfels.issuetrackingsync.scheduling", //
+    scanBasePackages = [
+        "ch.loewenfels.issuetrackingsync.controller",
+        "ch.loewenfels.issuetrackingsync.scheduling",
         "ch.loewenfels.issuetrackingsync.executor"
     ]
 )
 @EnableScheduling
-// @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableConfigurationProperties(SyncApplicationProperties::class)
 @ImportResource("classpath:activemq.xml")
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {

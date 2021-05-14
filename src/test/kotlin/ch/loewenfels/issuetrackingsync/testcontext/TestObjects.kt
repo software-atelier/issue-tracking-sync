@@ -9,12 +9,7 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
-import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
-import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncActionDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.SyncFlowDefinition
-import ch.loewenfels.issuetrackingsync.syncconfig.TrackingApplicationName
+import ch.loewenfels.issuetrackingsync.syncconfig.*
 import org.mockito.Mockito.spy
 import java.time.LocalDateTime
 
@@ -43,14 +38,20 @@ object TestObjects {
     private fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
         FieldMappingDefinition(
             "id",
-            "custom_field_10244"
+            "custom_field_10244",
+            associations = mutableMapOf(
+                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+            )
         )
 
     private fun buildWriteBackFieldMappingDefinition(): List<FieldMappingDefinition> =
         listOf(
             FieldMappingDefinition(
                 "key",
-                "ch.foobar.team.workitem.attribute.external_refid"
+                "ch.foobar.team.workitem.attribute.external_refid",
+                associations = mutableMapOf(
+                    "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+                )
             )
         )
 
@@ -58,7 +59,11 @@ object TestObjects {
         mutableListOf(buildFieldMappingDefinition())
 
     private fun buildFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition("title", "summary")
+        FieldMappingDefinition(
+            "title", "summary", associations = mutableMapOf(
+                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+            )
+        )
 
     fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
 

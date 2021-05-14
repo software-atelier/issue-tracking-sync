@@ -21,8 +21,8 @@ import kotlin.random.Random
 
 open class MockJiraClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
-        Issue("MK-1", setup.name, LocalDateTime.now().minusHours(2)),//
-        Issue("MK-2", setup.name, LocalDateTime.now().minusHours(3)),//
+        Issue("MK-1", setup.name, LocalDateTime.now().minusHours(2)),
+        Issue("MK-2", setup.name, LocalDateTime.now().minusHours(3)),
         Issue("MK-3", setup.name, LocalDateTime.now().minusHours(4))
     )
 

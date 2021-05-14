@@ -1,7 +1,6 @@
 package ch.loewenfels.issuetrackingsync.controller
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -12,8 +11,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 internal class WebhookControllerTest : AbstractSpringTest() {
     @Autowired
     lateinit var mockMvc: MockMvc
-    @Autowired
-    lateinit var objectMapper: ObjectMapper
 
     @Test
     fun triggerSyncRequest_sourceNotSupportingWebhook_shouldHaveStatusError() {

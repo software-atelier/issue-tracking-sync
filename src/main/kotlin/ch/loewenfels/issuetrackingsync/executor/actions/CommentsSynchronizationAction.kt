@@ -39,13 +39,13 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
             val targetComments = targetClient.getComments(internalTargetIssue)
             val commentsToSync =
                 getSourceCommentsNotPresentInTarget(sourceComments, targetComments, additionalProperties?.commentFilter)
-            commentsToSync //
-                .map { mapContentOfComment(it, additionalProperties) }//
+            commentsToSync
+                .map { mapContentOfComment(it, additionalProperties) }
                 .forEach {
                     targetClient.addComment(internalTargetIssue, it)
                     issue.workLog.add("Added comment from ${it.author} created ${it.timestamp}")
                 }
-            if (!commentsToSync.isEmpty()) {
+            if (commentsToSync.isNotEmpty()) {
                 issue.hasChanges = true
             }
         } else {
@@ -68,21 +68,19 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
     private fun replacePlaceholders(
         containingPlaceholders: String,
         comment: Comment
-    ): String {
-        return containingPlaceholders
-            .replace("\${author}", comment.author)//
-            .replace("\${id}", comment.internalId)//
-            .replace("\${time}", comment.timestamp.format(timeFormatter)) //
-            .replace("\${date}", comment.timestamp.format(dateFormatter)) //
-    }
+    ): String = containingPlaceholders
+        .replace("\${author}", comment.author)
+        .replace("\${id}", comment.internalId)
+        .replace("\${time}", comment.timestamp.format(timeFormatter))
+        .replace("\${date}", comment.timestamp.format(dateFormatter))
 
     private fun getSourceCommentsNotPresentInTarget(
         sourceComments: List<Comment>,
         targetComments: List<Comment>,
         commentFilters: List<configCommentFilter>?
-    ): List<Comment> =
-        sourceComments.filter { src -> !isSourcePresentInTarget(src, targetComments) }
-            .filter(CommentFilterFactory.create(commentFilters)).toList()
+    ): List<Comment> = sourceComments
+        .filter { src -> !isSourcePresentInTarget(src, targetComments) }
+        .filter(CommentFilterFactory.create(commentFilters))
 
     companion object {
         fun isSourcePresentInTarget(
@@ -90,13 +88,13 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
             targetComments: List<Comment>
         ): Boolean =
             targetComments.any { targetComment ->
-                sourceComment.content.contains(targetComment.content) //
-                        || targetComment.content.contains(sourceComment.content) //
+                sourceComment.content.contains(targetComment.content)
+                        || targetComment.content.contains(sourceComment.content)
                         // if the source comment contains the internal ID of a target, it must have been sync'ed
                         // from another system, so don't sync it back anywhere
-                        || sourceComment.content.contains(targetComment.internalId) //
+                        || sourceComment.content.contains(targetComment.internalId)
                         // a match here means the source comment was already synced to the target system
-                        || targetComment.content.contains(sourceComment.internalId) //
+                        || targetComment.content.contains(sourceComment.internalId)
             }
     }
 
@@ -117,10 +115,12 @@ class CommentsSynchronizationAction : AbstractSynchronizationAction(),
                 val someList: MutableList<(Comment) -> Boolean> = mutableListOf()
                 commentFilters.forEach {
                     try {
-                        someList.add((Class.forName(it.filterClassname).getDeclaredConstructor(Map::class.java).newInstance(it.filterProperties) as CommentFilter).getFilter())
+                        someList.add(
+                            (Class.forName(it.filterClassname).getDeclaredConstructor(Map::class.java)
+                                .newInstance(it.filterProperties) as CommentFilter).getFilter()
+                        )
                     } catch (e: Exception) {
-                        logger().error("Failed to create $it" +
-                                "\nException was: ${e.message}")
+                        logger().error("Failed to create $it\nException was: ${e.message}")
                     }
                 }
                 return someList

@@ -57,8 +57,8 @@ class IssuePoller @Autowired constructor(
         val polledIssues = mutableMapOf<IssueTrackingApplication, MutableList<Issue>>()
         settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
             logger().info("Checking for issues for {}", trackingApp.name)
-            clientFactory.getClient(trackingApp).use{
-                    client -> polledIssues.put(trackingApp, pollIssuesInBatches(client))
+            clientFactory.getClient(trackingApp).use { client ->
+                polledIssues.put(trackingApp, pollIssuesInBatches(client))
             }
         }
         return polledIssues
@@ -96,26 +96,23 @@ class IssuePoller @Autowired constructor(
     }
 
     private fun resolveConflicts(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
-        val allIssues = polledIssues.values.flatMap { it }
+        val allIssues = polledIssues.values.flatten()
         val sourceKeys = allIssues.map { it.key }
-        val allConflictingIssues = allIssues
-            .filter { sourceKeys.contains(it.targetKey) }
+        val allConflictingIssues = allIssues.filter { sourceKeys.contains(it.targetKey) }
         val outdatedIssues = allConflictingIssues.map { issue ->
             val relatedIssue = allConflictingIssues.find { it.key == issue.targetKey }
-            listOf(issue, relatedIssue!!).stream().min(compareLastUpdatedDate()).get()
+            listOf(issue, relatedIssue!!).minBy(Issue::lastUpdated)
         }
         removeOutdatedIssues(polledIssues, outdatedIssues)
     }
 
     private fun removeOutdatedIssues(
-        polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>, issuesToRemove: List<Issue>
+        polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>, issuesToRemove: List<Issue?>
     ) {
         polledIssues.forEach { trackingApp ->
             trackingApp.value.removeAll { issuesToRemove.contains(it) }
         }
     }
-
-    private fun compareLastUpdatedDate() = Comparator.comparing(Issue::lastUpdated)
 
     private fun processChangedIssues(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
         polledIssues.forEach { (trackingApp, issues) ->

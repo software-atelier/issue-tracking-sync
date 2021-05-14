@@ -26,12 +26,12 @@ var sync = {
         $.get('/triggerPolling')
             .done(function (response) {
                 $('#manual-trigger-error').text("").hide();
-                $('#manual-trigger-status').text(response).show()//
+                $('#manual-trigger-status').text(response).show()
                     .delay(10000).fadeOut(1000);
             })
             .error(function (error) {
                 $('#manual-trigger-status').text("").hide();
-                $('#manual-trigger-error').text("An error occurred: " + error).show()//
+                $('#manual-trigger-error').text("An error occurred: " + error).show()
                     .delay(10000).fadeOut(1000);
             });
     },
@@ -77,14 +77,14 @@ var sync = {
             data: JSON.stringify(requestBody),
             success: function (data) {
                 $('#manual-sync-error').text("").hide();
-                $('#manual-sync-status').text(data.message).show()//
+                $('#manual-sync-status').text(data.message).show();
                 sync.updateStatistics();
                 $('#manual-sync-status').delay(10000).fadeOut(1000);
             },
             error: function (data) {
                 $('#manual-sync-status').text("").hide();
-                $('#manual-sync-error').text("An error occurred: " + data.message).show()//
-                    .dealy(10000).fadeOut(1000);
+                $('#manual-sync-error').text("An error occurred: " + data.message).show()
+                    .delay(10000).fadeOut(1000);
             }
         });
     },
@@ -101,12 +101,12 @@ var sync = {
             data: JSON.stringify(requestBody),
             success: function (data) {
                 $('#sync-date-error').text("").hide();
-                $('#sync-date-status').text(data.message).show()//
+                $('#sync-date-status').text(data.message).show()
                     .delay(10000).fadeOut(1000);
                 sync.readInfo()
             },
             error: function (data) {
-                $('#sync-date-error').text("An error occurred: " + data.message).show()//
+                $('#sync-date-error').text("An error occurred: " + data.message).show()
                     .delay(10000).fadeOut(1000);
                 $('#sync-date-status').text("").hide();
                 sync.readInfo()

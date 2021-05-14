@@ -8,7 +8,6 @@ import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMappingFactory
 import ch.loewenfels.issuetrackingsync.executor.preactions.PreAction
 import ch.loewenfels.issuetrackingsync.executor.preactions.PreActionEvent
-import ch.loewenfels.issuetrackingsync.logger
 import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
@@ -67,8 +66,8 @@ class SynchronizationFlow(
                 preActionClass.getDeclaredConstructor().newInstance()
             } catch (ignore: Exception) {
                 throw IllegalArgumentException(
-                        "Failed to instantiate pre action class ${preActionDefinition.className}",
-                        ignore
+                    "Failed to instantiate pre action class ${preActionDefinition.className}",
+                    ignore
                 )
             }
         }

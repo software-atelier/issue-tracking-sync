@@ -1,9 +1,11 @@
 package ch.loewenfels.issuetrackingsync.notification
 
-import ch.loewenfels.issuetrackingsync.*
+import ch.loewenfels.issuetrackingsync.Issue
+import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
 import ch.loewenfels.issuetrackingsync.executor.SyncActionName
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
+import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.apache.http.HttpEntity
@@ -20,23 +22,19 @@ import javax.net.ssl.SSLContext
 class SlackChannel(properties: NotificationChannelProperties) : NotificationChannel, Logging {
     private val timeoutInSeconds = 10
     private val objectMapper = ObjectMapper()
-    private val requestConfig: RequestConfig
-    private val sslContext: SSLContext
+    private val requestConfig: RequestConfig = RequestConfig.custom()
+        .setConnectTimeout(timeoutInSeconds * 1000)
+        .setConnectionRequestTimeout(timeoutInSeconds * 1000)
+        .setSocketTimeout(timeoutInSeconds * 1000)
+        .build()
+    private val sslContext: SSLContext = SSLContextBuilder.create().setProtocol("TLSv1.2").build()
     private val webhookUrl: String = properties.endpoint
     private val channel: String = properties.subject
     private val username: String = properties.username
     private val emoji: String = properties.avatar
+
     // added to allow for testing
     var injectedHttpClient: CloseableHttpClient? = null
-
-    init {
-        requestConfig = RequestConfig.custom()
-            .setConnectTimeout(timeoutInSeconds * 1000)
-            .setConnectionRequestTimeout(timeoutInSeconds * 1000)
-            .setSocketTimeout(timeoutInSeconds * 1000)
-            .build()
-        sslContext = SSLContextBuilder.create().setProtocol("TLSv1.2").build()
-    }
 
     override fun onSuccessfulSync(
         issue: Issue,
@@ -67,7 +65,7 @@ class SlackChannel(properties: NotificationChannelProperties) : NotificationChan
         val target = issue.targetUrl?.let { "<$it|${issue.targetKey ?: "Issue"}>" } ?: issue.targetKey ?: "Issue"
         val message = ":warning: Something went wrong synchronizing issue $source to $target\n" +
                 "Exception was: ${ex.message}\n" +
-                issue.workLog.joinToString(separator = "\n")
+                issue.workLog.joinToString("\n")
         sendMessage(message.trim())
     }
 

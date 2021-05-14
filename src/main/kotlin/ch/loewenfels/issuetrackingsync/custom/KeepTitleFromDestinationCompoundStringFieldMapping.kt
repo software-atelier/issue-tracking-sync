@@ -5,8 +5,9 @@ import ch.loewenfels.issuetrackingsync.executor.fields.CompoundStringFieldMapper
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
-class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition: FieldMappingDefinition) :
-    CompoundStringFieldMapper(fieldMappingDefinition) {
+class KeepTitleFromDestinationCompoundStringFieldMapping(
+    fieldMappingDefinition: FieldMappingDefinition
+) : CompoundStringFieldMapper(fieldMappingDefinition) {
 
     override fun <T> createSections(
         value: Any?,
@@ -24,16 +25,17 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
                 sections[fieldname] = preparedHtml
             }
             if (issue.proprietaryTargetInstance != null) {
-                val oldVal = (issueTrackingClient.getValue(issue.proprietaryTargetInstance as T, fieldname) ?: "").toString()
+                val oldVal =
+                    (issueTrackingClient.getValue(issue.proprietaryTargetInstance as T, fieldname) ?: "").toString()
                 if (null != anchorOpen && null != anchorClose) {
                     val indexOfOpen = oldVal.indexOf(anchorOpen)
                     val indexOfClose = oldVal.lastIndexOf(anchorClose)
                     if (indexOfOpen > -1 && indexOfClose > -1) {
                         val sectionFieldNameValue = sections[fieldname] ?: ""
                         sections[fieldname] = oldVal.replaceRange(
-                                indexOfOpen,
-                                indexOfClose + anchorClose.length,
-                                sectionFieldNameValue
+                            indexOfOpen,
+                            indexOfClose + anchorClose.length,
+                            sectionFieldNameValue
                         )
                     } else if (null != associations[""]) {
                         var preserveOldValue = oldVal
@@ -45,16 +47,18 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
                             preserveOldValue = oldVal.substring(indexOf + catchAll.length)
                         }
 
-                        sections[fieldname] = "$preserveOldValue\r\n\r\n$anchorOpen\r\n\r\n${oldValueComment}\r\n\r\n$anchorClose"
+                        sections[fieldname] =
+                            "$preserveOldValue\r\n\r\n$anchorOpen\r\n\r\n${oldValueComment}\r\n\r\n$anchorClose"
                     } else {
-                        sections[fieldname] = "$oldVal\r\n\r\n$anchorOpen\r\n\r\n${sections[fieldname]}\r\n\r\n$anchorClose"
+                        sections[fieldname] =
+                            "$oldVal\r\n\r\n$anchorOpen\r\n\r\n${sections[fieldname]}\r\n\r\n$anchorClose"
                     }
                 } else {
                     associations[""]?.let {
                         val indexOf = oldVal.indexOf(it)
                         if (indexOf >= 0) {
                             sections[fieldname] =
-                                    sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
+                                sections[fieldname] + oldVal.substring(oldVal.indexOf(it))
                         } else {
                             sections[fieldname] = sections[fieldname] + it + "\r\n\r\n"
                         }
@@ -69,7 +73,7 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
+    ): Any {
         val value = super.getValue(proprietaryIssue, fieldname, issueTrackingClient) as String
         associations[""]?.let {
             val indexOf = value.indexOf(it)
@@ -81,11 +85,11 @@ class KeepTitleFromDestinationCompoundStringFieldMapping(fieldMappingDefinition:
     }
 
     override fun <T> setValue(
-            proprietaryIssueBuilder: Any,
-            fieldname: String,
-            issue: Issue,
-            issueTrackingClient: IssueTrackingClient<in T>,
-            value: Any?
+        proprietaryIssueBuilder: Any,
+        fieldname: String,
+        issue: Issue,
+        issueTrackingClient: IssueTrackingClient<in T>,
+        value: Any?
     ) {
         val sections: MutableMap<String, String> = createSections(value, fieldname, issueTrackingClient, issue)
         fieldname.split(",").forEach {

@@ -10,40 +10,24 @@ import com.ibm.team.workitem.common.expression.IQueryableAttribute
 import com.ibm.team.workitem.common.expression.Term
 import com.ibm.team.workitem.common.model.AttributeOperation
 
-class RtcOrQueryFieldContainsMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
-    val separator = if (null != fieldMappingDefinition.associations["separator"]) fieldMappingDefinition.associations["separator"] else ";"
+class RtcOrQueryFieldContainsMapper(
+    fieldMappingDefinition: FieldMappingDefinition
+) : FieldMapper {
+    private val separator = fieldMappingDefinition.associations["separator"] ?: ";"
 
     override fun <T> getValue(
-            proprietaryIssue: T,
-            fieldname: String,
-            issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? {
+        proprietaryIssue: T,
+        fieldname: String,
+        issueTrackingClient: IssueTrackingClient<in T>
+    ): Any {
         val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)
 
         val result: ((attribute: IQueryableAttribute) -> Expression) = {
             val term = Term(Term.Operator.OR)
-            term.add(AttributeExpression(
-                    it,
-                    AttributeOperation.EQUALS,
-                    value
-            ));
-
-            term.add(AttributeExpression(
-                    it,
-                    AttributeOperation.EQUALS,
-                    "$separator$value$separator"
-            ));
-            term.add(AttributeExpression(
-                    it,
-                    AttributeOperation.STARTS_WITH,
-                    "$value$separator"
-            ));
-            term.add(AttributeExpression(
-                    it,
-                    AttributeOperation.ENDS_WITH,
-                    "$separator$value"
-            ));
-
+            term.add(AttributeExpression(it, AttributeOperation.EQUALS, value))
+            term.add(AttributeExpression(it, AttributeOperation.EQUALS, "$separator$value$separator"))
+            term.add(AttributeExpression(it, AttributeOperation.STARTS_WITH, "$value$separator"))
+            term.add(AttributeExpression(it, AttributeOperation.ENDS_WITH, "$separator$value"))
             term
         }
 
@@ -51,11 +35,11 @@ class RtcOrQueryFieldContainsMapper(fieldMappingDefinition: FieldMappingDefiniti
     }
 
     override fun <T> setValue(
-            proprietaryIssueBuilder: Any,
-            fieldname: String,
-            issue: Issue,
-            issueTrackingClient: IssueTrackingClient<in T>,
-            value: Any?
+        proprietaryIssueBuilder: Any,
+        fieldname: String,
+        issue: Issue,
+        issueTrackingClient: IssueTrackingClient<in T>,
+        value: Any?
     ) {
         TODO("Not yet implemented")
     }

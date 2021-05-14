@@ -8,7 +8,7 @@ open class FieldMapping(
     protected val sourceName: String,
     val targetName: String,
     protected val mapper: FieldMapper,
-    private val fieldSkipEvalutors: List<FieldSkippingEvaluator> = mutableListOf()
+    private val fieldSkipEvaluators: List<FieldSkippingEvaluator> = mutableListOf()
 ) {
     protected var sourceValue: Any? = null
 
@@ -21,7 +21,7 @@ open class FieldMapping(
     }
 
     fun <T> setTargetValue(issueBuilder: Any, issue: Issue, targetClient: IssueTrackingClient<in T>) {
-        if (!fieldSkipEvalutors.any {
+        if (!fieldSkipEvaluators.any {
                 it.hasFieldToBeSkipped(
                     targetClient,
                     issueBuilder,
