@@ -15,6 +15,6 @@ spring:
       enabled: false
 
 sync:
-  settingsLocation: settings.json
+  settingsLocation: settings.yml
   pollingCron: 0 0 0 1 * ?
   notificationChannelProperties:

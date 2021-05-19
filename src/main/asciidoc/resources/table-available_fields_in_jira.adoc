@@ -1,0 +1,25 @@
+.available fields in JIRA
+|===
+|Property |Read as |Write as
+
+|affectedVersionsNames |affectedVersionsNames |affectedVersionsNames
+|assignee |assignee |assignee
+|assigneeName |assigneeName |assigneeName
+|description |description |description
+|dueDate |dueDate |dueDate
+|fixVersionsNames |fixVersionsNames |fixVersionsNames
+|priority.name |priority.name |priority.name
+|priority.id |priority.id |priority.id
+|priorityId |priorityId |priorityId
+|reporter |reporter |reporter
+|reporterName |reporterName |reporterName
+|resolution.id |resolution.id |resolution.id
+|resolution.name |resolution.name |resolution.name
+|summary |summary |summary
+|status.id |status.id |status.id
+|status.name |status.name |status.name
+|creationDate |creationDate |creationDate
+|timeTracking.originalEstimateMinutes |timeTracking.originalEstimateMinutes |timeTracking.originalEstimateMinutes
+|timeTracking.remainingEstimateMinutes |timeTracking.remainingEstimateMinutes |timeTracking.remainingEstimateMinutes
+|timeTracking.timeSpentMinutes |timeTracking.timeSpentMinutes |timeTracking.timeSpentMinutes
+|===

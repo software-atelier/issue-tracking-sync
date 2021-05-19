@@ -3,8 +3,8 @@ package ch.loewenfels.issuetrackingsync.syncconfig
 import ch.loewenfels.issuetrackingsync.Logging
 import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import java.io.File
-import java.io.IOException
 import java.util.*
 
 data class Settings(
@@ -15,19 +15,17 @@ data class Settings(
     var common: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
 ) {
     companion object : Logging {
-        fun loadFromFile(fileLocation: String, objectMapper: ObjectMapper): Settings {
+        fun loadFromFile(fileLocation: String): Settings {
             val settingsFile = File(fileLocation)
-            try {
-                if (!settingsFile.exists()) {
-                    throw IOException("Settings file " + settingsFile.absolutePath + " not found.")
-                }
-                logger().info("Loading settings from {}", settingsFile.absolutePath)
-                val result = objectMapper.readValue(settingsFile, Settings::class.java)
-                result.mapCommons()
-                return result
-            } catch (ex: IOException) {
-                throw IllegalStateException("Failed to load settings", ex)
+            if (!settingsFile.exists()) {
+                throw IllegalStateException("Settings file " + settingsFile.absolutePath + " not found.")
             }
+            logger().info("Loading settings from {}", settingsFile.absolutePath)
+            val objectMapper = ObjectMapper(YAMLFactory())
+            objectMapper.findAndRegisterModules()
+            val result = objectMapper.readValue(settingsFile, Settings::class.java)
+            result.mapCommons()
+            return result
         }
     }
 
@@ -40,34 +38,40 @@ data class Settings(
      * map is reversed
      */
     private fun mapCommons() =
-        actionDefinitions.flatMap { it.fieldMappingDefinitions }.forEach { fldMapping ->
-            mapAssociations(fldMapping)
+        actionDefinitions
+            .flatMap { it.fieldMappingDefinitions }
+            .forEach { fldMapping ->
+                mapAssociations(fldMapping)
 
-            fldMapping.fieldSkipEvaluators.map { fldSkipEvaluator ->
-                mapAssociations(fldSkipEvaluator)
+                fldMapping.fieldSkipEvaluators.map { fldSkipEvaluator ->
+                    mapAssociations(fldSkipEvaluator)
+                }
             }
-        }
 
     private fun mapCommons(fieldMapping: AssociationsFieldDefinition, commonName: String, invert: Boolean) {
-        (common[commonName] ?: throw IllegalArgumentException("Undefined common expression $commonName")).let {
-            fieldMapping.associations.remove("#common")
-            fieldMapping.associations.putAll(
-                if (invert) {
-                    it.entries.associate { (k, v) -> v to k }.toMap()
-                } else {
-                    it
-                }
-            )
-        }
+        (common[commonName] ?: throw IllegalArgumentException("Undefined common expression $commonName"))
+            .let {
+                fieldMapping.associations.remove("#common")
+                fieldMapping.associations.putAll(
+                    if (invert) {
+                        it.entries.associate { (k, v) -> v to k }.toMap()
+                    } else {
+                        it
+                    }
+                )
+            }
     }
 
     private fun mapAssociations(fieldMapping: AssociationsFieldDefinition) {
-        fieldMapping.associations["#common"]?.split(",")?.map(String::trim)?.forEach {
-            if (it.endsWith("->reversed")) {
-                mapCommons(fieldMapping, it.substring(0, it.length - 10), true)
-            } else {
-                mapCommons(fieldMapping, it, false)
+        fieldMapping.associations["#common"]
+            ?.split(",")
+            ?.map(String::trim)
+            ?.forEach {
+                if (it.endsWith("->reversed")) {
+                    mapCommons(fieldMapping, it.substring(0, it.length - 10), true)
+                } else {
+                    mapCommons(fieldMapping, it, false)
+                }
             }
-        }
     }
 }

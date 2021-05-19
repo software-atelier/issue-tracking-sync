@@ -1,0 +1,50 @@
+= Sync Flow Definitions
+
+Individual synchronization streams are defined as "flows".
+Apart from defining the source and target application (referring to the trackingApplication#name), the configuration _can_ define a filter class, and _must_ define a list of action references.
+
+[source,json]
+----
+{
+  "syncFlowDefinitions": [
+    {
+      "name": "Sync changes from RTC to JIRA",
+      "source": "RTC",
+      "target": "JIRA",
+      "filterClassname": "ch.loewenfels.issuetrackingsync.custom.UnclosedChangeFilter",
+      "filterProperties": {
+        "someKey": "someValue"
+      },
+      "keyFieldMappingDefinition": {
+        "sourceName": "id",
+        "targetName": "custom_field_12044"
+      },
+      "writeBackFieldMappingDefinition": {
+        "sourceName": "key",
+        "targetName": "ch.loewenfels.team.workitem.attribute.external_refid"
+      },
+      "defaultsForNewIssue": {
+        "issueType": "change",
+        "project": "TST",
+        "category": ""
+      },
+      "actions": [
+        "SimpleFieldsRtcToJira",
+        "SynchronizeComments"
+      ]
+    }
+  ]
+}
+----
+
+The mandatory `keyFieldMappingDefinition` is used to load an issue, and thus has no issue or project context.
+As JIRA allows for multiple custom fields to have identical names (in different projects), the field names here *must be defined by their internal name*.
+
+The optional `writeBackFieldMappingDefinition` allows to define a write-back of the target key to the source issue.
+In the example above, an RTC issue is synchronized to JIRA, but the JIRA `key` is written back to the RTC issue in field `ch.loewenfels.team.workitem.attribute.external_refid`.
+
+The optional `defaultsForNewIssue` defines defaults for new issues.
+If missing, and no target issue is found using
+`keyFieldMappingDefinition`, synchronization will abort.
+
+Finally, the list of `actions` refers to the `name` attribute of the <<actionDefinitions,actionDefinitions>>.

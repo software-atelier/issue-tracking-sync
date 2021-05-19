@@ -23,10 +23,10 @@ internal class SettingsTest : AbstractSpringTest() {
     @Test
     fun loadFromFile_validParameters_fileProperlyLoaded() {
         // arrange
-        val classpathResource = javaClass.getResource("/settings.json")
+        val classpathResource = javaClass.getResource("/settings.yml")
         assertNotNull(classpathResource, "Failed to locate settings.json")
         // act
-        val result = Settings.loadFromFile(classpathResource.path, objectMapper)
+        val result = Settings.loadFromFile(classpathResource.path)
         // assert
         assertEquals(2, result.trackingApplications.size, "Count of configured tracking applications")
         assertEquals(5, result.actionDefinitions.size, "Count of configured actions")
@@ -90,7 +90,7 @@ internal class SettingsTest : AbstractSpringTest() {
         Assumptions.assumeTrue(settingsFile.exists())
         try {
             // act
-            val result = Settings.loadFromFile(settingsFile.absolutePath, objectMapper)
+            val result = Settings.loadFromFile(settingsFile.absolutePath)
             // assert
             assertNotNull(result)
         } catch (ex: Exception) {
