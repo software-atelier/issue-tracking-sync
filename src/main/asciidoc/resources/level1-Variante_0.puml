@@ -1,0 +1,37 @@
+@startuml
+
+title Level 1 view of IGS Change and Defect Synchronizer
+
+cloud Loepa {
+    package [igs-change-and-defect-synchronizer] as pi #ffd {}
+    package [configuration] as pc #ffd {}
+
+    note top of pi : Project builds completely at Loepa
+}
+
+cloud GitHub as gh{
+    package [issue-tracking-sync] as p #ffd {
+        package [main] as ps #ffd {}
+        package [jira-client] as pj #ffd {}
+        package [rtc-client] as pr #ffd {}
+        package [custom-mapper] as pm #ffd {}
+    }
+    note top of p : Project cannot build at GitHub, because of dependencies to ibm
+}
+
+pi .> p
+pi ..> pc
+
+ps <.. pj
+ps <.. pr
+ps <.. pm
+pj <.. pm
+pr <.. pm
+
+object atlassian #888
+object rtc #888
+pj ...> atlassian
+pr ...> rtc
+
+Caption No submodules defined.
+@enduml
