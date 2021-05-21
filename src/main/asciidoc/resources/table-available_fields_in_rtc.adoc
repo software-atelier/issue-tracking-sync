@@ -2,45 +2,49 @@
 |===
 | Property | Read as  | Write as
 
-| archived | archived | - |
-| category | category | category |
-| com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance |
-| com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity |
-| com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal |
-| com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal |
-| com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams |
-| com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact |
-| contextId | contextId | contextId |
-| correctedEstimate | correctedEstimate | correctedEstimate |
-| creationDate | creationDate | - |
-| creator | creator | - |
-| description | HTMLDescription.plainText <br/> HTMLDescription (_using HtmlToWikiFieldMapper_) | description |
-| dueDate | dueDate | dueDate |
-| duration | duration | duration |
-| foundIn | foundIn | foundIn |
-| id | id | - |
-| internalApprovalDescriptors | internalApprovalDescriptors | internalApprovalDescriptors |
-| internalApprovals | internalApprovals | internalApprovals |
-| internalComments | internalComments | internalComments |
-| internalPriority | internalPriority | internalPriority |
-| internalResolution | internalResolution | internalResolution |
-| internalSequenceValue | internalSequenceValue | internalSequenceValue |
-| internalSeverity | internalSeverity | internalSeverity |
-| internalState | internalState | internalState |
-| internalStateTransitions | internalStateTransitions | internalStateTransitions |
-| internalSubscriptions | internalSubscriptions | internalSubscriptions |
-| internalTags | internalTags | internalTags |
-| modified | modified | - |
-| modifiedBy | modifiedBy | - |
-| owner | owner | owner |
-| projectArea | projectArea | - |
-| resolutionDate | resolutionDate | - |
-| resolver | resolver | resolver |
-| startDate | startDate | - |
-| summary | HTMLSummary.plainText <br/> HTMLSummary (_using HtmlToWikiFieldMapper_) | summary |
-| target | target | target |
-| timeSpent | timeSpent | timeSpent |
-| correctedEstimate | correctedEstimate | correctedEstimate |
-| duration | duration | duration |
-| workItemType | workItemType | - |
+| archived | archived | -
+| category | category | category
+| com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance | com.ibm.team.apt.attribute.acceptance
+| com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity | com.ibm.team.apt.attribute.complexity
+| com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal | com.ibm.team.apt.estimate.maximal
+| com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal | com.ibm.team.apt.estimate.minimal
+| com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams | com.ibm.team.rtc.attribute.affectedTeams
+| com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact | com.ibm.team.rtc.attribute.impact
+| contextId | contextId | contextId
+| correctedEstimate | correctedEstimate | correctedEstimate
+| creationDate | creationDate | -
+| creator | creator | -
+| description | HTMLDescription.plainText <br/> HTMLDescription (_using HtmlToWikiFieldMapper_) | description
+| dueDate | dueDate | dueDate
+| duration | duration | duration
+| foundIn | foundIn | foundIn
+| id | id | -
+| internalApprovalDescriptors | internalApprovalDescriptors | internalApprovalDescriptors
+| internalApprovals | internalApprovals | internalApprovals
+| internalComments | internalComments | internalComments
+| internalPriority | internalPriority | internalPriority
+| internalResolution | internalResolution | internalResolution
+| internalSequenceValue | internalSequenceValue | internalSequenceValue
+| internalSeverity | internalSeverity | internalSeverity
+| internalState | internalState | internalState
+| internalStateTransitions | internalStateTransitions | internalStateTransitions
+| internalSubscriptions | internalSubscriptions | internalSubscriptions
+| internalTags | internalTags | internalTags
+| modified | modified | -
+| modifiedBy | modifiedBy | -
+| owner | owner | owner
+| projectArea | projectArea | -
+| resolutionDate | resolutionDate | -
+| resolver | resolver | resolver
+| startDate | startDate | -
+
+| summary a|
+- HTMLSummary.plainText
+- HTMLSummary (_using HtmlToWikiFieldMapper_) | summary
+
+| target | target | target
+| timeSpent | timeSpent | timeSpent
+| correctedEstimate | correctedEstimate | correctedEstimate
+| duration | duration | duration
+| workItemType | workItemType | -
 |===
