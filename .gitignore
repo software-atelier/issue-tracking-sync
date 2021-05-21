@@ -36,4 +36,4 @@ local.properties
 
 /application.yml
 /appstate.json
-/settings.json
+/settings.yml

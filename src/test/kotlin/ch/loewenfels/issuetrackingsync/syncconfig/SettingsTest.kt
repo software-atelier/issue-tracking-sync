@@ -24,7 +24,7 @@ internal class SettingsTest : AbstractSpringTest() {
     fun loadFromFile_validParameters_fileProperlyLoaded() {
         // arrange
         val classpathResource = javaClass.getResource("/settings.yml")
-        assertNotNull(classpathResource, "Failed to locate settings.json")
+        assertNotNull(classpathResource, "Failed to locate settings.yml")
         // act
         val result = Settings.loadFromFile(classpathResource.path)
         // assert

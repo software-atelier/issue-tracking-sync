@@ -8,7 +8,7 @@ RUN gradle build --no-daemon --stacktrace -P repositoryIssueTrackingJars=${MVN_R
 
 FROM openjdk:11
 # tag::parameters[]
-ARG SETTINGSFILE=test/resources/settings.json
+ARG SETTINGSFILE=test/resources/settings.yml
 ARG SETTINGSTARGET=test/settings.yml
 ARG APPLICATIONFILE=test/resources/application-test.yml
 # end::parameters[]
