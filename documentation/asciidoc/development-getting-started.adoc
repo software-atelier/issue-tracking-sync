@@ -26,7 +26,7 @@ The other parameters have got useful default values:
 
 [source,bash]
 ----
-include::../../../Dockerfile[tag=parameters]
+include::../../Dockerfile[tag=parameters]
 ----
 
 == Configuration

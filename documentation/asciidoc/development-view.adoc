@@ -5,7 +5,7 @@
 == Overview
 
 .Basic interaction with other systems and users
-plantuml::../resources/level0.puml[png]
+plantuml::resources/level0.puml[png]
 
 === Getting started
 
@@ -24,7 +24,7 @@ The application writes its logfiles in the folder `/root`.
 == Components
 
 .Insight view
-plantuml::../resources/level1.puml[png]
+plantuml::resources/level1.puml[png]
 
 === Package sysconfig
 
