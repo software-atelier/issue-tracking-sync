@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -14,44 +15,16 @@ group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
 val springProfile = "test"
 java.sourceCompatibility = JavaVersion.VERSION_11
-// Atlassian JIRA and IBM RTC JARs are not available on maven central
-// you'll need to set this property in your $HOME/.gradle/gradle.properties file to point to a maven repo holding these
-// JARs. https://packages.atlassian.com/maven-public/ might work for JIRA
-val repositoryIssueTrackingJars: String by project
+
 repositories {
     mavenCentral()
-    jcenter()
-    maven {
-        url = uri(repositoryIssueTrackingJars)
-        isAllowInsecureProtocol = true
-    }
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-activemq")
-    implementation("org.apache.activemq:activemq-spring")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    implementation("com.ibm.team.rtc:plain-java-client:6.0.3")
-    implementation("com.atlassian.jira:jira-rest-java-client-core:5.1.0-476bd700")
-    implementation("io.atlassian.fugue:fugue:4.7.2")
-    implementation("org.jsoup:jsoup:1.13.1")
-    implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
-        exclude("javax.activation:activation:1.0.2")
-    }
-    implementation("javax.activation:activation:1.1")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(module = "junit")
-    }
-    implementation("commons-httpclient:commons-httpclient:3.1")
-    testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    implementation(project(":framework"))
+    implementation(project(":jira-client"))
+    implementation(project(":rtc-client"))
+    implementation(project(":jira-rtc-sync"))
 }
 
 detekt {
@@ -71,17 +44,12 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 tasks.withType<ShadowJar> {
     archiveBaseName.set("app")
     archiveClassifier.set("")
     archiveVersion.set("")
 }
 
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt> {
-    // Target version of the generated JVM bytecode. It is used for type resolution.
+tasks.withType<Detekt> {
     this.jvmTarget = "11"
 }
