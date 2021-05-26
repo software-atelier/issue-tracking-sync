@@ -18,7 +18,7 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: dist-without-markdown
+          name: documentation
           path: |
             documentation/build/docs
-            !documentation/build/docs/.ascissdoctor
+            !documentation/build/docs/.asciidoctor
