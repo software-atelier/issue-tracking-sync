@@ -39,11 +39,11 @@ class SynchronizationFlowFactory @Autowired constructor(
     fun getSynchronizationFlow(source: TrackingApplicationName, issue: Issue): SynchronizationFlow? {
         val applicableFlows = definedFlows.filter { it.applies(source, issue) }.toList()
         return when (applicableFlows.size) {
+            1 -> applicableFlows.first()
             0 -> {
                 logger().info("No applicable flow found for $issue, probably didn't pass filter")
                 null
             }
-            1 -> applicableFlows.first()
             else -> {
                 logger().error("Found multiple flows for issue $issue from $source. Consider defining a filter")
                 null

@@ -33,21 +33,18 @@ open class MultiSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinit
         return mapAssociations(values, association)
     }
 
-    fun mapAssociations(value: List<String>, association: Map<String, String>): List<String> {
-        val containsOneToOneAssotiantion = association.containsKey("*") && association.getValue("*").equals("*")
-        val containsOneToSomethingAssotiation = association.containsKey("*") && !containsOneToOneAssotiantion
+    private fun mapAssociations(value: List<String>, association: Map<String, String>): List<String> {
+        val containsOneToOneAssociation = association.containsKey("*") && association.getValue("*") == "*"
+        val containsOneToSomethingAssociation = association.containsKey("*") && !containsOneToOneAssociation
         return value
-            .filter { association.containsKey(it) || containsOneToOneAssotiantion || containsOneToSomethingAssotiation }//
-            .mapNotNull {
-                if (association.containsKey(it)) {
-                    association.getValue(it)
-                } else if (containsOneToOneAssotiantion) {
-                    it
-                } else {
-                    association.getValue("*")
+            .filter { association.containsKey(it) || containsOneToOneAssociation || containsOneToSomethingAssociation }
+            .map {
+                when {
+                    association.containsKey(it) -> association.getValue(it)
+                    containsOneToOneAssociation -> it
+                    else -> association.getValue("*")
                 }
             }
-
     }
 
     override fun <T> setValue(

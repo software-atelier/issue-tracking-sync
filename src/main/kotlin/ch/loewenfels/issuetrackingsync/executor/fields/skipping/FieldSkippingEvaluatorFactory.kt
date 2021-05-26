@@ -12,7 +12,7 @@ object FieldSkippingEvaluatorFactory : Logging {
     }
 
     private fun createFieldSkippEvaluators(fieldMappingDefinition: FieldMappingDefinition): MutableList<FieldSkippingEvaluator> {
-        evaluators[fieldMappingDefinition] = fieldMappingDefinition.fieldSkipEvalutors
+        evaluators[fieldMappingDefinition] = fieldMappingDefinition.fieldSkipEvaluators
             .mapNotNull(this::createFieldSkippingEvaluator)
             .toMutableList()
         return evaluators[fieldMappingDefinition] ?: mutableListOf()
@@ -29,13 +29,10 @@ object FieldSkippingEvaluatorFactory : Logging {
                 e
             )
         }
-        return instantianteClass(
-            clazz,
-            fieldSkippingEvaluatorDefinition
-        )
+        return instantiateClass(clazz, fieldSkippingEvaluatorDefinition)
     }
 
-    private fun instantianteClass(
+    private fun instantiateClass(
         clazz: Class<FieldSkippingEvaluator>,
         fieldSkippingEvaluatorDefinition: FieldSkippingEvaluatorDefinition
     ): FieldSkippingEvaluator? {

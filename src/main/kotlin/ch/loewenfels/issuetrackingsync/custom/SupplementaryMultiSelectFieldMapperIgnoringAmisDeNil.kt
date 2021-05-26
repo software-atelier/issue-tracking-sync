@@ -5,12 +5,12 @@ import ch.loewenfels.issuetrackingsync.executor.fields.SupplementaryMultiSelecti
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
-class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil(fieldMappingDefinition: FieldMappingDefinition) :
-    SupplementaryMultiSelectionFieldMapper(
-        fieldMappingDefinition
-    ) {
-    val defaultValueOnlyIfEmpty = "Jira2RTC"
-    val ignoringDoupleSyncingMap =
+class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil(
+    fieldMappingDefinition: FieldMappingDefinition
+) : SupplementaryMultiSelectionFieldMapper(fieldMappingDefinition) {
+
+    private val defaultValueOnlyIfEmpty = "Jira2RTC"
+    private val ignoringDoubleSyncingMap =
         mutableMapOf("AKB" to "BE", "CCNC" to "NE", "CCGC" to "GE", "IAS" to "TI")
 
     override fun <T> setValue(
@@ -25,7 +25,7 @@ class SupplementaryMultiSelectFieldMapperIgnoringAmisDeNil(fieldMappingDefinitio
         addToSet(newValue, oldValue)
         addToSet(newValue, value)
         addToSet(newValue, defaultValueOnlyIfEmpty)
-        ignoringDoupleSyncingMap.forEach {
+        ignoringDoubleSyncingMap.forEach {
             if (oldValue.contains(it.key)) {
                 newValue.remove(it.value)
             }

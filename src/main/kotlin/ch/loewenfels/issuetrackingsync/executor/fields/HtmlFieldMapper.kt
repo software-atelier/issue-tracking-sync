@@ -23,7 +23,7 @@ open class HtmlFieldMapper : FieldMapper {
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        val convertableValue: String = if (value is XMLString) value.xmlText else value?.toString() ?: ""
-        issueTrackingClient.setHtmlValue(proprietaryIssueBuilder, issue, fieldname, convertableValue)
+        val convertibleValue: String = if (value is XMLString) value.xmlText else value?.toString() ?: ""
+        issueTrackingClient.setHtmlValue(proprietaryIssueBuilder, issue, fieldname, convertibleValue)
     }
 }

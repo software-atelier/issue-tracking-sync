@@ -2,9 +2,11 @@ package ch.loewenfels.issuetrackingsync.executor.fields
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class LinkToIssueFieldMapperTest : AbstractSpringTest() {
@@ -15,13 +17,12 @@ internal class LinkToIssueFieldMapperTest : AbstractSpringTest() {
     fun setValue() {
         // arrange
         val testee = LinkToIssueFieldMapper()
-        val issue = TestObjects.buildIssue("MK-1")
+        val issue = buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
         // act
         testee.setValue(issue, "My Link", issue, targetClient, "")
         // assert
-        Mockito.verify(targetClient).setValue(issue, issue, "My Link", "http://localhost/issues/MK-1")
+        verify(targetClient).setValue(issue, issue, "My Link", "http://localhost/issues/MK-1")
     }
 }

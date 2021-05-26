@@ -1,6 +1,7 @@
 package ch.loewenfels.issuetrackingsync.syncclient.rtc
 
 import org.jsoup.Jsoup
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
 
@@ -35,20 +36,20 @@ class HtmlConverter {
         fun htmlToText(html: String): String {
             var text: String = html
             // Add bulletpoints into <ul> lists
-            text = ulPattern.matcher(text).replaceAll{ mr: MatchResult -> addBulletpoints(mr.group()) }
+            text = ulPattern.matcher(text).replaceAll { mr: MatchResult -> addBulletpoints(mr.group()) }
             // Add numbers into <ol> lists
-            text = olPattern.matcher(text).replaceAll{ mr: MatchResult -> addNumbers(mr.group()) }
+            text = olPattern.matcher(text).replaceAll { mr: MatchResult -> addNumbers(mr.group()) }
             // New line before each list item
-            text = text.replace("<li>".toRegex(), "<li>\n")
+            text = text.replace("<li>", "<li>\n")
             // New line after each list
-            text = text.replace("</ul>".toRegex(), "</ul>\n")
-            text = text.replace("</ol>".toRegex(), "</ol>\n")
+            text = text.replace("</ul>", "</ul>\n")
+            text = text.replace("</ol>", "</ol>\n")
             // New line after each <br/>
-            text = text.replace("<br/>".toRegex(), "<br/>\n")
+            text = text.replace("<br/>", "<br/>\n")
             // Two new lines at the start of each paragraph
-            text = text.replace("<p>".toRegex(), "<p>\n\n")
+            text = text.replace("<p>", "<p>\n\n")
             // Two new lines after each paragraph
-            text = text.replace("</p>".toRegex(), "</p>\n\n")
+            text = text.replace("</p>", "</p>\n\n")
             // Convert html to text while keeping previously inserted new lines
             text = Jsoup.parse(text).wholeText()
             // Cleanup unnecessary new lines
@@ -58,19 +59,12 @@ class HtmlConverter {
         }
 
         private fun addBulletpoints(value: String): String {
-            return value.replace("<li>".toRegex(), "<li>• ")
+            return value.replace("<li>", "<li>• ")
         }
 
         private fun addNumbers(value: String): String {
-            val counter = Counter()
-            return liPattern.matcher(value).replaceAll{ "<li>" + counter.getAndIncrement() + ". " }
+            val counter = AtomicInteger(1)
+            return liPattern.matcher(value).replaceAll { "<li>" + counter.getAndIncrement() + ". " }
         }
-
-        internal class Counter {
-            private var count: Int = 1
-            fun getAndIncrement(): Int { return count++ }
-        }
-
     }
-
 }

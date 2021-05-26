@@ -11,9 +11,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : AbstractSpringTest() {
@@ -21,7 +19,6 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
     private lateinit var clientFactory: ClientFactory
 
     @Test
-    @Disabled
     fun getValue() {
         // arrange
         val testee = buildTestee()
@@ -67,9 +64,9 @@ internal class KeepTitleFromDestinationCompoundStringFieldMappingTest : Abstract
         val fieldDefinitions = FieldMappingDefinition(
             "description",
             "description,defectdescription,conduct",
-            KeepTitleFromDestinationCompoundStringFieldMapping::class.toString()
+            KeepTitleFromDestinationCompoundStringFieldMapping::class.toString(),
+            associations = associations
         )
-        fieldDefinitions.associations = associations
         val testee = KeepTitleFromDestinationCompoundStringFieldMapping(fieldDefinitions)
         val issue = TestObjects.buildIssue("MK-1")
         val targetClient =

@@ -17,7 +17,9 @@ class AppState {
         fun loadFromFile(parentDir: File, objectMapper: ObjectMapper): AppState {
             val appStateFile = File(parentDir, FILENAME)
             val result = try {
-                if (appStateFile.exists()) objectMapper.readValue(appStateFile, AppState::class.java) else AppState()
+                if (appStateFile.exists())
+                    objectMapper.readValue(appStateFile, AppState::class.java)
+                else AppState()
             } catch (ex: IOException) {
                 throw IllegalStateException("Failed to load app state", ex)
             }
@@ -28,9 +30,8 @@ class AppState {
         }
     }
 
-    fun persist(objectMapper: ObjectMapper) {
+    fun persist(objectMapper: ObjectMapper) =
         objectMapper.writeValue(backingFile, this)
-    }
 
     override fun toString(): String =
         this.javaClass.simpleName + "{lastPollingTimestamp=$lastPollingTimestamp}"

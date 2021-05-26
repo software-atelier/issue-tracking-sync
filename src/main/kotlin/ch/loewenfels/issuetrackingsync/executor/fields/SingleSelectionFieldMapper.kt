@@ -30,22 +30,12 @@ class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition)
         value: Any?
     ) {
         val associationKey = value ?: "null"
-        val result = computeValue(associationKey as String)
-        if (null !== result) {
+        val result = associations[associationKey as String] ?: associations[keyFallback]
+        if (null != result) {
             issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
         } else {
             issue.workLog.add("Cannot update $fieldname, there is not association entry for $associationKey")
         }
     }
 
-    private fun computeValue(key: String): String? {
-        if (associations.containsKey(key)) {
-            return associations[key]
-        }
-        if (associations.containsKey(keyFallback)) {
-            return associations[keyFallback]
-        }
-
-        return null
-    }
 }

@@ -5,7 +5,7 @@ import ch.loewenfels.issuetrackingsync.safeEq
 import ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 internal class TimeFieldMapperTest : AbstractSpringTest() {
@@ -16,7 +16,7 @@ internal class TimeFieldMapperTest : AbstractSpringTest() {
         val testee = TimeFieldMapper()
         val issue = TestObjects.buildIssue("MK-1")
         issue.sourceUrl = "http://localhost/issues/MK-1"
-        val targetClient = Mockito.mock(JiraClient::class.java)
+        val targetClient = mock(JiraClient::class.java)
         val value = 0 as Number
         val fieldName = "timeTracking"
         // act

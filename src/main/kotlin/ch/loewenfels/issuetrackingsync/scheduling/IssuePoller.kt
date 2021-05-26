@@ -36,12 +36,8 @@ class IssuePoller @Autowired constructor(
         settings.earliestSyncDate?.let {
             // we want to fail hard here as assuming a different "earliest" date might have
             // unwanted effects
-            val erliestSyncDate = LocalDateTime.parse(it)
-            appState.lastPollingTimestamp = appState.lastPollingTimestamp?.let { localDateTime ->
-                if (localDateTime.isAfter(erliestSyncDate)) {
-                    localDateTime
-                } else erliestSyncDate
-            } ?: erliestSyncDate
+            val earliestSyncDate = LocalDateTime.parse(it)
+            appState.lastPollingTimestamp = maxOf(earliestSyncDate, appState.lastPollingTimestamp ?: earliestSyncDate)
         }
     }
 
@@ -50,19 +46,16 @@ class IssuePoller @Autowired constructor(
         val polledIssues = pollChangedIssuesFromTrackingApps()
         updateLastPollingTimestamp()
         resolveConflicts(polledIssues)
-        processChangedIssues(polledIssues)
+        queueChangedIssues(polledIssues)
     }
 
-    private fun pollChangedIssuesFromTrackingApps(): MutableMap<IssueTrackingApplication, MutableList<Issue>> {
-        val polledIssues = mutableMapOf<IssueTrackingApplication, MutableList<Issue>>()
-        settings.trackingApplications.filter { it.polling }.forEach { trackingApp ->
-            logger().info("Checking for issues for {}", trackingApp.name)
-            clientFactory.getClient(trackingApp).use{
-                    client -> polledIssues.put(trackingApp, pollIssuesInBatches(client))
+    private fun pollChangedIssuesFromTrackingApps(): Map<IssueTrackingApplication, MutableList<Issue>> =
+        settings.trackingApplications
+            .filter { it.polling }
+            .associateWith { trackingApp ->
+                logger().info("Checking for issues for {}", trackingApp.name)
+                clientFactory.getClient(trackingApp).use { pollIssuesInBatches(it) }
             }
-        }
-        return polledIssues
-    }
 
     private fun pollIssuesInBatches(
         issueTrackingClient: IssueTrackingClient<Any>
@@ -73,11 +66,11 @@ class IssuePoller @Autowired constructor(
             val changedIssues: Collection<Issue> = try {
                 val timestamp = appState.lastPollingTimestamp ?: LocalDateTime.now()
                 issueTrackingClient.changedIssuesSince(timestamp, batchSize, offset)
-                    .filter { lastUpdatedByIssueTrackingSyncTool(it).not() }
+                    .filter { it.lastUpdatedBy !in issueTrackingAppUsers }
             } catch (e: Exception) {
                 logger().error(
-                    "Could not load issues or polling. One common problem could be your authentication or authorisation." +
-                            "\nException was: ${e.message}"
+                    "Could not load issues or polling. One common problem could be your " +
+                            "authentication or authorisation.\nException was: ${e.message}"
                 )
                 emptyList()
             }
@@ -87,45 +80,27 @@ class IssuePoller @Autowired constructor(
         return allChangedIssues
     }
 
-    private fun lastUpdatedByIssueTrackingSyncTool(it: Issue) =
-        issueTrackingAppUsers.contains(it.lastUpdatedBy)
-
     private fun updateLastPollingTimestamp() {
         appState.lastPollingTimestamp = LocalDateTime.now()
         appState.persist(objectMapper)
     }
 
-    private fun resolveConflicts(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
-        val allIssues = polledIssues.values.flatMap { it }
+    private fun resolveConflicts(polledIssues: Map<IssueTrackingApplication, MutableList<Issue>>) {
+        val allIssues = polledIssues.values.flatten()
         val sourceKeys = allIssues.map { it.key }
-        val allConflictingIssues = allIssues
-            .filter { sourceKeys.contains(it.targetKey) }
+        val allConflictingIssues = allIssues.filter { sourceKeys.contains(it.targetKey) }
         val outdatedIssues = allConflictingIssues.map { issue ->
             val relatedIssue = allConflictingIssues.find { it.key == issue.targetKey }
-            listOf(issue, relatedIssue!!).stream().min(compareLastUpdatedDate()).get()
+            listOf(issue, relatedIssue!!).minBy(Issue::lastUpdated)
         }
-        removeOutdatedIssues(polledIssues, outdatedIssues)
-    }
-
-    private fun removeOutdatedIssues(
-        polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>, issuesToRemove: List<Issue>
-    ) {
-        polledIssues.forEach { trackingApp ->
-            trackingApp.value.removeAll { issuesToRemove.contains(it) }
+        polledIssues.values.forEach { issuesPerTrackingApp ->
+            issuesPerTrackingApp.removeAll { outdatedIssues.contains(it) }
         }
     }
 
-    private fun compareLastUpdatedDate() = Comparator.comparing(Issue::lastUpdated)
-
-    private fun processChangedIssues(polledIssues: MutableMap<IssueTrackingApplication, MutableList<Issue>>) {
+    private fun queueChangedIssues(polledIssues: Map<IssueTrackingApplication, MutableList<Issue>>) =
         polledIssues.forEach { (trackingApp, issues) ->
-            issues.forEach { issue ->
-                if (synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, issue) != null) {
-                    scheduleSync(issue)
-                }
-            }
+            issues.filter { synchronizationFlowFactory.getSynchronizationFlow(trackingApp.name, it) != null }
+                .forEach { issue -> syncRequestProducer.queue(issue) }
         }
-    }
-
-    private fun scheduleSync(issue: Issue) = syncRequestProducer.queue(issue)
 }

@@ -19,8 +19,8 @@ import kotlin.random.Random
 
 open class MockRtcClient(private val setup: IssueTrackingApplication) : IssueTrackingClient<Issue> {
     private val testIssues = mutableListOf(
-        Issue("1234", setup.name, LocalDateTime.now().minusHours(2)),//
-        Issue("2345", setup.name, LocalDateTime.now().minusHours(3)),//
+        Issue("1234", setup.name, LocalDateTime.now().minusHours(2)),
+        Issue("2345", setup.name, LocalDateTime.now().minusHours(3)),
         Issue("3456", setup.name, LocalDateTime.now().minusHours(4))
     )
 

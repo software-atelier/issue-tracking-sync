@@ -6,7 +6,7 @@ data class AdditionalFields(
      */
     var enumerationFields: MutableMap<String, String> = mutableMapOf(),
     /**
-     * MutliselectField will save a
+     * MultiselectField will save a
      */
     var multiselectFields: MutableMap<String, String> = mutableMapOf(),
 

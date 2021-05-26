@@ -7,14 +7,15 @@ import ch.loewenfels.issuetrackingsync.safeEq
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
@@ -30,10 +31,8 @@ class StatusFieldMapperTest : AbstractSpringTest() {
 
     @BeforeEach
     fun initClients() {
-        this.sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        this.targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
+        this.sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        this.targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
         this.sourceIssue = sourceClient.getIssue("1234") ?: throw IllegalArgumentException("Unknown key")
         this.targetIssue = targetClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
         sourceIssue.proprietarySourceInstance = this.sourceIssue
@@ -44,20 +43,20 @@ class StatusFieldMapperTest : AbstractSpringTest() {
     fun getValue() {
         // arrange
         val testee = buildTestee()
-        val issue = TestObjects.buildIssue("MK-1")
+        val issue = buildIssue("MK-1")
         // act
         val result = testee.getValue(issue, rtcFieldname, sourceClient)
         // assert
         assertNotNull(result)
-        Assertions.assertTrue(result is Pair<*, *>)
+        assertTrue(result is Pair<*, *>)
         assertEquals("In Umsetzung", (result as Pair<*, *>).first)
-        Assertions.assertTrue(result.second is List<*>)
+        assertTrue(result.second is List<*>)
     }
 
     @Test
     fun setValue_targetIssueAlreadyInSameState_noOp() {
         // arrange
-        Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
+        `when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
         val targetValue = "In Umsetzung" to listOf(
             StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
             StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
@@ -67,13 +66,13 @@ class StatusFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
         // assert
-        Mockito.verify(targetClient, Mockito.never()).setState(safeEq(targetIssue), Mockito.anyString())
+        verify(targetClient, Mockito.never()).setState(safeEq(targetIssue), Mockito.anyString())
     }
 
     @Test
     fun setValue_targetIssueStateBehind_updatedState() {
         // arrange
-        Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("Open")
+        `when`(targetClient.getState(safeEq(targetIssue))).thenReturn("Open")
         val targetValue = "In Umsetzung" to listOf(
             StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
             StateHistory(LocalDateTime.now().minusHours(3), "In Abklärung", "Bereit zur Umsetzung"),
@@ -84,14 +83,14 @@ class StatusFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
         // assert
-        Mockito.verify(targetClient).setState(targetIssue, "Authorized")
-        Mockito.verify(targetClient).setState(targetIssue, "In Work")
+        verify(targetClient).setState(targetIssue, "Authorized")
+        verify(targetClient).setState(targetIssue, "In Work")
     }
 
     @Test
     fun setValue_sourceIssueHasStateJumps_updatedState() {
         // arrange
-        Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
+        `when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Work")
         val targetValue = "In Abnahme" to listOf(
             StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
             StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
@@ -104,14 +103,14 @@ class StatusFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
         // assert
-        Mockito.verify(targetClient).setState(targetIssue, "In Test")
-        Mockito.verify(targetClient).setState(targetIssue, "Resolved")
+        verify(targetClient).setState(targetIssue, "In Test")
+        verify(targetClient).setState(targetIssue, "Resolved")
     }
 
     @Test
     fun setValue_sourceIssueIsWithinStateJump_updatedState() {
         // arrange
-        Mockito.`when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Test")
+        `when`(targetClient.getState(safeEq(targetIssue))).thenReturn("In Test")
         val targetValue = "In Abnahme" to listOf(
             StateHistory(LocalDateTime.now().minusHours(5), "Neu", "In Abklärung"),
             StateHistory(LocalDateTime.now().minusHours(4), "In Abklärung", "Bereit zur Umsetzung"),
@@ -123,12 +122,14 @@ class StatusFieldMapperTest : AbstractSpringTest() {
         // act
         testee.setValue(targetIssue, jiraFieldname, sourceIssue, targetClient, targetValue)
         // assert
-        Mockito.verify(targetClient).setState(targetIssue, "Resolved")
+        verify(targetClient).setState(targetIssue, "Resolved")
     }
 
-    private fun buildTestee(): StatusFieldMapper {
-        val associations =
-            mutableMapOf(
+    private fun buildTestee(): StatusFieldMapper = StatusFieldMapper(
+        FieldMappingDefinition(
+            rtcFieldname, jiraFieldname,
+            StatusFieldMapper::class.toString(),
+            associations = mutableMapOf(
                 "Neu" to "Open",
                 "In Abklärung" to "Open",
                 "Abklärung angehalten" to "Open",
@@ -140,12 +141,7 @@ class StatusFieldMapperTest : AbstractSpringTest() {
                 "Abnahme angehalten" to "Resolved",
                 "Abgeschlossen" to "Closed"
             )
-        val fieldDefinition = FieldMappingDefinition(
-            rtcFieldname, jiraFieldname,
-            StatusFieldMapper::class.toString()
         )
-        fieldDefinition.associations = associations
-        return StatusFieldMapper(fieldDefinition)
-    }
+    )
 }
 

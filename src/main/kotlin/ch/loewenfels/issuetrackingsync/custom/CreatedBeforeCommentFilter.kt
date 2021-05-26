@@ -6,7 +6,9 @@ import java.time.LocalDateTime
 
 const val CREATED_BEFORE = "createdBefore"
 
-class CreatedBeforeCommentFilter(val filterProperties: Map<String, String> = emptyMap()) : CommentFilter {
+class CreatedBeforeCommentFilter(
+    private val filterProperties: Map<String, String> = emptyMap()
+) : CommentFilter {
 
     override fun getFilter(): (Comment) -> Boolean = {
         !filterProperties.containsKey(CREATED_BEFORE)

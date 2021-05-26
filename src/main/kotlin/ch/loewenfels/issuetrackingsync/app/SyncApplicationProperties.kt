@@ -11,10 +11,9 @@ open class SyncApplicationProperties {
     lateinit var logfile: String
     var appStateLocation: String = "."
     var title: String = "Issue tracking synchronisation"
-    var debug: Boolean? = null
-    var notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
-    var notificationChannels = ArrayList<NotificationChannel>()
-        private set
+    var debug: Boolean = false
+    val notificationChannels = ArrayList<NotificationChannel>()
+    private val notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
 
     @PostConstruct
     @Suppress("UNCHECKED_CAST")
@@ -24,7 +23,7 @@ open class SyncApplicationProperties {
                 val channelClass = Class.forName(it.classname) as Class<NotificationChannel>
                 channelClass.getConstructor(NotificationChannelProperties::class.java).newInstance(it)
             } catch (e: Exception) {
-                throw IllegalArgumentException("Failed to load ${it} as notification channel class", e)
+                throw IllegalArgumentException("Failed to load $it as notification channel class", e)
             }
         }
             .forEach { notificationChannels.add(it) }

@@ -8,19 +8,20 @@ import ch.loewenfels.issuetrackingsync.notification.NotificationChannel
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.testcontext.AlwaysFalseIssueFilter
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildNotificationObserver
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildSyncActionDefinition
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildSyncFlowDefinition
 import com.atlassian.jira.rest.client.api.RestClientException
 import com.ibm.team.repository.common.TeamRepositoryException
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.times
+import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 
@@ -52,18 +53,16 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     @Test
     fun applies_validClientName_true() {
         // arrange
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue()
+        val issue = buildIssue()
         // act
-        val result = testee.use{ flow -> flow.applies(syncFlowDefinition.source, issue) }
+        val result = testee.use { flow -> flow.applies(syncFlowDefinition.source, issue) }
         // assert
         assertTrue(result)
     }
@@ -71,19 +70,17 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     @Test
     fun applies_validClientNameFilterNotMatched_false() {
         // arrange
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
         syncFlowDefinition.filterClassname = AlwaysFalseIssueFilter::class.qualifiedName ?: ""
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue()
+        val issue = buildIssue()
         // act
-        val result = testee.use{ flow -> flow.applies(syncFlowDefinition.source, issue) }
+        val result = testee.use { flow -> flow.applies(syncFlowDefinition.source, issue) }
         // assert
         assertFalse(result)
     }
@@ -91,18 +88,16 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     @Test
     fun applies_invalidClientName_false() {
         // arrange
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue()
+        val issue = buildIssue()
         // act
-        val result = testee.use{ flow -> flow.applies("foobar", issue) }
+        val result = testee.use { flow -> flow.applies("foobar", issue) }
         // assert
         assertFalse(result)
     }
@@ -110,20 +105,18 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
     @Test
     fun execute_issueUpdatedInTheMeantime_notifiedAsError() {
         // arrange
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue("MK-1")
+        val issue = buildIssue("MK-1")
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertEquals(1, TestNotificationChannel.erroneousIssueKeys.distinct().size)
+        assertEquals(1, erroneousIssueKeys.distinct().size)
     }
 
     @Test
@@ -131,22 +124,19 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // arrange
         val error = HttpStatus.UNAUTHORIZED
         val exception = RestClientException(Throwable(error.reasonPhrase), error.value())
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue("MK-1")
-        doAnswer { throw exception }//
-            .`when`(sourceClient).getProprietaryIssue(anyString())
+        val issue = buildIssue("MK-1")
+        doAnswer { throw exception }.`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Jira: ${error.reasonPhrase}"))
+        assertThat(erroneousMessages, hasItem("Jira: ${error.reasonPhrase}"))
     }
 
     @Test
@@ -154,22 +144,19 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // arrange
         val error = HttpStatus.UNAUTHORIZED
         val exception = RestClientException(Throwable(error.reasonPhrase), error.value())
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue("MK-1")
-        doAnswer { throw exception }//
-            .`when`(sourceClient).getProprietaryIssue(anyString())
+        val issue = buildIssue("MK-1")
+        doAnswer { throw exception }.`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
+        assertThat(erroneousMessages, hasItem(error.reasonPhrase))
     }
 
     @Test
@@ -177,22 +164,19 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // arrange
         val error = HttpStatus.UNAUTHORIZED
         val exception = TeamRepositoryException(Throwable(error.reasonPhrase))
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("RTCCLIENT", "JIRACLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue("MK-1")
-        doAnswer { throw exception }//
-            .`when`(sourceClient).getProprietaryIssue(anyString())
+        val issue = buildIssue("MK-1")
+        doAnswer { throw exception }.`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem("Rtc: ${error.reasonPhrase}"))
+        assertThat(erroneousMessages, hasItem("Rtc: ${error.reasonPhrase}"))
     }
 
     @Test
@@ -200,44 +184,39 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // arrange
         val error = HttpStatus.UNAUTHORIZED
         val exception = TeamRepositoryException(Throwable(error.reasonPhrase))
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
-        val issue = TestObjects.buildIssue("MK-1")
-        doAnswer { throw exception }//
-            .`when`(sourceClient).getProprietaryIssue(anyString())
+        val issue = buildIssue("MK-1")
+        doAnswer { throw exception }.`when`(sourceClient).getProprietaryIssue(anyString())
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertThat(TestNotificationChannel.erroneousMessages, hasItem(error.reasonPhrase))
+        assertThat(erroneousMessages, hasItem(error.reasonPhrase))
     }
 
     @Test
     fun execute_validKey_syncNotifiedSuccessful() {
         // arrange
-        val syncFlowDefinition = TestObjects.buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
-        val actionDefinitions = listOf(TestObjects.buildSyncActionDefinition())
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val notificationObserver = TestObjects.buildNotificationObserver()
+        val syncFlowDefinition = buildSyncFlowDefinition("JIRACLIENT", "RTCCLIENT")
+        val actionDefinitions = listOf(buildSyncActionDefinition())
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val notificationObserver = buildNotificationObserver()
         val testee =
             SynchronizationFlow(syncFlowDefinition, actionDefinitions, sourceClient, targetClient, notificationObserver)
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
         // act
-        testee.use{ flow -> flow.execute(issue) }
+        testee.use { flow -> flow.execute(issue) }
         // assert
-        assertEquals(1, TestNotificationChannel.successfulIssueKeys.size)
-        Mockito.verify(sourceClient, times(1))
+        assertEquals(1, successfulIssueKeys.size)
+        verify(sourceClient, times(1))
             .createOrUpdateTargetIssue(any(Issue::class.java), any(DefaultsForNewIssue::class.java))
-        Mockito.verify(targetClient, times(2))
+        verify(targetClient, times(2))
             .createOrUpdateTargetIssue(any(Issue::class.java), any(DefaultsForNewIssue::class.java))
     }
 }

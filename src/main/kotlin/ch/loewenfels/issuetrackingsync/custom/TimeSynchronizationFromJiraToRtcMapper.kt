@@ -10,13 +10,10 @@ class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
         proprietaryIssue: T,
         fieldname: String,
         issueTrackingClient: IssueTrackingClient<in T>
-    ): Number {
-        return fieldname.split(",").stream()
-            .map { super.getValue(proprietaryIssue, it, issueTrackingClient) }
-            .map { it ?: 0 }
-            .mapToLong(Number::toLong)
-            .sum()
-    }
+    ): Number = fieldname.split(",")
+        .mapNotNull { super.getValue(proprietaryIssue, it, issueTrackingClient) }
+        .map(Number::toLong)
+        .sum()
 
     override fun <T> setValue(
         proprietaryIssueBuilder: Any,
@@ -25,15 +22,17 @@ class TimeSynchronizationFromJiraToRtcMapper : TimeFieldMapper() {
         issueTrackingClient: IssueTrackingClient<in T>,
         value: Any?
     ) {
-        val splittedFieldName = fieldname.split(",")
-        if (splittedFieldName.size == 2) {
+        val splitFieldName = fieldname.split(",")
+        if (splitFieldName.size == 2) {
             val newEstimatedTime = value as Number
-            val originalEstimate = issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[0])
-            val oldCorrectedEstimatedTime = issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splittedFieldName[1])
+            val originalEstimate =
+                issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splitFieldName[0])
+            val oldCorrectedEstimatedTime =
+                issueTrackingClient.getTimeValueInMinutes(proprietaryIssueBuilder, splitFieldName[1])
             if (newEstimatedTime.toInt() != oldCorrectedEstimatedTime.toInt()
-                && (originalEstimate.toInt() != newEstimatedTime.toInt() || oldCorrectedEstimatedTime.toInt() != 0)
+                && (newEstimatedTime.toInt() != originalEstimate.toInt() || oldCorrectedEstimatedTime.toInt() != 0)
             ) {
-                issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, splittedFieldName[1], value)
+                issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, splitFieldName[1], value)
             }
         }
     }

@@ -2,7 +2,9 @@ package ch.loewenfels.issuetrackingsync.executor.actions
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildFieldMappingList
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
@@ -15,11 +17,9 @@ internal class SimpleSynchronizationActionTest : AbstractSpringTest() {
     @Test
     fun execute() {
         // arrange
-        val sourceClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("JiraClient"), clientFactory)
-        val targetClient =
-            TestObjects.buildIssueTrackingClient(TestObjects.buildIssueTrackingApplication("RtcClient"), clientFactory)
-        val fieldMappings = TestObjects.buildFieldMappingList()
+        val sourceClient = buildIssueTrackingClient(buildIssueTrackingApplication("JiraClient"), clientFactory)
+        val targetClient = buildIssueTrackingClient(buildIssueTrackingApplication("RtcClient"), clientFactory)
+        val fieldMappings = buildFieldMappingList()
         val issue = sourceClient.getIssue("MK-1") ?: throw IllegalArgumentException("Unknown key")
         val testee = SimpleSynchronizationAction("foobar")
         issue.proprietarySourceInstance = issue

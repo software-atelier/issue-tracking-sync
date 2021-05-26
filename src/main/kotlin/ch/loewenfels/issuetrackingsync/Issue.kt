@@ -4,7 +4,11 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.executor.fields.KeyFieldMapping
 import java.time.LocalDateTime
 
-data class Issue(val key: String, val clientSourceName: String, val lastUpdated: LocalDateTime) {
+data class Issue(
+    val key: String,
+    val clientSourceName: String,
+    val lastUpdated: LocalDateTime
+) {
     var proprietarySourceInstance: Any? = null
     var sourceUrl: String? = null
     var keyFieldMapping: KeyFieldMapping? = null
@@ -26,6 +30,7 @@ data class Issue(val key: String, val clientSourceName: String, val lastUpdated:
     var targetKey: String? = null
     val fieldMappings: MutableList<FieldMapping> = mutableListOf()
     val workLog: MutableList<String> = mutableListOf()
+
     /**
      * Sometimes new target should be created, so preserve the old reference if it needs to be updated
      */
