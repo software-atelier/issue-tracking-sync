@@ -1,0 +1,31 @@
+@startuml
+
+title Level 0 view of Issue Tracking Sync
+
+actor Person as p #888
+() Timer as t #888
+
+[Issue Tracking Sync] <<spring-boot app>> as sud
+() "Jira Java Client" as jc #888
+() "RTC Jazz Client" as rc #888
+
+cloud Jira as j #888
+cloud RTC as r #888
+cloud Slack as s #888
+
+p --> sud : sync\nissue
+t --> sud : trigger\npolling
+t --> sud : set polling issue\nupdated date
+
+sud--( rc : read\nissue
+sud--( rc : create\nissue
+sud--( rc : update\nissue
+sud--( jc : read\nissue
+sud--( jc : create\nissue
+sud--( jc : update\nissue
+sud .> s : notify
+
+jc - j
+rc - r
+
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+
+title Level 1 view of Issue Tracking Sync
+
+package "issue tracking sync" #ffd {
+    package spring-web as spring {
+        package app {}
+        package controller {}
+    }
+    package scheduling {}
+    package sync-logic as logic {
+        package sync-client as client {}
+        package notification {}
+        package executor {}
+        package custom {}
+    }
+    package sysconfig as config {}
+
+    controller --> scheduling
+    scheduling --> executor
+    executor --> client
+    client --> notification
+    executor -> notification
+    executor --> custom
+
+    config <- scheduling
+    config <- spring
+    config <- logic
+}
+caption
+This scheme is a dream copied from Confluence.
+In reality any package is connected with any other package.
+endcaption
+
+@enduml

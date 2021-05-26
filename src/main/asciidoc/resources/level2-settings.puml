@@ -1,0 +1,118 @@
+@startuml
+skinparam linetype ortho
+
+class AdditionalFields <<data>> {
+    enumerationFields: Map<String, String>
+    multiselectFields: Map<String, String>
+    simpleTextFields: Map<String, String>
+}
+
+class AdditionalProperties <<data>> {
+    preComment: String
+    postComment: String
+    commentFilter: List<CommentFilter>
+    allTransitions: Map<String, List<String>>
+    statesMapping: Map<String, String>
+    happyPath: List<String>
+}
+
+class AssociationsFieldDefinition <<data>> {
+    associations: MutableMap<String, String>
+}
+
+class CommentFilter <<data>> {
+    filterClassname: String
+    filterProperties: Map<String, String>
+}
+
+class DefaultsForNewIssue <<data>> {
+    issueType: String
+    project: String
+    category: String
+    additionalFields: AdditionalFields
+}
+
+class FieldMappingDefinition <<data>> {
+    sourceName: String
+    targetName: String
+    mapperClassname: String
+    fieldSkipEvaluators: MutableList<FieldSkippingEvaluatorDefinition>
+    callback: FieldMappingDefinition?
+}
+
+class FieldSkippingEvaluatorDefinition <<data>> {
+    classname: String
+    properties: Map<String, Any>
+}
+
+class IssueTrackingApplication <<data>> {
+    className: String
+    name: TrackingApplicationName
+    username: String
+    password: String
+    endpoint: String
+    pollingIssueType: String?
+    polling: Boolean
+    project: String?
+    extRefIdField: String
+    extRefIdFieldPattern: String?
+    proprietaryIssueQueryBuilder: String?
+    socketTimeout: Int?
+    log: LogDefinition?
+}
+
+class LogDefinition <<data>> {
+    every: Map<String, String>?
+    onChange: Map<String, String>?
+    onCreateEqual: Map<String, Map<String, String>>
+    onChangeEqual: Map<String, Map<String, String>>
+}
+class PreActionDefinition <<data>> {
+    className: String
+    parameters: Map<String, Any>
+}
+
+class Settings <<data>> {
+    earliestSyncDate: String?
+    trackingApplications: MutableList<IssueTrackingApplication>
+    actionDefinitions: MutableList<SyncActionDefinition>
+    syncFlowDefinitions: MutableList<SyncFlowDefinition>
+    common: MutableMap<String, MutableMap<String, String>>
+}
+
+class SyncActionDefinition <<data>> {
+    name: String
+    classname: String
+    fieldMappingDefinitions: MutableList<FieldMappingDefinition>
+    additionalProperties: AdditionalProperties
+}
+class SyncFlowDefinition <<data>> {
+    name: String
+    source: TrackingApplicationName
+    target: TrackingApplicationName
+    filterClassname: String?
+    filterProperties: Map<String, String>
+    defaultsForNewIssue: DefaultsForNewIssue?
+    keyFieldMappingDefinition: FieldMappingDefinition
+    writeBackFieldMappingDefinition: List<FieldMappingDefinition>
+    preActions: MutableList<PreActionDefinition>
+    actions: MutableList<String>
+}
+
+AdditionalProperties "1" *--> "*" CommentFilter
+DefaultsForNewIssue "1" *--> "1" AdditionalFields
+FieldMappingDefinition "1" *--> "*" FieldSkippingEvaluatorDefinition
+FieldMappingDefinition --|> AssociationsFieldDefinition
+FieldSkippingEvaluatorDefinition --|> AssociationsFieldDefinition
+IssueTrackingApplication "1" *--> "1" LogDefinition
+Settings "1" *--> "*" SyncActionDefinition
+Settings "1" *--> "*" SyncFlowDefinition
+Settings "1" *--> "*" IssueTrackingApplication
+SyncActionDefinition "1" *--> "1" AdditionalProperties
+SyncActionDefinition "1" *--> "*" FieldMappingDefinition
+SyncFlowDefinition "1" *--> "1" FieldMappingDefinition
+SyncFlowDefinition "1" *--> "1" DefaultsForNewIssue
+SyncFlowDefinition "1" *--> "*" PreActionDefinition
+
+
+@enduml

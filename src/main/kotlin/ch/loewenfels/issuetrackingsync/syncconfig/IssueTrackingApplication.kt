@@ -2,6 +2,11 @@ package ch.loewenfels.issuetrackingsync.syncconfig
 
 typealias TrackingApplicationName = String
 
+/**<!-- tag::overview[] -->
+ * This data class defines the tracking application to observe for changes. It contains their URL and the login credentials.
+ * Currently are Jira and RTC supported. Feel free to implement and add other applications by implementing the well documented interface IssueTrackingClient.
+ * <!-- end::overview[] -->
+ **/
 data class IssueTrackingApplication(
     var className: String = "",
     var name: TrackingApplicationName = "",
@@ -20,7 +25,7 @@ data class IssueTrackingApplication(
     var extRefIdField: String = "",
     var extRefIdFieldPattern: String? = null,
     /**
-     * The external reference field can contain additional informations, so prepare if necessary
+     * The external reference field can contain additional information, so prepare if necessary
      */
     var proprietaryIssueQueryBuilder: String? = null,
     /**

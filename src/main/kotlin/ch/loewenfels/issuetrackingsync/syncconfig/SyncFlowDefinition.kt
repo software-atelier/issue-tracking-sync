@@ -2,6 +2,13 @@ package ch.loewenfels.issuetrackingsync.syncconfig
 
 import com.fasterxml.jackson.annotation.JsonFormat
 
+/**<!-- tag::overview[] -->
+ * This class defines a row of actions, which are applied when an issues passed all filters.
+ * Their are no own implementation of SyncFlowDefinition allowed, but the referenced actions and filter.
+ * FilterClassname can point to a class of own implementation of IssueFilter.
+ * IMPORTANT: Each issue must match only one SyncFlowDefinition.
+ * <!-- end::overview[] -->
+ **/
 data class SyncFlowDefinition(
     var name: String = "",
     var source: TrackingApplicationName = "",

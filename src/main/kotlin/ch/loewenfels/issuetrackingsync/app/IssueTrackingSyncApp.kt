@@ -35,7 +35,7 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
 
     @Bean
     open fun settings(@Autowired objectMapper: ObjectMapper): Settings {
-        return Settings.loadFromFile(syncApplicationProperties.settingsLocation, objectMapper)
+        return Settings.loadFromFile(syncApplicationProperties.settingsLocation)
     }
 
     @Bean

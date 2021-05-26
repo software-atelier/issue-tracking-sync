@@ -1,0 +1,10 @@
+= Synchronizing issues between multiple tracking platforms
+:toc:
+
+image:https://sonarcloud.io/api/project_badges/measure?project=loewenfels_issue-tracking-sync&metric=alert_status[SonarCloud Status,link=https://sonarcloud.io/dashboard?id=loewenfels_issue-tracking-sync]
+
+This tool synchronizes issues between https://www.atlassian.com/software/jira[Atlassian JIRA] and https://jazz.net/products/rational-team-concert/[IBM RTC].
+Synchronisation is configured field-per-field in one YAML file.
+The tool runs as a small web server to allow for processing of (JIRA) webhook calls.
+
+include::src/main/asciidoc/issue-tracking-sync.adoc[tag=overview]
