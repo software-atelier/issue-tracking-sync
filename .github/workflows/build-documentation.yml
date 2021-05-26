@@ -19,4 +19,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dist-without-markdown
-          path: build
+          path: |
+            documentation/build/docs
+            !documentation/build/docs/.ascissdoctor
