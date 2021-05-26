@@ -14,6 +14,7 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.atlassian.com/mvn/maven-external/") }
     maven {
         val repositoryIssueTrackingJars: String by project.parent!!
         url = uri(repositoryIssueTrackingJars)

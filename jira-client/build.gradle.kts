@@ -14,18 +14,13 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
-    // maven { url = uri("https://packages.atlassian.com/maven-public/") }
-    maven {
-        val repositoryIssueTrackingJars: String by project.parent!!
-        url = uri(repositoryIssueTrackingJars)
-        isAllowInsecureProtocol = true
-    }
+    maven { url = uri("https://packages.atlassian.com/mvn/maven-external/") }
 }
 
 dependencies {
     implementation(project(":framework"))
     implementation(kotlin("stdlib"))
-    implementation("com.atlassian.jira:jira-rest-java-client-core:5.1.0-476bd700")
+    implementation("com.atlassian.jira:jira-rest-java-client-core:5.2.2")
     implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
         exclude("javax.activation:activation:1.0.2")
     }
