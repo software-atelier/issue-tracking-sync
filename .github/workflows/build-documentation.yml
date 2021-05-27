@@ -28,3 +28,9 @@ jobs:
           path: |
             documentation/build/docs
             !documentation/build/docs/.asciidoctor
+
+      - name: Publish documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./documentation/build/docs
