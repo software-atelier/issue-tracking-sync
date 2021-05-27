@@ -21,9 +21,7 @@ dependencies {
     implementation(project(":framework"))
     implementation(kotlin("stdlib"))
 
-    implementation("org.hamcrest:hamcrest:2.2")
     implementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
-    implementation("org.mockito:mockito-core:3.10.0")
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-test") {

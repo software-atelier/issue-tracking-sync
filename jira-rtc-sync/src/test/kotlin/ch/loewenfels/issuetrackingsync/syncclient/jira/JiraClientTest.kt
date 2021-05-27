@@ -2,18 +2,17 @@ package ch.loewenfels.issuetrackingsync.syncclient.jira
 
 import ch.loewenfels.issuetrackingsync.AbstractSpringTest
 import ch.loewenfels.issuetrackingsync.syncconfig.IssueTrackingApplication
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
+import ch.loewenfels.issuetrackingsync.testcontext.TestObjects
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito
 import java.time.LocalDateTime
 
 /**
@@ -29,8 +28,8 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val issue = testee.use { client -> client.getIssue("DEV-44692") }
         // assert
-        assertNotNull(issue)
-        assertEquals("DEV-44692", issue?.key)
+        Assertions.assertNotNull(issue)
+        Assertions.assertEquals("DEV-44692", issue?.key)
     }
 
     @Test
@@ -42,8 +41,8 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val html = testee.use { client -> client.getHtmlValue(issue, "description") }
         // assert
-        assertNotNull(issue)
-        assertThat(html, containsString("<h4>"))
+        Assertions.assertNotNull(issue)
+        MatcherAssert.assertThat(html, CoreMatchers.containsString("<h4>"))
     }
 
     @Test
@@ -55,7 +54,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val issues = testee.use { client -> client.changedIssuesSince(lastUpdated, 0, 50) }
         // assert
-        assertNotNull(issues)
+        Assertions.assertNotNull(issues)
     }
 
     @Test
@@ -75,37 +74,37 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val comments = testee.use { client -> client.getComments(issue) }
         // assert
-        assertNotNull(comments)
-        assertEquals(2, comments.size)
+        Assertions.assertNotNull(comments)
+        Assertions.assertEquals(2, comments.size)
     }
 
     @Test
     fun setValue_listOfLabels_setLabelsFieldCalled() {
         // arrange
-        val sourceIssue = buildIssue("MK-1")
-        val targetIssue = mock(Issue::class.java)
+        val sourceIssue = TestObjects.buildIssue("MK-1")
+        val targetIssue = Mockito.mock(Issue::class.java)
         sourceIssue.proprietaryTargetInstance = targetIssue
-        val issueInputBuilder = mock(IssueInputBuilder::class.java)
+        val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
         val listOfLabels = arrayListOf("nextSprint", "bug")
         val testee = JiraClient(buildSetup())
         // act
         testee.use { client -> client.setValue(issueInputBuilder, sourceIssue, "labels", listOfLabels) }
         // assert
-        verify(issueInputBuilder).setFieldValue(IssueFieldId.LABELS_FIELD.id, listOfLabels)
+        Mockito.verify(issueInputBuilder).setFieldValue(IssueFieldId.LABELS_FIELD.id, listOfLabels)
     }
 
     @Test
     fun setValue_emptyLabel_setLabelsFieldNotCalled() {
         // arrange
-        val sourceIssue = buildIssue("MK-1")
-        val targetIssue = mock(Issue::class.java)
+        val sourceIssue = TestObjects.buildIssue("MK-1")
+        val targetIssue = Mockito.mock(Issue::class.java)
         sourceIssue.proprietaryTargetInstance = targetIssue
-        val issueInputBuilder = mock(IssueInputBuilder::class.java)
+        val issueInputBuilder = Mockito.mock(IssueInputBuilder::class.java)
         val testee = JiraClient(buildSetup())
         // act
         testee.use { client -> client.setValue(issueInputBuilder, sourceIssue, "labels", arrayListOf<String>()) }
         // assert
-        verifyNoInteractions(issueInputBuilder)
+        Mockito.verifyNoInteractions(issueInputBuilder)
     }
 
     private fun buildSetup(): IssueTrackingApplication {
@@ -123,9 +122,9 @@ internal class JiraClientTest : AbstractSpringTest() {
     private fun verifySetup(client: JiraClient) {
         try {
             val greeting = client.verifySetup()
-            assumeTrue(greeting.isNotEmpty())
+            Assumptions.assumeTrue(greeting.isNotEmpty())
         } catch (ex: Exception) {
-            assumeTrue(false)
+            Assumptions.assumeTrue(false)
         }
     }
 }

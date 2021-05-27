@@ -28,6 +28,9 @@ dependencies {
     implementation("io.atlassian.fugue:fugue:4.7.2")
     implementation("javax.activation:activation:1.1")
     implementation("org.jsoup:jsoup:1.13.1")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-activemq")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation(project(":test-utils"))

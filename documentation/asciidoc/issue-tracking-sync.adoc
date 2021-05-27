@@ -9,15 +9,13 @@ It runs in a _java virtual machine_.
 
 == User Information
 
-* Documentation: <<issue-tracking-sync/business-view.adoc#_top,Business View>>
-* Support
-** public: https://github.com/loewenfels/issue-tracking-sync/issues[project issues page]
-** intern: https://loewenfels.slack.com/archives/C01ENSWRXPH[#eo-toolchain-squad]
+* Documentation: <<business-view.adoc#_top,Business View>>
+* Support: https://github.com/loewenfels/issue-tracking-sync/issues[project issues page]
 
 == Developer Information
 
-* Documentation: <<issue-tracking-sync/development-view.adoc#_top,Development View>>
+* Documentation: <<development-view.adoc#_top,Development View>>
 * Sources: https://github.com/loewenfels/issue-tracking-sync
-* Tech stack: kotlin, gradle, jdk11, jira-rest-client, rtc-java-client, spring-boot, activeMQ
-* Artefacts: jar, docker-image
+* Tech stack: kotlin, gradle, jdk11, jira-rest-client, rtc-java-client, spring-boot, activeMQ, asciidoc
+* Artefacts: jar
 // end::overview[]
