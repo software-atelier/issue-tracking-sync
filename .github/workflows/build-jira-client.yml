@@ -22,6 +22,7 @@ jobs:
         run: ./gradlew :jira-client:test
 
       - name: Archive test results
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: jira-client-test-results

@@ -22,6 +22,7 @@ jobs:
         run: ./gradlew :framework:test
 
       - name: Archive test results
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: framework-test-results
