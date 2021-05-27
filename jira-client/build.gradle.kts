@@ -20,6 +20,7 @@ repositories {
 dependencies {
     implementation(project(":framework"))
     implementation(kotlin("stdlib"))
+
     implementation("com.atlassian.jira:jira-rest-java-client-core:5.2.2")
     implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
         exclude("javax.activation:activation:1.0.2")
@@ -32,8 +33,11 @@ dependencies {
     testImplementation(project(":test-utils"))
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(module = "junit")
+    }
     testImplementation("org.mockito:mockito-core:3.10.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
 }
 
 tasks.getByName<Test>("test") {

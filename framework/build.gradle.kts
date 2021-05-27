@@ -17,10 +17,10 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("org.apache.activemq:activemq-spring")

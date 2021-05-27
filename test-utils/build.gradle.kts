@@ -10,6 +10,7 @@ plugins {
 
 group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
+val springProfile = "test"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
