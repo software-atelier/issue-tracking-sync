@@ -21,7 +21,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew :documentation:asciidoctor
 
-      - name: Archive production artifacts
+      - name: Archive documentation
         uses: actions/upload-artifact@v2
         with:
           name: documentation
