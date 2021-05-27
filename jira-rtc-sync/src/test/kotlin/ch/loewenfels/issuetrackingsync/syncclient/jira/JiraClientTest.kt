@@ -10,7 +10,6 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.time.LocalDateTime
@@ -18,7 +17,6 @@ import java.time.LocalDateTime
 /**
  * These tests rely on a valid JIRA setup. To run, remove the @Disabled and edit buildSetup()
  */
-@Disabled
 internal class JiraClientTest : AbstractSpringTest() {
     @Test
     fun getIssue_validKey_issueFound() {

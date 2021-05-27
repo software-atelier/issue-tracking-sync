@@ -1,13 +1,10 @@
 package ch.loewenfels.issuetrackingsync.testcontext
 
 import ch.loewenfels.issuetrackingsync.Issue
-import ch.loewenfels.issuetrackingsync.app.NotificationChannelProperties
 import ch.loewenfels.issuetrackingsync.executor.IssueFilter
 import ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
 import ch.loewenfels.issuetrackingsync.executor.fields.DirectFieldMapper
 import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
-import ch.loewenfels.issuetrackingsync.notification.CsvProtocol
-import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.*
@@ -89,13 +86,7 @@ object TestObjects {
         clientFactory: ClientFactory
     ): IssueTrackingClient<Any> =
         spy(clientFactory.getClient(issueTrackingApplication))
-
-    fun buildNotificationObserver(): NotificationObserver {
-        val observer = NotificationObserver()
-        observer.addChannel(CsvProtocol(NotificationChannelProperties()))
-        return observer
-    }
-
+    
     fun buildIssue(key: String = "MK-1") =
         Issue(key, "", LocalDateTime.now())
 }

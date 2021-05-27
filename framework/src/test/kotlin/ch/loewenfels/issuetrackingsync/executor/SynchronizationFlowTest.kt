@@ -5,13 +5,13 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.any
 import ch.loewenfels.issuetrackingsync.executor.actions.SynchronizationAction
 import ch.loewenfels.issuetrackingsync.notification.NotificationChannel
+import ch.loewenfels.issuetrackingsync.notification.NotificationObserver
 import ch.loewenfels.issuetrackingsync.syncclient.ClientFactory
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 import ch.loewenfels.issuetrackingsync.testcontext.AlwaysFalseIssueFilter
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssue
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingApplication
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildIssueTrackingClient
-import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildNotificationObserver
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildSyncActionDefinition
 import ch.loewenfels.issuetrackingsync.testcontext.TestObjects.buildSyncFlowDefinition
 import org.hamcrest.CoreMatchers.hasItem
@@ -137,7 +137,7 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         // assert
         assertThat(erroneousMessages, hasItem(error.reasonPhrase))
     }
-    
+
     @Test
     fun execute_rtcLoginFailureSourceIsJira_notifiedAsError() {
         // arrange
@@ -178,5 +178,12 @@ internal class SynchronizationFlowTest : AbstractSpringTest() {
         verify(targetClient, times(2))
             .createOrUpdateTargetIssue(any(Issue::class.java), any(DefaultsForNewIssue::class.java))
     }
+
+    private fun buildNotificationObserver(): NotificationObserver {
+        val observer = NotificationObserver()
+        observer.addChannel(SynchronizationFlowTest)
+        return observer
+    }
+
 }
 
