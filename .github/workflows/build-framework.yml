@@ -25,5 +25,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: framework-test-results
-          path: framework/build/test-results
+          name: framework-test-reports
+          path: framework/build/reports

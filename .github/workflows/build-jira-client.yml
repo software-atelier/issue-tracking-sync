@@ -25,5 +25,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: jira-client-test-results
-          path: jira-client/build/test-results
+          name: jira-client-test-reports
+          path: jira-client/build/reports
