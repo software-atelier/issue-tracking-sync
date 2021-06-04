@@ -1,20 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-plugins {
-    id("java")
-    id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
-}
-
-group = "ch.loewenfels.issuetrackingsync"
-version = "1.0-SNAPSHOT"
-val springProfile = "test"
-java.sourceCompatibility = JavaVersion.VERSION_11
-
 repositories {
-    mavenCentral()
     maven {
         url = uri("https://packages.atlassian.com/mvn/maven-external")
     }
@@ -22,7 +6,6 @@ repositories {
 
 dependencies {
     implementation(project(":framework"))
-    implementation(kotlin("stdlib"))
 
     implementation("com.atlassian.jira:jira-rest-java-client-core:5.2.2")
     implementation("com.atlassian.renderer:atlassian-renderer:8.0.5") {
@@ -37,25 +20,5 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation(testFixtures(project(":test-utils")))
-    testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(module = "junit-vintage-engine")
-    }
-    testImplementation("org.mockito:mockito-core:3.10.0")
-    testImplementation("org.springframework.security:spring-security-test")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
-}
 
-tasks.getByName<Test>("test") {
-//    println(classpath.asPath)
-    useJUnitPlatform()
 }
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-

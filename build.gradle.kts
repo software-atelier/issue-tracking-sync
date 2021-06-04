@@ -1,22 +1,54 @@
-import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.5.10"
-    id("org.springframework.boot") version "2.5.0"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("io.gitlab.arturbosch.detekt") version "1.5.1"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("org.jetbrains.kotlin.jvm") version "1.5.10"
+    id("org.springframework.boot") version "2.5.0"
 }
-group = "ch.loewenfels.issuetrackingsync"
-version = "1.0-SNAPSHOT"
-val springProfile = "test"
-java.sourceCompatibility = JavaVersion.VERSION_11
 
-repositories {
-    mavenCentral()
+allprojects {
+    apply(plugin = "java")
+    apply(plugin = "java-library")
+    apply(plugin = "java-test-fixtures")
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.springframework.boot")
+    apply(plugin = "io.spring.dependency-management")
+
+
+    group = "ch.loewenfels.issuetrackingsync"
+    version = "2.0-SNAPSHOT"
+    java.sourceCompatibility = JavaVersion.VERSION_11
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation(kotlin("stdlib"))
+
+        testImplementation("org.hamcrest:hamcrest:2.2")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
+        testImplementation("org.springframework.boot:spring-boot-starter-test") {
+            exclude(module = "junit-vintage-engine")
+        }
+        testImplementation("org.mockito:mockito-core:3.10.0")
+        testImplementation("org.springframework.security:spring-security-test")
+
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "11"
+        }
+    }
 }
 
 dependencies {
@@ -36,14 +68,3 @@ detekt {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-
-
-tasks.withType<Detekt> {
-    this.jvmTarget = "11"
-}
