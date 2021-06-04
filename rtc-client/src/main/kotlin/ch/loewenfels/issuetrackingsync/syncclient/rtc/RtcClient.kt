@@ -205,10 +205,6 @@ open class RtcClient(private val setup: IssueTrackingApplication) : IssueTrackin
         }
     }
 
-    fun setOwner(internalIssue: IWorkItem, owner: IContributorHandle) {
-        internalIssue.owner = owner
-    }
-
     fun getNonConvertedValue(internalIssue: IWorkItem, fieldName: String): Any? {
         return when (fieldName) {
             "internalResolution" -> getResolutionName(internalIssue)

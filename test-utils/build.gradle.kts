@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java")
     id("java-library")
+    id("java-test-fixtures")
     id("org.jetbrains.kotlin.jvm")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -18,17 +19,17 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":framework"))
-    implementation(kotlin("stdlib"))
+    testFixturesImplementation(project(":framework"))
+    testFixturesImplementation(kotlin("stdlib"))
 
-    implementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
-    implementation("org.springframework.boot:spring-boot-starter-activemq")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-test") {
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testFixturesImplementation("org.springframework.boot:spring-boot-starter-activemq")
+    testFixturesImplementation("org.springframework.boot:spring-boot-starter-security")
+    testFixturesImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "junit")
     }
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
 }
 
 tasks.getByName<Test>("test") {

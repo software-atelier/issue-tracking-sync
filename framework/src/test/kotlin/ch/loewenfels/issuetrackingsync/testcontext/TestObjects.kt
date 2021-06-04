@@ -13,13 +13,17 @@ import java.time.LocalDateTime
 
 object TestObjects {
     private const val simpleActionName = "foobar"
+    private val associations = mutableMapOf(
+        "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+    )
+
 
     fun buildSyncFlowDefinition(source: TrackingApplicationName, target: TrackingApplicationName): SyncFlowDefinition {
         val syncFlowDefinition = SyncFlowDefinition()
         syncFlowDefinition.source = source
         syncFlowDefinition.target = target
         syncFlowDefinition.actions = mutableListOf(simpleActionName)
-        syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
+        syncFlowDefinition.defaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
         syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
         syncFlowDefinition.writeBackFieldMappingDefinition = buildWriteBackFieldMappingDefinition()
         return syncFlowDefinition
@@ -29,17 +33,17 @@ object TestObjects {
         val syncActionDefinition = SyncActionDefinition()
         syncActionDefinition.name = simpleActionName
         syncActionDefinition.classname = SimpleSynchronizationAction::class.qualifiedName ?: ""
-        syncActionDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
+        syncActionDefinition.fieldMappingDefinitions =
+            mutableListOf(FieldMappingDefinition(associations = associations))
         return syncActionDefinition
     }
+
 
     private fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
         FieldMappingDefinition(
             "id",
             "custom_field_10244",
-            associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+            associations = associations
         )
 
     private fun buildWriteBackFieldMappingDefinition(): List<FieldMappingDefinition> =
@@ -47,32 +51,18 @@ object TestObjects {
             FieldMappingDefinition(
                 "key",
                 "ch.foobar.team.workitem.attribute.external_refid",
-                associations = mutableMapOf(
-                    "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-                )
+                associations = associations
+
             )
         )
 
-    private fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
-        mutableListOf(buildFieldMappingDefinition())
-
-    private fun buildFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition(
-            "title", "summary", associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
-        )
-
-    fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
-
-    private fun buildFieldMapping(): FieldMapping =
+    fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(
         FieldMapping(
             "title",
             "summary",
             DirectFieldMapper()
         )
-
-    private fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
+    )
 
     fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
         val issueTrackingApplication = IssueTrackingApplication()
@@ -86,7 +76,7 @@ object TestObjects {
         clientFactory: ClientFactory
     ): IssueTrackingClient<Any> =
         spy(clientFactory.getClient(issueTrackingApplication))
-    
+
     fun buildIssue(key: String = "MK-1") =
         Issue(key, "", LocalDateTime.now())
 }

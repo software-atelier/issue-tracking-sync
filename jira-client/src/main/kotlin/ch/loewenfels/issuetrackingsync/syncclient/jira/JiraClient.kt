@@ -153,10 +153,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
     override fun getValue(internalIssue: JiraIssue, fieldName: String): Any? {
         val beanWrapper = BeanWrapperImpl(internalIssue)
-        val internalValue = if (beanWrapper.isReadableProperty(fieldName))
-            beanWrapper.getPropertyValue(fieldName)
-        else
-            getCustomFields(internalIssue, fieldName)
+        val internalValue =
+            if (beanWrapper.isReadableProperty(fieldName)) beanWrapper.getPropertyValue(fieldName)
+            else getCustomFields(internalIssue, fieldName)
         return internalValue?.let { convertFromMetadataId(fieldName, it) }
     }
 
@@ -246,10 +245,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 } else if (fieldName == "labels" && value is List<*>) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
                     hasChanges = {
-                        !(getValue(
-                            targetInternalIssue,
-                            fieldName
-                        ) as Collection<*>).containsAll(it as Collection<*>)
+                        !(getValue(targetInternalIssue, fieldName) as Collection<*>).containsAll(it as Collection<*>)
                     }
                 } else if (fieldName == "versions") {
                     // RTC allows only one version (field: foundIn) while Jira awaits a list of versions

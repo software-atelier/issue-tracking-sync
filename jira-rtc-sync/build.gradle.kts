@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java")
     id("java-library")
+    id("java-test-fixtures")
     id("org.jetbrains.kotlin.jvm")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -36,11 +37,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
 
-    testImplementation(project(":test-utils"))
+    testImplementation(testFixtures(project(":test-utils")))
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
     testImplementation("org.mockito:mockito-core:3.10.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
 }
 
 tasks.getByName<Test>("test") {

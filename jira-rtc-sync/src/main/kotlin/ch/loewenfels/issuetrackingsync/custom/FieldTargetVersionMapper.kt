@@ -32,29 +32,22 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         jiraVersions: Any?
     ) {
         // check if at least one jira version is set
-        if (jiraVersions is List<*> && jiraVersions.filterIsInstance<String>().filterNot { it.isEmpty() }
-                .isNotEmpty()) {
+        if (jiraVersions is List<*>
+            && jiraVersions.filterIsInstance<String>().filterNot { it.isEmpty() }.isNotEmpty()
+        ) {
             val rtcValue: String? = super.getValue(
                 issue.proprietaryTargetInstance as IWorkItem,
                 fieldname,
                 issueTrackingClient,
-                mapOf("(.*)" to "$1")
+                emptyMap()
             ) as String?
-            val rtcVersion =
-                "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex().find(rtcValue ?: "")?.groupValues?.get(1) ?: ""
+            val rtcVersion = "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex()
+                .find(rtcValue ?: "")?.groupValues?.get(1) ?: ""
             if (jiraVersions.contains(rtcVersion).not()) {
                 mergeToRtc(jiraVersions, issue, issueTrackingClient, proprietaryIssueBuilder, fieldname)
             }
         }
     }
-
-    private fun isJiraIssueSolved(issue: Issue): Boolean {
-        val jiraStatus = getJiraStatus(issue)
-        return jiraStatus == "erledigt" || jiraStatus == "geschlossen"
-    }
-
-    private fun getJiraStatus(issue: Issue): String =
-        (issue.proprietarySourceInstance as com.atlassian.jira.rest.client.api.domain.Issue).status.name
 
     private fun mergeToRtc(
         jiraVersions: List<*>,
@@ -63,17 +56,13 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         proprietaryIssueBuilder: Any,
         fieldname: String
     ) {
-        val sortedVersions = jiraVersions.filterIsInstance<String>()
+        val jiraVersionToSync = jiraVersions.filterIsInstance<String>()
             .mapNotNull { createVersion(it) }
-            .sorted()
-        val jiraVersionToSync = sortedVersions.firstOrNull()?.toString()
-        checkNotNull(jiraVersionToSync) {
-            "No valid version ($jiraVersions) for issue ${issue.key} found."
-        }
+            .sorted().firstOrNull()
+            ?: throw IllegalStateException("No valid version ($jiraVersions) for issue ${issue.key} found.")
         val mappedRtcVersion = issueTrackingClient.getAllDeliverables()
-            .map { it.name }
-            .firstOrNull { it.endsWith(jiraVersionToSync) }
-        checkNotNull(mappedRtcVersion) { "The version $jiraVersionToSync is not yet defined for RTC." }
+            .find { it.name.endsWith(jiraVersionToSync.toString()) }
+            ?: throw IllegalStateException("The version $jiraVersionToSync is not yet defined for RTC.")
         super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, mappedRtcVersion)
     }
 
