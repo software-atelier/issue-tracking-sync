@@ -39,7 +39,7 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
                 issue.proprietaryTargetInstance as IWorkItem,
                 fieldname,
                 issueTrackingClient,
-                emptyMap()
+                mapOf("(.*)" to "$1")
             ) as String?
             val rtcVersion = "^I\\d{4}\\.\\d+ - (\\d\\.\\d{2,3}.*)".toRegex()
                 .find(rtcValue ?: "")?.groupValues?.get(1) ?: ""
@@ -57,11 +57,10 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
         fieldname: String
     ) {
         val jiraVersionToSync = jiraVersions.filterIsInstance<String>()
-            .mapNotNull { createVersion(it) }
-            .sorted().firstOrNull()
+            .mapNotNull(::createVersion).minOrNull()?.toString()
             ?: throw IllegalStateException("No valid version ($jiraVersions) for issue ${issue.key} found.")
         val mappedRtcVersion = issueTrackingClient.getAllDeliverables()
-            .find { it.name.endsWith(jiraVersionToSync.toString()) }
+            .map { it.name }.find { it.endsWith(jiraVersionToSync) }
             ?: throw IllegalStateException("The version $jiraVersionToSync is not yet defined for RTC.")
         super.setValue(proprietaryIssueBuilder, fieldname, issue, issueTrackingClient, mappedRtcVersion)
     }
@@ -113,10 +112,8 @@ class FieldTargetVersionMapper(fieldMappingDefinition: FieldMappingDefinition) :
     private fun createVersion(version: String): Version? {
         val versionRegex = "^(\\d)\\.(\\d+)\\.?(\\d*(?!.*\\.nil))".toRegex()
         val extractedVersions = versionRegex.find(version)?.groupValues?.mapNotNull { it.toIntOrNull() }
-        extractedVersions?.let {
-            if (extractedVersions.size >= 2)
-                return Version(extractedVersions[0], extractedVersions[1], extractedVersions.getOrNull(2))
-        }
+        if (extractedVersions != null && extractedVersions.size >= 2)
+            return Version(extractedVersions[0], extractedVersions[1], extractedVersions.getOrNull(2))
         return null
     }
 

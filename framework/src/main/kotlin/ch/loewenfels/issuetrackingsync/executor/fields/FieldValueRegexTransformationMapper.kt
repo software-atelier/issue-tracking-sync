@@ -21,10 +21,9 @@ open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMapp
     ): Any? {
         return when (val value = issueTrackingClient.getValue(proprietaryIssue, fieldname)) {
             is String -> transFromString(value, association, fieldname)
-            is List<*> -> issueTrackingClient.getMultiSelectValues(
-                proprietaryIssue,
-                fieldname
-            ).map { transFromString(it, association, fieldname) }
+            is List<*> -> issueTrackingClient
+                .getMultiSelectValues(proprietaryIssue, fieldname)
+                .map { transFromString(it, association, fieldname) }
             else -> value
         }
     }

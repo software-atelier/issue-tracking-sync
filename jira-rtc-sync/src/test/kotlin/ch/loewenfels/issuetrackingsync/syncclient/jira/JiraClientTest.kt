@@ -7,9 +7,11 @@ import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.IssueFieldId
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder
 import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assumptions
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.time.LocalDateTime
@@ -17,6 +19,7 @@ import java.time.LocalDateTime
 /**
  * These tests rely on a valid JIRA setup. To run, remove the @Disabled and edit buildSetup()
  */
+@Disabled
 internal class JiraClientTest : AbstractSpringTest() {
     @Test
     fun getIssue_validKey_issueFound() {
@@ -26,8 +29,8 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val issue = testee.use { client -> client.getIssue("DEV-44692") }
         // assert
-        Assertions.assertNotNull(issue)
-        Assertions.assertEquals("DEV-44692", issue?.key)
+        assertNotNull(issue)
+        assertEquals("DEV-44692", issue?.key)
     }
 
     @Test
@@ -39,8 +42,8 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val html = testee.use { client -> client.getHtmlValue(issue, "description") }
         // assert
-        Assertions.assertNotNull(issue)
-        MatcherAssert.assertThat(html, CoreMatchers.containsString("<h4>"))
+        assertNotNull(issue)
+        assertThat(html, CoreMatchers.containsString("<h4>"))
     }
 
     @Test
@@ -52,7 +55,7 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val issues = testee.use { client -> client.changedIssuesSince(lastUpdated, 0, 50) }
         // assert
-        Assertions.assertNotNull(issues)
+        assertNotNull(issues)
     }
 
     @Test
@@ -72,8 +75,8 @@ internal class JiraClientTest : AbstractSpringTest() {
         // act
         val comments = testee.use { client -> client.getComments(issue) }
         // assert
-        Assertions.assertNotNull(comments)
-        Assertions.assertEquals(2, comments.size)
+        assertNotNull(comments)
+        assertEquals(2, comments.size)
     }
 
     @Test
@@ -120,9 +123,9 @@ internal class JiraClientTest : AbstractSpringTest() {
     private fun verifySetup(client: JiraClient) {
         try {
             val greeting = client.verifySetup()
-            Assumptions.assumeTrue(greeting.isNotEmpty())
+            assumeTrue(greeting.isNotEmpty())
         } catch (ex: Exception) {
-            Assumptions.assumeTrue(false)
+            assumeTrue(false)
         }
     }
 }

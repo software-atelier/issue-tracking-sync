@@ -1,0 +1,15 @@
+spring:
+  profiles: test
+  security:
+    user:
+      password: a-better-admin-password
+
+sync:
+  settingsLocation: build/resources/test/settings.yml
+  pollingCron: 0 0 0 1 * ?
+  notificationChannelProperties:
+    - classname: ch.loewenfels.issuetrackingsync.notification.SlackChannel
+      endpoint: http://localhost:8033
+      username: jira2rtc
+      subject: hello
+      avatar: ":twice:"
