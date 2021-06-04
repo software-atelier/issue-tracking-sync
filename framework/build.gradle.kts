@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java")
     id("java-library")
+
     id("org.jetbrains.kotlin.jvm")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -31,12 +32,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(module = "junit")
+        exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.springframework.security:spring-security-test")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
 }
 
 tasks.withType<Test> {

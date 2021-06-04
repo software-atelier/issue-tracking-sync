@@ -4,7 +4,8 @@ import ch.loewenfels.issuetrackingsync.Issue
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
-class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMappingDefinition) : DirectListMergeFieldMapper() {
+class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMappingDefinition) :
+    DirectListMergeFieldMapper() {
     private val onlyLast = fieldMappingDefinition.associations["onlyLast"]
     private val toUpperCase = fieldMappingDefinition.associations["toUpperCase"]
     private val toLowerCase = fieldMappingDefinition.associations["toLowerCase"]
@@ -23,7 +24,7 @@ class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMapp
             newValues = newValues.map { newValue ->
                 var result = newValue
                 it.toRegex().find(newValue as String)?.value?.let { found ->
-                    result = newValue.replace(found, found.toUpperCase())
+                    result = newValue.replace(found, found.uppercase())
                 }
                 result
             }.toMutableSet()
@@ -32,7 +33,7 @@ class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMapp
             newValues = newValues.map { newValue ->
                 var result = newValue
                 it.toRegex().find(newValue as String)?.value?.let { found ->
-                    result = newValue.replace(found, found.toLowerCase())
+                    result = newValue.replace(found, found.lowercase())
                 }
                 result
             }.toMutableSet()

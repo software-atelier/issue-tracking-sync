@@ -1,7 +1,9 @@
 rootProject.name = "issue-tracking-sync"
-include("framework")
-include("test-utils")
-include("jira-client")
-include("rtc-client")
-include("jira-rtc-sync")
-include("documentation")
+include(
+    "framework",
+    "test-utils",
+    "jira-client",
+    "rtc-client",
+    "jira-rtc-sync",
+    "documentation"
+)

@@ -1,16 +1,15 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.3.72"
-    id("org.springframework.boot") version "2.2.6.RELEASE"
-    id("io.spring.dependency-management") version "1.0.9.RELEASE"
+    id("org.jetbrains.kotlin.jvm") version "1.5.10"
+    id("org.springframework.boot") version "2.5.0"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("io.gitlab.arturbosch.detekt") version "1.5.1"
 }
-
 group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
 val springProfile = "test"
@@ -44,11 +43,6 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.withType<ShadowJar> {
-    archiveBaseName.set("app")
-    archiveClassifier.set("")
-    archiveVersion.set("")
-}
 
 tasks.withType<Detekt> {
     this.jvmTarget = "11"

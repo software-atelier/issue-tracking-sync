@@ -91,7 +91,7 @@ class IssuePoller @Autowired constructor(
         val allConflictingIssues = allIssues.filter { sourceKeys.contains(it.targetKey) }
         val outdatedIssues = allConflictingIssues.map { issue ->
             val relatedIssue = allConflictingIssues.find { it.key == issue.targetKey }
-            listOf(issue, relatedIssue!!).minBy(Issue::lastUpdated)
+            listOf(issue, relatedIssue!!).minByOrNull(Issue::lastUpdated)
         }
         polledIssues.values.forEach { issuesPerTrackingApp ->
             issuesPerTrackingApp.removeAll { outdatedIssues.contains(it) }

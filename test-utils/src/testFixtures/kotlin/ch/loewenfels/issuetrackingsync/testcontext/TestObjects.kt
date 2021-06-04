@@ -80,7 +80,7 @@ object TestObjects {
     fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
         val issueTrackingApplication = IssueTrackingApplication()
         issueTrackingApplication.className = simpleClassName
-        issueTrackingApplication.name = simpleClassName.toUpperCase()
+        issueTrackingApplication.name = simpleClassName.uppercase()
         return issueTrackingApplication
     }
 

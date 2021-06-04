@@ -22,14 +22,14 @@ dependencies {
     testFixturesImplementation(project(":framework"))
     testFixturesImplementation(kotlin("stdlib"))
 
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-activemq")
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-security")
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(module = "junit")
+        exclude(module = "junit-vintage-engine")
     }
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
 }
 
 tasks.getByName<Test>("test") {

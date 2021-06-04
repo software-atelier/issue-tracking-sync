@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java")
     id("java-library")
-    id("java-test-fixtures")
     id("org.jetbrains.kotlin.jvm")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -11,11 +10,14 @@ plugins {
 
 group = "ch.loewenfels.issuetrackingsync"
 version = "1.0-SNAPSHOT"
+val springProfile = "test"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://packages.atlassian.com/mvn/maven-external/") }
+    maven {
+        url = uri("https://packages.atlassian.com/mvn/maven-external")
+    }
 }
 
 dependencies {
@@ -36,15 +38,17 @@ dependencies {
 
     testImplementation(testFixtures(project(":test-utils")))
     testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(module = "junit")
+        exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.mockito:mockito-core:3.10.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    testImplementation("org.springframework.security:spring-security-test")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
 }
 
 tasks.getByName<Test>("test") {
+//    println(classpath.asPath)
     useJUnitPlatform()
 }
 
@@ -54,3 +58,4 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "11"
     }
 }
+

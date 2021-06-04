@@ -131,7 +131,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             listOf(IssueRestClient.Expandos.CHANGELOG)
         ).claim()
         return try {
-            issue.changelog?.maxBy { it.created }?.author?.name ?: ""
+            issue.changelog?.maxByOrNull { it.created }?.author?.name ?: ""
         } catch (e: NullPointerException) {
             ""
         }

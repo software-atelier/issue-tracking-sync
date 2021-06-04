@@ -41,9 +41,9 @@ class CsvProtocol(properties: NotificationChannelProperties) : NotificationChann
         val entry = "${currentTime()};${source};${target};${concatActions(syncActions)};$status"
         FileOutputStream(file, true).bufferedWriter(Charsets.ISO_8859_1).use { out ->
             if (fileHeaders) {
-                out.appendln(csvHeader)
+                out.appendLine(csvHeader)
             }
-            out.appendln(entry)
+            out.appendLine(entry)
         }
     }
 
