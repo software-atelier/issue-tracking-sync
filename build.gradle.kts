@@ -23,6 +23,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven { url = uri("https://packages.atlassian.com/mvn/maven-external/") }
     }
 
     dependencies {
