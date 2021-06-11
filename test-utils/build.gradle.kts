@@ -1,3 +1,9 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+plugins {
+    id("org.springframework.boot")
+}
+
 dependencies {
     testFixturesImplementation(project(":framework"))
 
@@ -7,4 +13,14 @@ dependencies {
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "junit-vintage-engine")
     }
+}
+
+
+tasks.getByName<BootJar>("bootJar") {
+    enabled = false
+}
+
+tasks.getByName<Jar>("jar") {
+    enabled = true
+    classifier = ""
 }

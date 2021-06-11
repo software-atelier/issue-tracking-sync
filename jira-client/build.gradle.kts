@@ -1,3 +1,9 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+plugins {
+    id("org.springframework.boot")
+}
+
 repositories {
     maven {
         url = uri("https://packages.atlassian.com/mvn/maven-external")
@@ -21,4 +27,14 @@ dependencies {
 
     testImplementation(testFixtures(project(":test-utils")))
 
+}
+
+
+tasks.getByName<BootJar>("bootJar") {
+    enabled = false
+}
+
+tasks.getByName<Jar>("jar") {
+    enabled = true
+    classifier = ""
 }

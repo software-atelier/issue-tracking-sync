@@ -1,3 +1,9 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+plugins {
+    id("org.springframework.boot")
+}
+
 dependencies {
     implementation(kotlin("reflect"))
 
@@ -10,4 +16,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
+}
+
+tasks.getByName<BootJar>("bootJar") {
+    enabled = false
+}
+
+tasks.getByName<Jar>("jar") {
+    enabled = true
+    classifier = ""
 }

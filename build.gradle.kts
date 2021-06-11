@@ -1,11 +1,14 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.gitlab.arturbosch.detekt") version "1.5.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.jetbrains.kotlin.jvm") version "1.5.10"
     id("org.springframework.boot") version "2.5.0"
+    id("maven-publish")
 }
 
 allprojects {
@@ -13,13 +16,17 @@ allprojects {
     apply(plugin = "java-library")
     apply(plugin = "java-test-fixtures")
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "maven-publish")
 
 
     group = "ch.loewenfels.issuetrackingsync"
     version = "2.0-SNAPSHOT"
-    java.sourceCompatibility = JavaVersion.VERSION_11
+
+    java {
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_11
+    }
 
     repositories {
         mavenCentral()
@@ -50,13 +57,43 @@ allprojects {
             jvmTarget = "11"
         }
     }
+
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                artifactId = project.name
+                from(components["java"])
+                versionMapping {
+                    usage("java-api") {
+                        fromResolutionOf("runtimeClasspath")
+                    }
+                    usage("java-runtime") {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name.set("Issue Tracking Sync")
+                    scm {
+                        connection.set("scm:git:https://github.com/loewenfels/issue-tracking-sync.git")
+                        developerConnection.set("scm:git:https://github.com/loewenfels/issue-tracking-sync.git")
+                        url.set("https://github.com/loewenfels/issue-tracking-sync")
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                val repositoryIssueTrackingJars: String by project
+                url = uri(repositoryIssueTrackingJars)
+                isAllowInsecureProtocol = true
+            }
+        }
+    }
 }
 
 dependencies {
     implementation(project(":framework"))
     implementation(project(":jira-client"))
-    implementation(project(":rtc-client"))
-    implementation(project(":jira-rtc-sync"))
 }
 
 detekt {
@@ -67,5 +104,19 @@ detekt {
         html.enabled = true // observe findings in your browser with structure and code snippets
         xml.enabled = true // checkstyle like format mainly for integrations like Jenkins, Sonar etc.
     }
+}
+
+tasks.withType<BootRun> {
+    main = ("ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp")
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+    mainClassName = "ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp"
+}
+
+tasks.withType<ShadowJar> {
+    archiveBaseName.set("issue-tracking-sync-ALL")
+    archiveClassifier.set("")
+    archiveVersion.set("")
 }
 
