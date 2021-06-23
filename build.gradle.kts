@@ -81,13 +81,6 @@ allprojects {
                 }
             }
         }
-        repositories {
-            maven {
-                val repositoryIssueTrackingJars: String by project
-                url = uri(repositoryIssueTrackingJars)
-                isAllowInsecureProtocol = true
-            }
-        }
     }
 }
 
