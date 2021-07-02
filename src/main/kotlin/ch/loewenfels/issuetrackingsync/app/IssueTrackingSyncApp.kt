@@ -77,5 +77,10 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
 }
 
 fun main(args: Array<String>) {
-    runApplication<IssueTrackingSyncApp>(*args)
+    try {
+        runApplication<IssueTrackingSyncApp>(*args)
+    } catch (e: Exception) {
+        System.err.println(e)
+        throw e
+    }
 }
