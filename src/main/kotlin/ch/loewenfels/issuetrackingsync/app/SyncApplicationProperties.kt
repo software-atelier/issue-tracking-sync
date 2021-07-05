@@ -13,7 +13,7 @@ open class SyncApplicationProperties {
     var title: String = "Issue tracking synchronisation"
     var debug: Boolean = false
     val notificationChannels = ArrayList<NotificationChannel>()
-    private val notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
+    val notificationChannelProperties: List<NotificationChannelProperties> = mutableListOf()
 
     @PostConstruct
     @Suppress("UNCHECKED_CAST")
