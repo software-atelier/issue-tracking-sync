@@ -17,16 +17,19 @@ class CsvController(
 
     @GetMapping("/protocolCsv")
     fun downloadCsv(response: HttpServletResponse) {
-        val file = properties.notificationChannels.filterIsInstance<CsvProtocol>().first().file
-        response.contentType = "text/csv"
-        response.setHeader(
-            "Content-Disposition", "attachment; filename=\"protocol.csv\""
-        )
-        try {
-            FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
-        } catch (e: IOException) {
-            e.printStackTrace(PrintStream(response.outputStream))
+        val list = properties.notificationChannels.filterIsInstance<CsvProtocol>()
+        if (list.isNotEmpty()) {
+            val file = list.first().file
+            response.contentType = "text/csv"
+            response.setHeader(
+                "Content-Disposition", "attachment; filename=\"protocol.csv\""
+            )
+            try {
+                FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
+            } catch (e: IOException) {
+                e.printStackTrace(PrintStream(response.outputStream))
+            }
+            response.outputStream.close()
         }
-        response.outputStream.close()
     }
 }

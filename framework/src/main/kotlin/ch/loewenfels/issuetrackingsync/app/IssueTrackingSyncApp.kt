@@ -65,7 +65,12 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            runApplication<IssueTrackingSyncApp>(*args)
+            try {
+                runApplication<IssueTrackingSyncApp>(*args)
+            } catch (e: Exception) {
+                System.err.println(e)
+                throw e
+            }
         }
     }
 }
