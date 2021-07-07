@@ -1,9 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.gitlab.arturbosch.detekt") version "1.5.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.jetbrains.kotlin.jvm") version "1.5.10"
@@ -105,11 +103,5 @@ tasks.withType<BootRun> {
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     mainClassName = "ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp"
-}
-
-tasks.withType<ShadowJar> {
-    archiveBaseName.set("issue-tracking-sync-ALL")
-    archiveClassifier.set("")
-    archiveVersion.set("")
 }
 
