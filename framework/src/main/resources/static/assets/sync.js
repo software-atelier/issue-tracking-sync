@@ -8,7 +8,7 @@ var sync = {
     },
 
     readSystemName: function () {
-        $.get('/systeminfo')
+        $.get('./systeminfo')
             .done(function (response) {
                 if (response["title"] && response["title"] !== "") {
                     var title = $('.sync-system-name');
@@ -23,7 +23,7 @@ var sync = {
             });
     },
     triggerPolling: function () {
-        $.get('/triggerPolling')
+        $.get('./triggerPolling')
             .done(function (response) {
                 $('#manual-trigger-error').text("").hide();
                 $('#manual-trigger-status').text(response).show()
@@ -36,7 +36,7 @@ var sync = {
             });
     },
     readInfo: function () {
-        $.get('/info')
+        $.get('./info')
             .done(function (response) {
                 var container = $('.sync-polling');
                 container.empty();
@@ -50,7 +50,7 @@ var sync = {
             });
     },
     updateStatistics: function () {
-        $.get('/statistics')
+        $.get('./statistics')
             .done(function (response) {
                 var container = $('.sync-statistics');
                 container.empty();
@@ -70,7 +70,7 @@ var sync = {
             "issuekey": $("[name=issuekey]", frm).val()
         }
         $.ajax({
-            url: '/manualsync',
+            url: './manualsync',
             type: 'PUT',
             contentType: 'application/json',
             dataType: 'json',
@@ -94,7 +94,7 @@ var sync = {
             "time": time ? time : "00:00"
         }
         $.ajax({
-            url: '/earliestSyncDate',
+            url: './earliestSyncDate',
             type: 'PUT',
             contentType: 'application/json',
             dataType: 'json',
@@ -114,7 +114,7 @@ var sync = {
         });
     },
     _loadDefinedTrackingApplications: function () {
-        $.get('/definedSystems')
+        $.get('./definedSystems')
             .done(function (response) {
                 var selectControl = $('select#trackingsystem');
                 selectControl.empty();
