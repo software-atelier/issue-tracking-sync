@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.RestClientException
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -87,9 +86,9 @@ class InteractivceSyncController(
         return try {
             clientFactory.getClient(trackingApplication).use { client -> client.getIssue(key) }
         } catch (ex: Exception) {
-            when (ex) {
-                is RestClientException,
-                is NumberFormatException -> null
+            when (ex.javaClass.simpleName) {
+                "RestClientException",
+                "NumberFormatException" -> null
                 else -> throw ex
             }
         }
