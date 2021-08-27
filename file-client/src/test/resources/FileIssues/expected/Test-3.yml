@@ -1,0 +1,12 @@
+---
+key: "Test-3"
+summary: "doNotSynchronize field is not changed"
+status: "changed"
+description: |
+  This issue has an field, what not should be synchronized.
+  After synchronization all fields except that are synchronized.
+doNotSynchronize: "OLD Value"
+lastUpdated: 2021-08-27T14:38
+attributes: { }
+comments: [ ]
+attachments: [ ]

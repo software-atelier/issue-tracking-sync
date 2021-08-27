@@ -3,5 +3,5 @@ include(
     "framework",
     "test-utils",
     "jira-client",
-    "documentation"
+    "file-client"
 )

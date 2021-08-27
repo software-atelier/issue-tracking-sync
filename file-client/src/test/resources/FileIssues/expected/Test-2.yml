@@ -1,0 +1,11 @@
+---
+key: "Test-2"
+summary: "Issue is updated"
+status: "changed"
+description: |
+  This issue does already exists on target.
+  After synchronization some fields are updated.
+lastUpdated: 2021-08-27T12:07
+attributes: { }
+comments: [ ]
+attachments: [ ]

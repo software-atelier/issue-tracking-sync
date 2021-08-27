@@ -68,7 +68,7 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
             try {
                 runApplication<IssueTrackingSyncApp>(*args)
             } catch (e: Exception) {
-                System.err.println(e)
+                e.printStackTrace()
                 throw e
             }
         }

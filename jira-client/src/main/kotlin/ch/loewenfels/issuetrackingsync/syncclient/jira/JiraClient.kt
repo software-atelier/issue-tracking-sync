@@ -64,12 +64,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             return null
         }
         val keyFieldMapping = issue.keyFieldMapping!!
-        var targetIssue = queryIssue(keyFieldMapping)
-        if (null == targetIssue) {
-            targetIssue = keyFieldMapping.getCallback()?.let { return queryIssue(it) }
-        }
-
-        return targetIssue
+        return queryIssue(keyFieldMapping) ?: keyFieldMapping.getCallback()?.let { return queryIssue(it) }
     }
 
     override fun getProprietaryIssue(issueKey: String): JiraIssue? = getJiraIssue(issueKey)
