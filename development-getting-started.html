@@ -445,7 +445,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_build_with_rtc_client">Build with RTC Client</a></li>
 <li><a href="#_configuration">Configuration</a>
 <ul class="sectlevel2">
 <li><a href="#_processing_queue">Processing queue</a></li>
@@ -459,46 +458,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_build_with_rtc_client">Build with RTC Client</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To build the tool you need the IBM RTC Library.
-This library is not in any open repository.
-So you need to add it into your own repository or build path.
-You can achieve this:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Download and install the Library from IBM.
-Try to find the required libraries for the RTC-Client at: <a href="https://rsjazz.wordpress.com/" class="bare">https://rsjazz.wordpress.com/</a></p>
-</li>
-<li>
-<p>Add a mvn Repository to your local ~/.gradle/gradle.properties as the following parameter <code>repositoryIssueTrackingJars=&lt;URL_TO_MVN_REPO&gt;</code>.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>To build the tool via Docker you need to supply the mvn Repository url.
-Build and start the Docker image with the following commands:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker build --build-arg MVN_REPO=&lt;URL_TO_MVN_REPO&gt; -t issue-tracking-sync .
-docker run -p 8080:8080 issue-tracking-sync</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The other parameters have got useful default values:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">Unresolved directive in development-getting-started.adoc - include::../../Dockerfile[tag=parameters]</code></pre>
-</div>
-</div>
-</div>
-</div>
 <div class="sect1">
 <h2 id="_configuration">Configuration</h2>
 <div class="sectionbody">
@@ -593,7 +552,7 @@ The latter can be defined using class FQNs in the settings.yml, and making sure 
 <div id="footer">
 <div id="footer-text">
 Version 2.0-SNAPSHOT<br>
-Last updated 2021-08-27 08:51:39 UTC
+Last updated 2021-08-27 13:04:44 UTC
 </div>
 </div>
 </body>
