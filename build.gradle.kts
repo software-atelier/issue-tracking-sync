@@ -102,6 +102,6 @@ tasks.withType<BootRun> {
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
-    mainClassName = "ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp"
+    mainClass.set("ch.loewenfels.issuetrackingsync.app.IssueTrackingSyncApp")
 }
 
