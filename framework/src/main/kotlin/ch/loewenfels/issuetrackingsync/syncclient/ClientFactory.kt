@@ -8,12 +8,12 @@ interface ClientFactory {
 
 object DefaultClientFactory : ClientFactory {
     override fun getClient(clientSettings: IssueTrackingApplication): IssueTrackingClient<Any> {
-        return Class.forName(clientSettings.className)
+        return (Class.forName(clientSettings.className)
             .constructors.filter { it.parameterCount == 1 }
             .filter { IssueTrackingApplication::class.java.isAssignableFrom(it.parameters[0].type) }
             .map { it.newInstance(clientSettings) }
             .filterIsInstance<IssueTrackingClient<Any>>()
             .firstOrNull()
-            ?: throw IllegalArgumentException("Failed to load client class ${clientSettings.className}")
+            ?: throw IllegalArgumentException("Failed to load client class ${clientSettings.className}"))
     }
 }

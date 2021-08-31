@@ -5,6 +5,9 @@ import ch.loewenfels.issuetrackingsync.executor.fields.FieldMapping
 import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
 import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
+/**
+ * This action reads a list of `fieldMappingDefinitions`.
+ */
 open class SimpleSynchronizationAction(private val actionName: String) : AbstractSynchronizationAction(),
     SynchronizationAction {
     override fun execute(

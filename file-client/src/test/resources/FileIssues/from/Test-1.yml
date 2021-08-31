@@ -1,0 +1,11 @@
+---
+summary: "Issue is new"
+status: "new"
+description: |
+  This issue does not exists on target.
+  After synchronization it must exists.
+lastUpdated: 2021-08-26T07:19
+attributes: { }
+key: "Test-1"
+comments: [ ]
+attachments: [ ]

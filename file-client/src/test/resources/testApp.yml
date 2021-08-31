@@ -1,0 +1,34 @@
+earliestSyncDate: "2020-05-06T00:00:00"
+trackingApplications:
+  - name: FROM
+    className: ch.loewenfels.issuetrackingsync.syncclient.file.FileClient
+    endpoint: 'src/test/resources/FileIssues/from'
+    polling: true
+  - name: TO
+    className: ch.loewenfels.issuetrackingsync.syncclient.file.FileClient
+    endpoint: 'build/FileIssues/to'
+actionDefinitions:
+  - name: SynchronizeSimpleFields
+    classname: ch.loewenfels.issuetrackingsync.executor.actions.SimpleSynchronizationAction
+    fieldMappingDefinitions:
+      - sourceName: summary
+        targetName: summary
+      - sourceName: status
+        targetName: status
+      - sourceName: description
+        targetName: description
+      - sourceName: lastUpdated
+        targetName: lastUpdated
+  - name: SynchronizeComments
+    classname: ch.loewenfels.issuetrackingsync.executor.actions.CommentsSynchronizationAction
+  - name: SynchronizeAttachments
+    classname: ch.loewenfels.issuetrackingsync.executor.actions.AttachmentsSynchronizationAction
+syncFlowDefinitions:
+  - name: Sync changes from Source to Target
+    source: FROM
+    target: TO
+    defaultsForNewIssue: { }
+    actions:
+      - SynchronizeSimpleFields
+      - SynchronizeComments
+      - SynchronizeAttachments
