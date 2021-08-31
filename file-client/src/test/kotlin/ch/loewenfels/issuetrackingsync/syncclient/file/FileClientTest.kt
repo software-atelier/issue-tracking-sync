@@ -12,9 +12,9 @@ internal class FileClientTest {
         // arrange
         val testee = createTestee()
         // act
-        val issue = testee.getIssue("FileIssue-1")!!
+        val issue = testee.getIssue("Test-1")!!
         // assert
-        Assertions.assertEquals("FileIssue-1", issue.key)
+        Assertions.assertEquals("Test-1", issue.key)
         Assertions.assertEquals("MrDolch", issue.lastUpdatedBy)
         Assertions.assertEquals(LocalDateTime.of(2021, 8, 26, 7, 19, 0), issue.lastUpdated)
     }
