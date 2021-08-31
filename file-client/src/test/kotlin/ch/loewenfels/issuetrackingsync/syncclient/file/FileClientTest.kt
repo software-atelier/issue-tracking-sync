@@ -15,7 +15,6 @@ internal class FileClientTest {
         val issue = testee.getIssue("Test-1")!!
         // assert
         Assertions.assertEquals("Test-1", issue.key)
-        Assertions.assertEquals("MrDolch", issue.lastUpdatedBy)
         Assertions.assertEquals(LocalDateTime.of(2021, 8, 26, 7, 19, 0), issue.lastUpdated)
     }
 
@@ -31,9 +30,8 @@ internal class FileClientTest {
 
     private fun createTestee(): FileClient {
         val setup = IssueTrackingApplication()
-        setup.endpoint = "src/test/resources/FileIssues"
+        setup.endpoint = "src/test/resources/FileIssues/from"
         setup.className = FileClient::class.qualifiedName!!
-        val testee = FileClient(setup)
-        return testee
+        return FileClient(setup)
     }
 }
