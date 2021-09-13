@@ -726,6 +726,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         setValue(internalIssueBuilder, issue, fieldName, timeNullable)
     }
 
+    fun getPossibleValuesFor(key: String, fieldName: String): Set<String> {
+        return jiraRestClient.getMetadataValuesRestClient().getMetadataValues(key, fieldName)
+    }
+
     override fun logException(
         issue: Issue,
         exception: Exception,
