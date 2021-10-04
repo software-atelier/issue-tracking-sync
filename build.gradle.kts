@@ -57,6 +57,16 @@ allprojects {
     }
 
     publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/loewenfels/issue-tracking-sync")
+                credentials {
+                    username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+                }
+            }
+        }
         publications {
             create<MavenPublication>("mavenJava") {
                 artifactId = project.name
@@ -77,6 +87,9 @@ allprojects {
                         url.set("https://github.com/loewenfels/issue-tracking-sync")
                     }
                 }
+            }
+            register<MavenPublication>("gpr") {
+                from(components["java"])
             }
         }
     }
