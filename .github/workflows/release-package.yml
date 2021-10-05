@@ -2,6 +2,10 @@ name: release-package
 
 on: [ push, workflow_dispatch ]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
 
