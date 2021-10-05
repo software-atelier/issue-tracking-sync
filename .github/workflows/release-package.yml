@@ -21,10 +21,10 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Build with Gradle
-        run: gradle -Pversion=${{ github.sha }} build
+        run: gradle -Pversion=$(echo ${{ github.ref }}-$(echo ${{ github.sha }} | cut -c1-4)) build
 
       - name: Publish to GitHub Packages
-        run: gradle -Pversion=${{ github.sha }} publish
+        run: gradle -Pversion=$(echo ${{ github.ref }}-$(echo ${{ github.sha }} | cut -c1-4)) publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
