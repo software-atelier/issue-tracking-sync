@@ -1,8 +1,6 @@
 name: release-package
 
-on:
-  release:
-    types: [created]
+on: [ push ]
 
 jobs:
   build:
@@ -23,10 +21,10 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Build with Gradle
-        run: gradle build
+        run: gradle -Pversion=${{ github.sha }} build
 
       - name: Publish to GitHub Packages
-        run: gradle publish
+        run: gradle -Pversion=${{ github.sha }} publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}

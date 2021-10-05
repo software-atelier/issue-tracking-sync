@@ -35,5 +35,5 @@ local.properties
 .recommenders/
 
 /application.yml
-/appstate.json
+appstate.json
 /settings.yml

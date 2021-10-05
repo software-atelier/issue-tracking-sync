@@ -19,7 +19,6 @@ allprojects {
 
 
     group = "ch.loewenfels.issuetrackingsync"
-    version = "2.0-SNAPSHOT"
 
     java {
         withSourcesJar()
