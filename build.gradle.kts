@@ -67,26 +67,6 @@ allprojects {
             }
         }
         publications {
-            create<MavenPublication>("mavenJava") {
-                artifactId = project.name
-                from(components["java"])
-                versionMapping {
-                    usage("java-api") {
-                        fromResolutionOf("runtimeClasspath")
-                    }
-                    usage("java-runtime") {
-                        fromResolutionResult()
-                    }
-                }
-                pom {
-                    name.set("Issue Tracking Sync")
-                    scm {
-                        connection.set("scm:git:https://github.com/loewenfels/issue-tracking-sync.git")
-                        developerConnection.set("scm:git:https://github.com/loewenfels/issue-tracking-sync.git")
-                        url.set("https://github.com/loewenfels/issue-tracking-sync")
-                    }
-                }
-            }
             register<MavenPublication>("gpr") {
                 from(components["java"])
             }
