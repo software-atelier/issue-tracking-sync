@@ -28,10 +28,17 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Build with Gradle
-        run: gradle -Pversion=${${{ github.ref }}##*/} build
+        run: |
+          VERSION=${REF##*/}
+          gradle -Pversion=$VERSION build
+        env:
+          REF: ${{ github.ref }}
 
       - name: Publish to GitHub Packages
-        run: gradle -Pversion=${${{ github.ref }}##*/} publish
+        run: |
+          VERSION=${REF##*/}
+          gradle -Pversion=$VERSION publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REF: ${{ github.ref }}
