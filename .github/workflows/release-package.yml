@@ -5,6 +5,10 @@ on:
     types: [created]
   workflow_dispatch:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
 
@@ -24,10 +28,10 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Build with Gradle
-        run: gradle -Pversion=${{ github.ref }} build
+        run: gradle -Pversion=${${{ github.ref }}##*/} build
 
       - name: Publish to GitHub Packages
-        run: gradle -Pversion=${{ github.ref }} publish
+        run: gradle -Pversion=${${{ github.ref }}##*/} publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
