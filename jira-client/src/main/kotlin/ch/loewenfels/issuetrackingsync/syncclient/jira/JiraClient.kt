@@ -162,123 +162,143 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         value: Any?
     ) {
         logger().debug("Setting value $value on $fieldName")
-        val proprietaryJiraIssue = issue.proprietaryTargetInstance
-        convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraIssue?)?.let {
-            val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
-            if (beanWrapper.isWritableProperty(fieldName)) {
-                if (!issue.hasChanges && proprietaryJiraIssue is JiraIssue) {
-                    val finalValue = when (fieldName) {
-                        "priorityId" -> (getValue(proprietaryJiraIssue, "priority") as IdentifiableEntity<Long>).id
-                        "issueTypeId" -> (getValue(proprietaryJiraIssue, "issueType") as IdentifiableEntity<Long>).id
-                        "fixVersions" -> {
-                            val names = getValue(proprietaryJiraIssue, "fixVersions")
-                            if (null != names) {
-                                val projectKey: String? = proprietaryJiraIssue.project?.key
-                                JiraMetadata.getVersionEntity(names as ArrayList<String>, jiraRestClient, projectKey)
-                            } else {
-                                null
+        try {
+            val proprietaryJiraIssue = issue.proprietaryTargetInstance
+            convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraIssue?)?.let {
+                val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
+                if (beanWrapper.isWritableProperty(fieldName)) {
+                    if (!issue.hasChanges && proprietaryJiraIssue is JiraIssue) {
+                        val finalValue = when (fieldName) {
+                            "priorityId" -> (getValue(proprietaryJiraIssue, "priority") as IdentifiableEntity<Long>).id
+                            "issueTypeId" -> (getValue(
+                                proprietaryJiraIssue,
+                                "issueType"
+                            ) as IdentifiableEntity<Long>).id
+                            "fixVersions" -> {
+                                val names = getValue(proprietaryJiraIssue, "fixVersions")
+                                if (null != names) {
+                                    val projectKey: String? = proprietaryJiraIssue.project?.key
+                                    JiraMetadata.getVersionEntity(
+                                        names as ArrayList<String>,
+                                        jiraRestClient,
+                                        projectKey
+                                    )
+                                } else {
+                                    null
+                                }
+                            }
+                            "affectedVersions" -> {
+                                val names = getValue(proprietaryJiraIssue, "affectedVersions")
+                                if (null != names) {
+                                    val stringNames = (names as ArrayList<Version>)
+                                        .map { version -> version.name }
+                                    val projectKey: String? = proprietaryJiraIssue.project?.key
+                                    JiraMetadata.getVersionEntity(stringNames, jiraRestClient, projectKey)
+                                } else {
+                                    null
+                                }
+                            }
+                            else -> getValue(proprietaryJiraIssue, fieldName)
+                        }
+
+                        val hasChanges = when {
+                            (null == finalValue || "" == finalValue) && "" == it -> false
+                            finalValue is Collection<*> && it is Collection<*> ->
+                                finalValue.size != it.size || !finalValue.containsAll(it)
+                            null == finalValue && it is Collection<*> -> !it.isEmpty()
+                            finalValue is Collection<*> -> !finalValue.isEmpty()
+                            null == finalValue && "-1" == it -> false
+                            else -> finalValue != it
+                        }
+
+                        val onEqualOperations = if (issue.isNew) log?.onCreateEqual else log?.onChangeEqual
+
+                        if (issue.isNew || hasChanges) {
+                            onEqualOperations?.get(fieldName)?.let { logMapping ->
+                                logMapping[value]?.let { message ->
+                                    issue.notifyMessages.add(
+                                        message
+                                            .replace("\${key}", proprietaryJiraIssue.key)
+                                            .replace(
+                                                "\${source.url}",
+                                                issue.sourceUrl?.let { url -> "<$url|${issue.key}>" } ?: issue.key)
+                                            .replace(
+                                                "\${target.url}",
+                                                issue.targetUrl?.let { url -> "<$url|${issue.targetKey ?: "Issue"}>" }
+                                                    ?: issue.targetKey ?: "Issue")
+                                    )
+                                }
                             }
                         }
-                        "affectedVersions" -> {
-                            val names = getValue(proprietaryJiraIssue, "affectedVersions")
-                            if (null != names) {
-                                val stringNames = (names as ArrayList<Version>)
-                                    .map { version -> version.name }
-                                val projectKey: String? = proprietaryJiraIssue.project?.key
-                                JiraMetadata.getVersionEntity(stringNames, jiraRestClient, projectKey)
-                            } else {
-                                null
+                        if (hasChanges) issue.hasChanges = true
+                    }
+                    beanWrapper.setPropertyValue(fieldName, it)
+                } else if (internalIssueBuilder is IssueInputBuilder) {
+                    val hasChanges: () -> Boolean
+                    val targetInternalIssue = (proprietaryJiraIssue
+                        ?: throw IllegalStateException("Need a target issue for custom fields"))
+                    if (fieldName.startsWith("timeTracking.") && it is TimeTracking) {
+                        setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, it)
+                        hasChanges = { false }
+                        val targetTimeTracking = getValue(targetInternalIssue, "timeTracking")
+                        if (targetTimeTracking == null || TimeTrackingComparator(
+                                targetTimeTracking as TimeTracking,
+                                it
+                            ).notEquals()
+                        ) {
+                            issue.hasTimeChanges = true
+                        }
+                    } else if (fieldName == "labels" && value is List<*>) {
+                        setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
+                        hasChanges = {
+                            !(getValue(
+                                targetInternalIssue,
+                                fieldName
+                            ) as Collection<*>).containsAll(it as Collection<*>)
+                        }
+                    } else if (fieldName == "versions") {
+                        // RTC allows only one version (field: foundIn) while Jira awaits a list of versions
+                        setInternalFieldValue(
+                            internalIssueBuilder,
+                            IssueFieldId.AFFECTS_VERSIONS_FIELD.id,
+                            mutableListOf(value)
+                        )
+                        hasChanges = {
+                            !(getValue(targetInternalIssue, fieldName) as Collection<*>)
+                                .containsAll(mutableListOf(value) as Collection<*>)
+                        }
+                    } else if (fieldName == "resolution" && value is String) {
+                        val changed = setResolution(targetInternalIssue, value)
+                        hasChanges = { changed }
+                    } else {
+                        setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
+                        hasChanges = {
+                            val propValue = getValue(targetInternalIssue, fieldName)
+                            val preparedValue = prepareValue(targetInternalIssue, fieldName, it)
+                            when {
+                                (null == propValue || "" == propValue) && (null == preparedValue || "" == preparedValue) -> false
+                                propValue is Collection<*> && preparedValue is Collection<*> ->
+                                    propValue.size != preparedValue.size || !propValue.containsAll(preparedValue)
+                                null == propValue && preparedValue is Collection<*> -> !preparedValue.isEmpty()
+                                null == preparedValue && propValue is Collection<*> -> !propValue.isEmpty()
+                                (null == propValue && "-1" == preparedValue) || (null == preparedValue && "-1" == propValue) -> false
+                                else -> propValue != preparedValue
                             }
                         }
-                        else -> getValue(proprietaryJiraIssue, fieldName)
                     }
 
-                    val hasChanges = when {
-                        (null == finalValue || "" == finalValue) && "" == it -> false
-                        finalValue is Collection<*> && it is Collection<*> ->
-                            finalValue.size != it.size || !finalValue.containsAll(it)
-                        null == finalValue && it is Collection<*> -> !it.isEmpty()
-                        finalValue is Collection<*> -> !finalValue.isEmpty()
-                        null == finalValue && "-1" == it -> false
-                        else -> finalValue != it
-                    }
-
-                    val onEqualOperations = if (issue.isNew) log?.onCreateEqual else log?.onChangeEqual
-
-                    if (issue.isNew || hasChanges) {
-                        onEqualOperations?.get(fieldName)?.let { logMapping ->
-                            logMapping[value]?.let { message ->
-                                issue.notifyMessages.add(
-                                    message
-                                        .replace("\${key}", proprietaryJiraIssue.key)
-                                        .replace(
-                                            "\${source.url}",
-                                            issue.sourceUrl?.let { url -> "<$url|${issue.key}>" } ?: issue.key)
-                                        .replace(
-                                            "\${target.url}",
-                                            issue.targetUrl?.let { url -> "<$url|${issue.targetKey ?: "Issue"}>" }
-                                                ?: issue.targetKey ?: "Issue")
-                                )
-                            }
+                    if (hasChanges.invoke()) {
+                        issue.hasChanges = true
+                        log?.onChangeEqual?.get(fieldName)?.let { logMapping ->
+                            logMapping[it]?.let { message -> issue.notifyMessages.add(message) }
                         }
-                    }
-                    if (hasChanges) issue.hasChanges = true
-                }
-                beanWrapper.setPropertyValue(fieldName, it)
-            } else if (internalIssueBuilder is IssueInputBuilder) {
-                val hasChanges: () -> Boolean
-                val targetInternalIssue = (proprietaryJiraIssue
-                    ?: throw IllegalStateException("Need a target issue for custom fields"))
-                if (fieldName.startsWith("timeTracking.") && it is TimeTracking) {
-                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, it)
-                    hasChanges = { false }
-                    val targetTimeTracking = getValue(targetInternalIssue, "timeTracking")
-                    if (targetTimeTracking == null  || TimeTrackingComparator(targetTimeTracking as TimeTracking, it).notEquals()) {
-                        issue.hasTimeChanges = true
-                    }
-                } else if (fieldName == "labels" && value is List<*>) {
-                    setInternalFieldValue(internalIssueBuilder, IssueFieldId.LABELS_FIELD.id, value)
-                    hasChanges = {
-                        !(getValue(targetInternalIssue, fieldName) as Collection<*>).containsAll(it as Collection<*>)
-                    }
-                } else if (fieldName == "versions") {
-                    // RTC allows only one version (field: foundIn) while Jira awaits a list of versions
-                    setInternalFieldValue(
-                        internalIssueBuilder,
-                        IssueFieldId.AFFECTS_VERSIONS_FIELD.id,
-                        mutableListOf(value)
-                    )
-                    hasChanges = {
-                        !(getValue(targetInternalIssue, fieldName) as Collection<*>)
-                            .containsAll(mutableListOf(value) as Collection<*>)
-                    }
-                } else if (fieldName == "resolution" && value is String) {
-                    val changed = setResolution(targetInternalIssue, value)
-                    hasChanges = { changed }
-                } else {
-                    setInternalFieldValue(internalIssueBuilder, targetInternalIssue, fieldName, it)
-                    hasChanges = {
-                        val propValue = getValue(targetInternalIssue, fieldName)
-                        val preparedValue = prepareValue(targetInternalIssue, fieldName, it)
-                        when {
-                            (null == propValue || "" == propValue) && (null == preparedValue || "" == preparedValue) -> false
-                            propValue is Collection<*> && preparedValue is Collection<*> ->
-                                propValue.size != preparedValue.size || !propValue.containsAll(preparedValue)
-                            null == propValue && preparedValue is Collection<*> -> !preparedValue.isEmpty()
-                            null == preparedValue && propValue is Collection<*> -> !propValue.isEmpty()
-                            (null == propValue && "-1" == preparedValue) || (null == preparedValue && "-1" == propValue) -> false
-                            else -> propValue != preparedValue
-                        }
-                    }
-                }
-
-                if (hasChanges.invoke()) {
-                    issue.hasChanges = true
-                    log?.onChangeEqual?.get(fieldName)?.let { logMapping ->
-                        logMapping[it]?.let { message -> issue.notifyMessages.add(message) }
                     }
                 }
             }
+        } catch (e: Exception) {
+            logger().debug(e.message);
+            logger().debug(e.stackTraceToString());
+            throw e;
         }
     }
 
