@@ -32,7 +32,10 @@ open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
 
     @Bean
     open fun settings(@Autowired objectMapper: ObjectMapper): Settings {
-        return Settings.loadFromFile(syncApplicationProperties.settingsLocation)
+        val settings = Settings.loadFromFile(syncApplicationProperties.settingsLocation)
+        val earliestSyncDate = System.getenv("EARLIEST_SYNC_DATE")
+        settings.earliestSyncDate = earliestSyncDate
+        return settings
     }
 
     @Bean

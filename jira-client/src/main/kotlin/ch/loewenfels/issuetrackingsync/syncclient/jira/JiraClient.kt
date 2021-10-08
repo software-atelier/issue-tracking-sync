@@ -74,7 +74,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
             0 -> null
             // reload to get full issue incl. collections such as comments
             1 -> getProprietaryIssue(foundIssues[0].key)
-            else -> throw IssueClientException("Query too broad, multiple issues found for $fieldValue")
+            else -> throw IssueClientException("Query too broad, multiple issues found in JIRA for $fieldName = $fieldValue")
         }
     }
 
@@ -232,9 +232,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 if (fieldName.startsWith("timeTracking.") && it is TimeTracking) {
                     setInternalFieldValue(internalIssueBuilder, IssueFieldId.TIMETRACKING_FIELD.id, it)
                     hasChanges = { false }
-                    if (TimeTrackingComparator(getValue(targetInternalIssue, "timeTracking") as TimeTracking, it)
-                            .notEquals()
-                    ) {
+                    val targetTimeTracking = getValue(targetInternalIssue, "timeTracking")
+                    if (targetTimeTracking == null  || TimeTrackingComparator(targetTimeTracking as TimeTracking, it).notEquals()) {
                         issue.hasTimeChanges = true
                     }
                 } else if (fieldName == "labels" && value is List<*>) {
@@ -584,6 +583,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         when (JiraMetadata.getFieldType(fld.id, jiraRestClient)) {
             // Text custom field
             "string" -> internalIssueBuilder.setFieldValue(fld.id, value.toString())
+            "number" -> internalIssueBuilder.setFieldValue(fld.id, value)
             "array" -> {
                 val writerName = when (JiraMetadata.getFieldCustom(fieldName, jiraRestClient)) {
                     "com.atlassian.jira.plugin.system.customfieldtypes:multiversion" -> "name"
