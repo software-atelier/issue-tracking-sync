@@ -14,7 +14,7 @@ data class IssueTrackingApplication(
     /**
      * Should plain-text passwords in settings.json ever be an issue, look into using Jasypt
      */
-    var password: String = "",
+    var passwordVariable: String = "",
     var endpoint: String = "",
     var pollingIssueType: String? = null,
     var polling: Boolean = false,

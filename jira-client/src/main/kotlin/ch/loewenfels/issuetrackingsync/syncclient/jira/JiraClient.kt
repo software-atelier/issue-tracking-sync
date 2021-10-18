@@ -48,7 +48,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
         .extendedCreateWithBasicHttpAuthentication(
             URI(setup.endpoint),
             setup.username,
-            setup.password,
+            System.getenv(setup.passwordVariable),
             setup.socketTimeout
         )
     private val log = setup.log
@@ -296,9 +296,9 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
                 }
             }
         } catch (e: Exception) {
-            logger().debug(e.message);
-            logger().debug(e.stackTraceToString());
-            throw e;
+            logger().debug(e.message)
+            logger().debug(e.stackTraceToString())
+            throw e
         }
     }
 

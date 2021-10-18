@@ -49,7 +49,7 @@ class IssueTrackingApplication <<data>> {
     className: String
     name: TrackingApplicationName
     username: String
-    password: String
+    passwordVariable: String
     endpoint: String
     pollingIssueType: String?
     polling: Boolean
