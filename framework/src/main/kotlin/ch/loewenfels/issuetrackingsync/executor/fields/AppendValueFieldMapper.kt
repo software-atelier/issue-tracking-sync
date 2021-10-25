@@ -8,56 +8,56 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  *  This class checks current value of field which needs to be updated and if new value is not present than append it.
  */
 class AppendValueFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
-    val associations = fieldMappingDefinition.associations
+  val associations = fieldMappingDefinition.associations
 
-    override fun <T> getValue(
-        proprietaryIssue: T,
-        fieldname: String,
-        issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? = issueTrackingClient.getValue(proprietaryIssue, fieldname)
+  override fun <T> getValue(
+    proprietaryIssue: T,
+    fieldname: String,
+    issueTrackingClient: IssueTrackingClient<in T>
+  ): Any? = issueTrackingClient.getValue(proprietaryIssue, fieldname)
 
-    override fun <T> setValue(
-        proprietaryIssueBuilder: Any,
-        fieldname: String,
-        issue: Issue,
-        issueTrackingClient: IssueTrackingClient<in T>,
-        value: Any?
-    ) {
-        val oldValue = getValueFromTarget(issue, fieldname, issueTrackingClient)
-        val newValue = value.toString()
-        var result = "${if (oldValue == null || oldValue.isEmpty()) "" else "$oldValue;"}${newValue}"
-        oldValue?.let {
-            result = when {
-                getRegexPattern() != null -> {
-                    val pattern = getRegexPattern()!!.toRegex()
-                    val fResult = pattern.find(oldValue)
-                    if (fResult?.value != null) {
-                        oldValue.replace(fResult.value, newValue)
-                    } else {
-                        result
-                    }
-                }
-                else -> result
-            }
+  override fun <T> setValue(
+    proprietaryIssueBuilder: Any,
+    fieldname: String,
+    issue: Issue,
+    issueTrackingClient: IssueTrackingClient<in T>,
+    value: Any?
+  ) {
+    val oldValue = getValueFromTarget(issue, fieldname, issueTrackingClient)
+    val newValue = value.toString()
+    var result = "${if (oldValue == null || oldValue.isEmpty()) "" else "$oldValue;"}${newValue}"
+    oldValue?.let {
+      result = when {
+        getRegexPattern() != null -> {
+          val pattern = getRegexPattern()!!.toRegex()
+          val fResult = pattern.find(oldValue)
+          if (fResult?.value != null) {
+            oldValue.replace(fResult.value, newValue)
+          } else {
+            result
+          }
         }
-        issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
+        else -> result
+      }
     }
+    issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
+  }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T> getValueFromTarget(
-        issue: Issue,
-        fieldname: String,
-        issueTrackingClient: IssueTrackingClient<in T>
-    ): String? {
-        return getValue(
-            issue.proprietaryTargetInstance as T,
-            fieldname,
-            issueTrackingClient
-        )?.toString()
-    }
+  @Suppress("UNCHECKED_CAST")
+  fun <T> getValueFromTarget(
+    issue: Issue,
+    fieldname: String,
+    issueTrackingClient: IssueTrackingClient<in T>
+  ): String? {
+    return getValue(
+      issue.proprietaryTargetInstance as T,
+      fieldname,
+      issueTrackingClient
+    )?.toString()
+  }
 
-    private fun getRegexPattern(): String? {
-        return associations["pattern"]
-    }
+  private fun getRegexPattern(): String? {
+    return associations["pattern"]
+  }
 
 }

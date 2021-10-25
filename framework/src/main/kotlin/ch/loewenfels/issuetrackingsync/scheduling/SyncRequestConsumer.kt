@@ -14,23 +14,23 @@ import javax.jms.TextMessage
 
 @Component
 class SyncRequestConsumer @Autowired constructor(
-    private val synchronizationFlowFactory: SynchronizationFlowFactory,
-    private val objectMapper: ObjectMapper
+  private val synchronizationFlowFactory: SynchronizationFlowFactory,
+  private val objectMapper: ObjectMapper
 ) : Logging {
-    @JmsListener(destination = INTERNAL_QUEUE_NAME)
-    fun onMessage(message: Message) {
-        if (message is TextMessage) {
-            val syncRequest = objectMapper.readValue(message.text, SyncRequest::class.java)
-            processSyncRequest(toIssue(syncRequest))
-        }
-        message.acknowledge()
+  @JmsListener(destination = INTERNAL_QUEUE_NAME)
+  fun onMessage(message: Message) {
+    if (message is TextMessage) {
+      val syncRequest = objectMapper.readValue(message.text, SyncRequest::class.java)
+      processSyncRequest(toIssue(syncRequest))
     }
+    message.acknowledge()
+  }
 
-    private fun toIssue(syncRequest: SyncRequest) =
-        Issue(syncRequest.key, syncRequest.clientSourceName, syncRequest.lastUpdated)
+  private fun toIssue(syncRequest: SyncRequest) =
+    Issue(syncRequest.key, syncRequest.clientSourceName, syncRequest.lastUpdated)
 
-    private fun processSyncRequest(issue: Issue) {
-        logger().debug("Processing issue {}", issue)
-        synchronizationFlowFactory.getSynchronizationFlow(issue.clientSourceName, issue)?.execute(issue)
-    }
+  private fun processSyncRequest(issue: Issue) {
+    logger().debug("Processing issue {}", issue)
+    synchronizationFlowFactory.getSynchronizationFlow(issue.clientSourceName, issue)?.execute(issue)
+  }
 }

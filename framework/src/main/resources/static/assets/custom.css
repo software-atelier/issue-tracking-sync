@@ -1,15 +1,15 @@
 .card {
-    min-width: 400px;
+  min-width: 400px;
 }
 
 #debug-banner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: -2rem;
-    margin-right: -2rem;
-    margin-top: -4rem;
-    margin-bottom: 0rem;
-    height: 4rem;
-    font-size: xx-large;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: -2rem;
+  margin-right: -2rem;
+  margin-top: -4rem;
+  margin-bottom: 0rem;
+  height: 4rem;
+  font-size: xx-large;
 }

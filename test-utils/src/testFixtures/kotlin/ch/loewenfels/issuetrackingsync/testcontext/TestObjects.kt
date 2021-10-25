@@ -15,95 +15,98 @@ import org.mockito.Mockito.spy
 import java.time.LocalDateTime
 
 object TestObjects {
-    private const val simpleActionName = "foobar"
+  private const val simpleActionName = "foobar"
 
-    fun buildSyncFlowDefinition(source: TrackingApplicationName, target: TrackingApplicationName): SyncFlowDefinition {
-        val syncFlowDefinition = SyncFlowDefinition()
-        syncFlowDefinition.source = source
-        syncFlowDefinition.target = target
-        syncFlowDefinition.actions = mutableListOf(simpleActionName)
-        syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
-        syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
-        syncFlowDefinition.writeBackFieldMappingDefinition = buildWriteBackFieldMappingDefinition()
-        return syncFlowDefinition
-    }
+  fun buildSyncFlowDefinition(
+    source: TrackingApplicationName,
+    target: TrackingApplicationName
+  ): SyncFlowDefinition {
+    val syncFlowDefinition = SyncFlowDefinition()
+    syncFlowDefinition.source = source
+    syncFlowDefinition.target = target
+    syncFlowDefinition.actions = mutableListOf(simpleActionName)
+    syncFlowDefinition.defaultsForNewIssue = buildDefaultsForNewIssue()
+    syncFlowDefinition.keyFieldMappingDefinition = buildKeyFieldMappingDefinition()
+    syncFlowDefinition.writeBackFieldMappingDefinition = buildWriteBackFieldMappingDefinition()
+    return syncFlowDefinition
+  }
 
-    fun buildSyncActionDefinition(): SyncActionDefinition {
-        val syncActionDefinition = SyncActionDefinition()
-        syncActionDefinition.name = simpleActionName
-        syncActionDefinition.classname = SimpleSynchronizationAction::class.qualifiedName ?: ""
-        syncActionDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
-        return syncActionDefinition
-    }
+  fun buildSyncActionDefinition(): SyncActionDefinition {
+    val syncActionDefinition = SyncActionDefinition()
+    syncActionDefinition.name = simpleActionName
+    syncActionDefinition.classname = SimpleSynchronizationAction::class.qualifiedName ?: ""
+    syncActionDefinition.fieldMappingDefinitions = buildFieldMappingDefinitionList()
+    return syncActionDefinition
+  }
 
-    private fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition(
-            "id",
-            "custom_field_10244",
-            associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
+  private fun buildKeyFieldMappingDefinition(): FieldMappingDefinition =
+    FieldMappingDefinition(
+      "id",
+      "custom_field_10244",
+      associations = mutableMapOf(
+        "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+      )
+    )
+
+  private fun buildWriteBackFieldMappingDefinition(): List<FieldMappingDefinition> =
+    listOf(
+      FieldMappingDefinition(
+        "key",
+        "ch.foobar.team.workitem.attribute.external_refid",
+        associations = mutableMapOf(
+          "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
         )
+      )
+    )
 
-    private fun buildWriteBackFieldMappingDefinition(): List<FieldMappingDefinition> =
-        listOf(
-            FieldMappingDefinition(
-                "key",
-                "ch.foobar.team.workitem.attribute.external_refid",
-                associations = mutableMapOf(
-                    "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-                )
-            )
-        )
+  private fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
+    mutableListOf(buildFieldMappingDefinition())
 
-    private fun buildFieldMappingDefinitionList(): MutableList<FieldMappingDefinition> =
-        mutableListOf(buildFieldMappingDefinition())
+  private fun buildFieldMappingDefinition(): FieldMappingDefinition =
+    FieldMappingDefinition(
+      "title", "summary", associations = mutableMapOf(
+        "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
+      )
+    )
 
-    private fun buildFieldMappingDefinition(): FieldMappingDefinition =
-        FieldMappingDefinition(
-            "title", "summary", associations = mutableMapOf(
-                "I{1}\\d{4}\\.{1}\\d{1} - (\\d{1}\\.\\d{2})" to "Test $1"
-            )
-        )
+  fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
 
-    fun buildFieldMappingList(): MutableList<FieldMapping> = mutableListOf(buildFieldMapping())
+  private fun buildFieldMapping(): FieldMapping =
+    FieldMapping(
+      "title",
+      "summary",
+      DirectFieldMapper()
+    )
 
-    private fun buildFieldMapping(): FieldMapping =
-        FieldMapping(
-            "title",
-            "summary",
-            DirectFieldMapper()
-        )
+  private fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
 
-    private fun buildDefaultsForNewIssue(): DefaultsForNewIssue = DefaultsForNewIssue("task", "BUG")
+  fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
+    val issueTrackingApplication = IssueTrackingApplication()
+    issueTrackingApplication.className = simpleClassName
+    issueTrackingApplication.name = simpleClassName.uppercase()
+    return issueTrackingApplication
+  }
 
-    fun buildIssueTrackingApplication(simpleClassName: String): IssueTrackingApplication {
-        val issueTrackingApplication = IssueTrackingApplication()
-        issueTrackingApplication.className = simpleClassName
-        issueTrackingApplication.name = simpleClassName.uppercase()
-        return issueTrackingApplication
-    }
+  fun buildIssueTrackingClient(
+    issueTrackingApplication: IssueTrackingApplication,
+    clientFactory: ClientFactory
+  ): IssueTrackingClient<Any> =
+    spy(clientFactory.getClient(issueTrackingApplication))
 
-    fun buildIssueTrackingClient(
-        issueTrackingApplication: IssueTrackingApplication,
-        clientFactory: ClientFactory
-    ): IssueTrackingClient<Any> =
-        spy(clientFactory.getClient(issueTrackingApplication))
+  fun buildNotificationObserver(): NotificationObserver {
+    val observer = NotificationObserver()
+    observer.addChannel(CsvProtocol(NotificationChannelProperties()))
+    return observer
+  }
 
-    fun buildNotificationObserver(): NotificationObserver {
-        val observer = NotificationObserver()
-        observer.addChannel(CsvProtocol(NotificationChannelProperties()))
-        return observer
-    }
-
-    fun buildIssue(key: String = "MK-1") =
-        Issue(key, "", LocalDateTime.now())
+  fun buildIssue(key: String = "MK-1") =
+    Issue(key, "", LocalDateTime.now())
 }
 
 class AlwaysFalseIssueFilter : IssueFilter {
-    override fun test(
-        client: IssueTrackingClient<out Any>,
-        issue: Issue,
-        syncFlowDefinition: SyncFlowDefinition
-    ): Boolean = false
+  override fun test(
+    client: IssueTrackingClient<out Any>,
+    issue: Issue,
+    syncFlowDefinition: SyncFlowDefinition
+  ): Boolean = false
 }

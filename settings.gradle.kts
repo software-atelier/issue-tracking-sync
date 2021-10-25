@@ -1,8 +1,8 @@
 rootProject.name = "issue-tracking-sync"
 include(
-    "framework",
-    "test-utils",
-    "jira-client",
-    "file-client",
-    "documentation"
+  "framework",
+  "test-utils",
+  "jira-client",
+  "file-client",
+  "documentation"
 )

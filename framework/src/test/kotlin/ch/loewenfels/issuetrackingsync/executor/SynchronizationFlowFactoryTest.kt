@@ -9,28 +9,28 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
 internal class SynchronizationFlowFactoryTest : AbstractSpringTest() {
-    @Autowired
-    lateinit var synchronizationFlowFactory: SynchronizationFlowFactory
+  @Autowired
+  lateinit var synchronizationFlowFactory: SynchronizationFlowFactory
 
-    @Test
-    fun getSynchronizationFlow_matchingSourceAndIssue_flowFound() {
-        // arrange
-        val sourceApp = "RTC"
-        val issue = Issue("123456", "RTC", LocalDateTime.now())
-        // act
-        val result = synchronizationFlowFactory.getSynchronizationFlow(sourceApp, issue)
-        // assert
-        assertNotNull(result)
-    }
+  @Test
+  fun getSynchronizationFlow_matchingSourceAndIssue_flowFound() {
+    // arrange
+    val sourceApp = "RTC"
+    val issue = Issue("123456", "RTC", LocalDateTime.now())
+    // act
+    val result = synchronizationFlowFactory.getSynchronizationFlow(sourceApp, issue)
+    // assert
+    assertNotNull(result)
+  }
 
-    @Test
-    fun getSynchronizationFlow_unknownSource_returnsNull() {
-        // arrange
-        val sourceApp = "FOOBAR"
-        val issue = Issue("", "JIRA", LocalDateTime.now())
-        // act
-        val result = synchronizationFlowFactory.getSynchronizationFlow(sourceApp, issue)
-        // assert
-        assertNull(result)
-    }
+  @Test
+  fun getSynchronizationFlow_unknownSource_returnsNull() {
+    // arrange
+    val sourceApp = "FOOBAR"
+    val issue = Issue("", "JIRA", LocalDateTime.now())
+    // act
+    val result = synchronizationFlowFactory.getSynchronizationFlow(sourceApp, issue)
+    // assert
+    assertNull(result)
+  }
 }

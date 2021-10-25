@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired
 
 internal class IssueTrackingSyncAppTest : AbstractSpringTest() {
 
-    @Autowired
-    lateinit var syncApplicationProperties: SyncApplicationProperties
+  @Autowired
+  lateinit var syncApplicationProperties: SyncApplicationProperties
 
-    @Test
-    fun contextLoads() {
-        // Test fails if 'IllegalStateException: Failed to load ApplicationContext'
-        assertNotNull(syncApplicationProperties)
-    }
+  @Test
+  fun contextLoads() {
+    // Test fails if 'IllegalStateException: Failed to load ApplicationContext'
+    assertNotNull(syncApplicationProperties)
+  }
 }

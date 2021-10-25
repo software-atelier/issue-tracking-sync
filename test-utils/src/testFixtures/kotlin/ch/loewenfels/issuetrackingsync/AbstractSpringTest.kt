@@ -15,7 +15,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 abstract class AbstractSpringTest {
-    @MockBean
-    protected lateinit var jmsTemplate: JmsTemplate
+  @MockBean
+  protected lateinit var jmsTemplate: JmsTemplate
 }
 

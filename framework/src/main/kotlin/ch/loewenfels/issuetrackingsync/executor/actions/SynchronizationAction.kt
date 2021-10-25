@@ -8,20 +8,20 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 
 @Suppress("LongParameterList")
 interface SynchronizationAction {
-    fun execute(
-        sourceClient: IssueTrackingClient<Any>,
-        targetClient: IssueTrackingClient<Any>,
-        issue: Issue,
-        fieldMappings: List<FieldMapping>,
-        defaultsForNewIssue: DefaultsForNewIssue?
-    )
+  fun execute(
+    sourceClient: IssueTrackingClient<Any>,
+    targetClient: IssueTrackingClient<Any>,
+    issue: Issue,
+    fieldMappings: List<FieldMapping>,
+    defaultsForNewIssue: DefaultsForNewIssue?
+  )
 
-    fun execute(
-        sourceClient: IssueTrackingClient<Any>,
-        targetClient: IssueTrackingClient<Any>,
-        issue: Issue,
-        fieldMappings: List<FieldMapping>,
-        defaultsForNewIssue: DefaultsForNewIssue?,
-        additionalProperties: AdditionalProperties?
-    ) = execute(sourceClient, targetClient, issue, fieldMappings, defaultsForNewIssue)
+  fun execute(
+    sourceClient: IssueTrackingClient<Any>,
+    targetClient: IssueTrackingClient<Any>,
+    issue: Issue,
+    fieldMappings: List<FieldMapping>,
+    defaultsForNewIssue: DefaultsForNewIssue?,
+    additionalProperties: AdditionalProperties?
+  ) = execute(sourceClient, targetClient, issue, fieldMappings, defaultsForNewIssue)
 }

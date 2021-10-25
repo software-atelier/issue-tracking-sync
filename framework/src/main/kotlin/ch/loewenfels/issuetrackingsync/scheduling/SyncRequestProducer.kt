@@ -10,20 +10,20 @@ import org.springframework.stereotype.Component
 
 @Component
 class SyncRequestProducer(
-    private val jmsTemplate: JmsTemplate,
-    private val objectMapper: ObjectMapper
+  private val jmsTemplate: JmsTemplate,
+  private val objectMapper: ObjectMapper
 ) : Logging {
-    fun queue(issue: Issue) {
-        logger().debug("Queueing {}", issue)
-        val syncRequestAsJson = objectMapper.writeValueAsString(
-            SyncRequest(
-                issue.key,
-                issue.clientSourceName,
-                issue.lastUpdated
-            )
-        )
-        jmsTemplate.send(INTERNAL_QUEUE_NAME) { session ->
-            session.createTextMessage(syncRequestAsJson)
-        }
+  fun queue(issue: Issue) {
+    logger().debug("Queueing {}", issue)
+    val syncRequestAsJson = objectMapper.writeValueAsString(
+      SyncRequest(
+        issue.key,
+        issue.clientSourceName,
+        issue.lastUpdated
+      )
+    )
+    jmsTemplate.send(INTERNAL_QUEUE_NAME) { session ->
+      session.createTextMessage(syncRequestAsJson)
     }
+  }
 }

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class StatisticsController(private val brokerFacade: BrokerFacade) {
-    @GetMapping("/statistics")
-    fun statistics(): QueueStatistics? =
-        brokerFacade.getStatistics(INTERNAL_QUEUE_NAME)
+  @GetMapping("/statistics")
+  fun statistics(): QueueStatistics? =
+    brokerFacade.getStatistics(INTERNAL_QUEUE_NAME)
 }

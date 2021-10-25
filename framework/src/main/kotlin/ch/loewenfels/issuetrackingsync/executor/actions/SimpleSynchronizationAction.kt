@@ -8,17 +8,18 @@ import ch.loewenfels.issuetrackingsync.syncconfig.DefaultsForNewIssue
 /**
  * This action reads a list of `fieldMappingDefinitions`.
  */
-open class SimpleSynchronizationAction(private val actionName: String) : AbstractSynchronizationAction(),
-    SynchronizationAction {
-    override fun execute(
-        sourceClient: IssueTrackingClient<Any>,
-        targetClient: IssueTrackingClient<Any>,
-        issue: Issue,
-        fieldMappings: List<FieldMapping>,
-        defaultsForNewIssue: DefaultsForNewIssue?
-    ) {
-        buildTargetIssueValues(sourceClient, issue, fieldMappings)
-        createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
-        issue.workLog.add("Synchronized fields for ${issue.key} using $actionName")
-    }
+open class SimpleSynchronizationAction(private val actionName: String) :
+  AbstractSynchronizationAction(),
+  SynchronizationAction {
+  override fun execute(
+    sourceClient: IssueTrackingClient<Any>,
+    targetClient: IssueTrackingClient<Any>,
+    issue: Issue,
+    fieldMappings: List<FieldMapping>,
+    defaultsForNewIssue: DefaultsForNewIssue?
+  ) {
+    buildTargetIssueValues(sourceClient, issue, fieldMappings)
+    createOrUpdateTargetIssue(targetClient, issue, defaultsForNewIssue)
+    issue.workLog.add("Synchronized fields for ${issue.key} using $actionName")
+  }
 }

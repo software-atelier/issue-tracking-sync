@@ -17,63 +17,63 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import java.io.File
 
 @SpringBootApplication(
-    scanBasePackages = [
-        "ch.loewenfels.issuetrackingsync.controller",
-        "ch.loewenfels.issuetrackingsync.scheduling",
-        "ch.loewenfels.issuetrackingsync.executor"
-    ]
+  scanBasePackages = [
+    "ch.loewenfels.issuetrackingsync.controller",
+    "ch.loewenfels.issuetrackingsync.scheduling",
+    "ch.loewenfels.issuetrackingsync.executor"
+  ]
 )
 @EnableScheduling
 @EnableConfigurationProperties(SyncApplicationProperties::class)
 @ImportResource("classpath:activemq.xml")
 open class IssueTrackingSyncApp : WebSecurityConfigurerAdapter() {
-    @Autowired
-    lateinit var syncApplicationProperties: SyncApplicationProperties
+  @Autowired
+  lateinit var syncApplicationProperties: SyncApplicationProperties
 
-    @Bean
-    open fun settings(@Autowired objectMapper: ObjectMapper): Settings {
-        val settings = Settings.loadFromFile(syncApplicationProperties.settingsLocation)
-        val earliestSyncDate = System.getenv("EARLIEST_SYNC_DATE")
-        settings.earliestSyncDate = earliestSyncDate
-        return settings
-    }
+  @Bean
+  open fun settings(@Autowired objectMapper: ObjectMapper): Settings {
+    val settings = Settings.loadFromFile(syncApplicationProperties.settingsLocation)
+    val earliestSyncDate = System.getenv("EARLIEST_SYNC_DATE")
+    settings.earliestSyncDate = earliestSyncDate
+    return settings
+  }
 
-    @Bean
-    open fun appState(@Autowired objectMapper: ObjectMapper): AppState {
-        val location = File(syncApplicationProperties.appStateLocation)
-        return AppState.loadFromFile(location, objectMapper)
-    }
+  @Bean
+  open fun appState(@Autowired objectMapper: ObjectMapper): AppState {
+    val location = File(syncApplicationProperties.appStateLocation)
+    return AppState.loadFromFile(location, objectMapper)
+  }
 
-    @Bean
-    open fun clientFactory(): ClientFactory {
-        return DefaultClientFactory
-    }
+  @Bean
+  open fun clientFactory(): ClientFactory {
+    return DefaultClientFactory
+  }
 
-    @Bean
-    open fun notificationObserver(): NotificationObserver {
-        val observer = NotificationObserver()
-        syncApplicationProperties.notificationChannels.forEach { observer.addChannel(it) }
-        return observer
-    }
+  @Bean
+  open fun notificationObserver(): NotificationObserver {
+    val observer = NotificationObserver()
+    syncApplicationProperties.notificationChannels.forEach { observer.addChannel(it) }
+    return observer
+  }
 
-    /**
-     * Disable CSRF as this app will be run as an internal app only. Should security ever be a concern,
-     * enable CSRF, and adapt index.html accordingly
-     */
-    override fun configure(http: HttpSecurity) {
-        http.csrf().disable()
-            .authorizeRequests().antMatchers("/webhook/**").permitAll()
-    }
+  /**
+   * Disable CSRF as this app will be run as an internal app only. Should security ever be a concern,
+   * enable CSRF, and adapt index.html accordingly
+   */
+  override fun configure(http: HttpSecurity) {
+    http.csrf().disable()
+      .authorizeRequests().antMatchers("/webhook/**").permitAll()
+  }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            try {
-                runApplication<IssueTrackingSyncApp>(*args)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                throw e
-            }
-        }
+  companion object {
+    @JvmStatic
+    fun main(args: Array<String>) {
+      try {
+        runApplication<IssueTrackingSyncApp>(*args)
+      } catch (e: Exception) {
+        e.printStackTrace()
+        throw e
+      }
     }
+  }
 }

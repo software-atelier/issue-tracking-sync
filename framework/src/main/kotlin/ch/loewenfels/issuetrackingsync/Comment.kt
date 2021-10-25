@@ -7,8 +7,8 @@ import java.time.LocalDateTime
  * plain text. The content will, however, *never* be in JIRA markup)
  */
 data class Comment(
-    val author: String,
-    val timestamp: LocalDateTime,
-    val content: String,
-    val internalId: String
+  val author: String,
+  val timestamp: LocalDateTime,
+  val content: String,
+  val internalId: String
 )

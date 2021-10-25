@@ -13,29 +13,29 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
  *  configured for both clients. This implies that both client-configuration are a mirrored version of each other.
  */
 class SingleSelectionFieldMapper(fieldMappingDefinition: FieldMappingDefinition) : FieldMapper {
-    private val keyFallback = "*"
-    private val associations: Map<String, String> = fieldMappingDefinition.associations
+  private val keyFallback = "*"
+  private val associations: Map<String, String> = fieldMappingDefinition.associations
 
-    override fun <T> getValue(
-        proprietaryIssue: T,
-        fieldname: String,
-        issueTrackingClient: IssueTrackingClient<in T>
-    ): Any? = issueTrackingClient.getValue(proprietaryIssue, fieldname)
+  override fun <T> getValue(
+    proprietaryIssue: T,
+    fieldname: String,
+    issueTrackingClient: IssueTrackingClient<in T>
+  ): Any? = issueTrackingClient.getValue(proprietaryIssue, fieldname)
 
-    override fun <T> setValue(
-        proprietaryIssueBuilder: Any,
-        fieldname: String,
-        issue: Issue,
-        issueTrackingClient: IssueTrackingClient<in T>,
-        value: Any?
-    ) {
-        val associationKey = value ?: "null"
-        val result = associations[associationKey as String] ?: associations[keyFallback]
-        if (null != result) {
-            issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
-        } else {
-            issue.workLog.add("Cannot update $fieldname, there is not association entry for $associationKey")
-        }
+  override fun <T> setValue(
+    proprietaryIssueBuilder: Any,
+    fieldname: String,
+    issue: Issue,
+    issueTrackingClient: IssueTrackingClient<in T>,
+    value: Any?
+  ) {
+    val associationKey = value ?: "null"
+    val result = associations[associationKey as String] ?: associations[keyFallback]
+    if (null != result) {
+      issueTrackingClient.setValue(proprietaryIssueBuilder, issue, fieldname, result)
+    } else {
+      issue.workLog.add("Cannot update $fieldname, there is not association entry for $associationKey")
     }
+  }
 
 }

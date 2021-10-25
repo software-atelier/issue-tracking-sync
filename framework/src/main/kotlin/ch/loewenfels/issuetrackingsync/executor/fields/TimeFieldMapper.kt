@@ -13,19 +13,19 @@ import ch.loewenfels.issuetrackingsync.syncclient.IssueTrackingClient
  */
 open class TimeFieldMapper : FieldMapper {
 
-    override fun <T> getValue(
-        proprietaryIssue: T,
-        fieldname: String,
-        issueTrackingClient: IssueTrackingClient<in T>
-    ): Number? = issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, fieldname)
+  override fun <T> getValue(
+    proprietaryIssue: T,
+    fieldname: String,
+    issueTrackingClient: IssueTrackingClient<in T>
+  ): Number? = issueTrackingClient.getTimeValueInMinutes(proprietaryIssue as Any, fieldname)
 
-    override fun <T> setValue(
-        proprietaryIssueBuilder: Any,
-        fieldname: String,
-        issue: Issue,
-        issueTrackingClient: IssueTrackingClient<in T>,
-        value: Any?
-    ) {
-        issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, fieldname, value as Number)
-    }
+  override fun <T> setValue(
+    proprietaryIssueBuilder: Any,
+    fieldname: String,
+    issue: Issue,
+    issueTrackingClient: IssueTrackingClient<in T>,
+    value: Any?
+  ) {
+    issueTrackingClient.setTimeValue(proprietaryIssueBuilder, issue, fieldname, value as Number)
+  }
 }

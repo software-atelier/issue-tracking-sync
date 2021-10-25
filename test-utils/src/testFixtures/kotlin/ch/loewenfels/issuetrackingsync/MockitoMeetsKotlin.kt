@@ -10,8 +10,8 @@ import org.mockito.Mockito
  */
 @Suppress("UNCHECKED_CAST")
 fun <T> any(type: Class<T>): T {
-    Mockito.any(type)
-    return null as T
+  Mockito.any(type)
+  return null as T
 }
 
 fun <T> any(): T = Mockito.any<T>()

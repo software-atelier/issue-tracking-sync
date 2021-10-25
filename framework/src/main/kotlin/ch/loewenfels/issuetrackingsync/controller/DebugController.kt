@@ -15,46 +15,47 @@ import kotlin.concurrent.thread
 
 @RestController
 class DebugController(
-    private val settings: Settings
+  private val settings: Settings
 ) {
-    @Autowired
-    lateinit var issuePoller: IssuePoller
-    @Autowired
-    lateinit var syncApplicationProperties: SyncApplicationProperties
+  @Autowired
+  lateinit var issuePoller: IssuePoller
 
-    @GetMapping("/manualTimetrackingSync")
-    fun startManualTimetrackingSync() {
-        triggerPollingManually()
-    }
+  @Autowired
+  lateinit var syncApplicationProperties: SyncApplicationProperties
 
-    @GetMapping("/triggerPolling")
-    fun triggerPollingManually(): String {
-        thread(start = true) {
-            issuePoller.checkForUpdatedIssues()
-        }
-        return "Trigger successfully started. Please look at the protocol for further status information"
-    }
+  @GetMapping("/manualTimetrackingSync")
+  fun startManualTimetrackingSync() {
+    triggerPollingManually()
+  }
 
-    @GetMapping("/config")
-    fun getSettingsFile(): Settings {
-        return settings
+  @GetMapping("/triggerPolling")
+  fun triggerPollingManually(): String {
+    thread(start = true) {
+      issuePoller.checkForUpdatedIssues()
     }
+    return "Trigger successfully started. Please look at the protocol for further status information"
+  }
 
-    @GetMapping("/log{date}")
-    fun getLogFile(response: HttpServletResponse, @PathVariable("date") date: String) {
-        val file: File = getFile(date)
-        response.setContentType("text/plain")
-        response.setHeader("Content-Disposition", "attachment; filename=\"${file.name}\"")
-        FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
-        response.outputStream.close()
-    }
+  @GetMapping("/config")
+  fun getSettingsFile(): Settings {
+    return settings
+  }
 
-    private fun getFile(date: String): File {
-        val dateSuffix = "0.log"
-        return if (date.isBlank()) {
-            File(syncApplicationProperties.logfile)
-        } else {
-            File("${syncApplicationProperties.logfile}.$date.$dateSuffix")
-        }
+  @GetMapping("/log{date}")
+  fun getLogFile(response: HttpServletResponse, @PathVariable("date") date: String) {
+    val file: File = getFile(date)
+    response.setContentType("text/plain")
+    response.setHeader("Content-Disposition", "attachment; filename=\"${file.name}\"")
+    FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
+    response.outputStream.close()
+  }
+
+  private fun getFile(date: String): File {
+    val dateSuffix = "0.log"
+    return if (date.isBlank()) {
+      File(syncApplicationProperties.logfile)
+    } else {
+      File("${syncApplicationProperties.logfile}.$date.$dateSuffix")
     }
+  }
 }

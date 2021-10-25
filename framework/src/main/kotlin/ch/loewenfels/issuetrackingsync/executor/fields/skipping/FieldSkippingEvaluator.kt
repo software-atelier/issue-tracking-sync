@@ -9,11 +9,11 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldSkippingEvaluatorDefiniti
  * ability to skip one single FieldMapper.
  */
 abstract class FieldSkippingEvaluator(var fieldSkippingEvaluatorDefinition: FieldSkippingEvaluatorDefinition) {
-    abstract fun <T> hasFieldToBeSkipped(
-        issueClient: IssueTrackingClient<in T>,
-        issueBuilder: Any,
-        issue: Issue,
-        fieldname: String,
-        sourceValue: Any?
-    ): Boolean
+  abstract fun <T> hasFieldToBeSkipped(
+    issueClient: IssueTrackingClient<in T>,
+    issueBuilder: Any,
+    issue: Issue,
+    fieldname: String,
+    sourceValue: Any?
+  ): Boolean
 }

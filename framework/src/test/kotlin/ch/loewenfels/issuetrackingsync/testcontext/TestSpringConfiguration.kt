@@ -17,19 +17,19 @@ import org.springframework.context.annotation.Profile
 @Profile("test")
 @Configuration
 open class TestSpringConfiguration {
-    @Bean
-    @Primary
-    open fun clientFactoryMock(): ClientFactory {
-        val mockClientFactory = mock(ClientFactory::class.java)
-        `when`(mockClientFactory.getClient(any(IssueTrackingApplication::class.java))).thenAnswer {
-            val setting = it.arguments[0] as IssueTrackingApplication
-            when {
-                setting.className.endsWith("JiraClient") -> MockJiraClient(setting)
-                setting.className.endsWith("RtcClient") -> MockRtcClient(setting)
-                else -> throw IllegalArgumentException("Unknown client: " + setting.className)
-            }
-        }
-        return mockClientFactory
+  @Bean
+  @Primary
+  open fun clientFactoryMock(): ClientFactory {
+    val mockClientFactory = mock(ClientFactory::class.java)
+    `when`(mockClientFactory.getClient(any(IssueTrackingApplication::class.java))).thenAnswer {
+      val setting = it.arguments[0] as IssueTrackingApplication
+      when {
+        setting.className.endsWith("JiraClient") -> MockJiraClient(setting)
+        setting.className.endsWith("RtcClient") -> MockRtcClient(setting)
+        else -> throw IllegalArgumentException("Unknown client: " + setting.className)
+      }
     }
+    return mockClientFactory
+  }
 }
 

@@ -10,29 +10,29 @@ import java.time.LocalDateTime
 const val FILENAME = "appstate.json"
 
 class AppState {
-    private var backingFile: File? = null
-    var lastPollingTimestamp: LocalDateTime? = null
+  private var backingFile: File? = null
+  var lastPollingTimestamp: LocalDateTime? = null
 
-    companion object : Logging {
-        fun loadFromFile(parentDir: File, objectMapper: ObjectMapper): AppState {
-            val appStateFile = File(parentDir, FILENAME)
-            val result = try {
-                if (appStateFile.exists())
-                    objectMapper.readValue(appStateFile, AppState::class.java)
-                else AppState()
-            } catch (ex: IOException) {
-                throw IllegalStateException("Failed to load app state", ex)
-            }
-            result.backingFile = appStateFile
-            logger().info("Loaded app state {}", result)
+  companion object : Logging {
+    fun loadFromFile(parentDir: File, objectMapper: ObjectMapper): AppState {
+      val appStateFile = File(parentDir, FILENAME)
+      val result = try {
+        if (appStateFile.exists())
+          objectMapper.readValue(appStateFile, AppState::class.java)
+        else AppState()
+      } catch (ex: IOException) {
+        throw IllegalStateException("Failed to load app state", ex)
+      }
+      result.backingFile = appStateFile
+      logger().info("Loaded app state {}", result)
 
-            return result
-        }
+      return result
     }
+  }
 
-    fun persist(objectMapper: ObjectMapper) =
-        objectMapper.writeValue(backingFile, this)
+  fun persist(objectMapper: ObjectMapper) =
+    objectMapper.writeValue(backingFile, this)
 
-    override fun toString(): String =
-        this.javaClass.simpleName + "{lastPollingTimestamp=$lastPollingTimestamp}"
+  override fun toString(): String =
+    this.javaClass.simpleName + "{lastPollingTimestamp=$lastPollingTimestamp}"
 }

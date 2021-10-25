@@ -6,8 +6,8 @@ package ch.loewenfels.issuetrackingsync.syncconfig
  * <!-- end::overview[] -->
  **/
 data class SyncActionDefinition(
-    var name: String = "",
-    var classname: String = "",
-    var fieldMappingDefinitions: MutableList<FieldMappingDefinition> = mutableListOf(),
-    var additionalProperties: AdditionalProperties = AdditionalProperties()
+  var name: String = "",
+  var classname: String = "",
+  var fieldMappingDefinitions: MutableList<FieldMappingDefinition> = mutableListOf(),
+  var additionalProperties: AdditionalProperties = AdditionalProperties()
 )
