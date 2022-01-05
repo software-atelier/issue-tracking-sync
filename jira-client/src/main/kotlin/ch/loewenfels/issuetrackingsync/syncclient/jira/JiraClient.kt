@@ -168,13 +168,13 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     fieldName: String,
     value: Any?
   ) {
-    logger().debug("Setting value $value on $fieldName")
     try {
       val proprietaryJiraIssue = issue.proprietaryTargetInstance
       convertToMetadataId(fieldName, value, proprietaryJiraIssue as JiraIssue?)?.let {
         val beanWrapper = BeanWrapperImpl(internalIssueBuilder)
         if (beanWrapper.isWritableProperty(fieldName)) {
           if (!issue.hasChanges && proprietaryJiraIssue is JiraIssue) {
+            logger().debug("${proprietaryJiraIssue.key}: Setting value $value on $fieldName")
             val finalValue = when (fieldName) {
               "priorityId" -> (getValue(
                 proprietaryJiraIssue,
@@ -433,7 +433,6 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     issue.fieldMappings.forEach {
       it.setTargetValue(issueBuilder, issue, this)
     }
-    logger().info("Updating JIRA issue ${targetIssue.key}")
     val issueInput = issueBuilder.build()
     try {
       jiraRestClient.issueClient.updateIssue(targetIssue.key, issueInput).claim()
@@ -485,6 +484,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     jiraRestClient.issueClient.addComment(internalIssue.commentsUri, jiraComment).claim()
   }
 
+  @Suppress("UnstableApiUsage")
   override fun getAttachments(internalIssue: JiraIssue): List<Attachment> =
     internalIssue.attachments?.map { jiraAttachment ->
       val attachmentInputStreamPromise =
@@ -575,7 +575,7 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     internalIssue: JiraIssue,
     targetResolution: String
   ): Boolean {
-    if (internalIssue.resolution?.name ?: "" == targetResolution) return false
+    if ((internalIssue.resolution?.name ?: "") == targetResolution) return false
     if (internalIssue.status.name == "geschlossen") return false
     jiraRestClient.getHtmlRenderingRestClient().getAvailableTransitions(internalIssue.key)
       .filter { it.value == "erledigt" }
