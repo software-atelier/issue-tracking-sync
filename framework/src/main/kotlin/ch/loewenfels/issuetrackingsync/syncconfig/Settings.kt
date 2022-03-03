@@ -5,6 +5,7 @@ import ch.loewenfels.issuetrackingsync.logger
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import java.io.File
+import java.net.URL
 import java.util.*
 
 data class Settings(
@@ -18,15 +19,22 @@ data class Settings(
     fun loadFromFile(fileLocation: String): Settings {
       val settingsFile = File(fileLocation)
       if (!settingsFile.exists()) {
-        throw IllegalStateException("Settings file " + settingsFile.absolutePath + " not found.")
+        val resourceUrl = this::class.java.classLoader.getResource(fileLocation)
+          ?: throw IllegalStateException("Settings file $fileLocation not found in resources or in filesystem.")
+        return readFromURI(resourceUrl)
       }
-      logger().info("Loading settings from {}", settingsFile.absolutePath)
+      return readFromURI(settingsFile.toURI().toURL())
+    }
+
+    private fun readFromURI(url: URL): Settings{
+      logger().info("Loading settings from {}", url.toString())
       val objectMapper = ObjectMapper(YAMLFactory())
       objectMapper.findAndRegisterModules()
-      val result = objectMapper.readValue(settingsFile, Settings::class.java)
+      val result = objectMapper.readValue(url, Settings::class.java)
       result.mapCommons()
       return result
     }
+
   }
 
   fun toTrackingApplication(name: TrackingApplicationName): IssueTrackingApplication? =
