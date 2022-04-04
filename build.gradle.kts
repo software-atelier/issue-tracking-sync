@@ -34,14 +34,14 @@ allprojects {
     implementation(kotlin("stdlib"))
 
     testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.6.6") {
       exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.mockito:mockito-core:3.10.0")
     testImplementation("org.springframework.security:spring-security-test:5.6.2")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
   }
 
   tasks.withType<Test> {
