@@ -39,7 +39,7 @@ allprojects {
       exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.mockito:mockito-core:3.10.0")
-    testImplementation("org.springframework.security:spring-security-test:2.6.6")
+    testImplementation("org.springframework.security:spring-security-test:5.6.2")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
   }
