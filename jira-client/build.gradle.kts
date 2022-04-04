@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-  id("org.springframework.boot")
+  id("org.springframework.boot") version "2.6.6"
 }
 
 repositories {
@@ -20,10 +20,10 @@ dependencies {
   implementation("io.atlassian.fugue:fugue:4.7.2")
   implementation("javax.activation:activation:1.1")
   implementation("org.jsoup:jsoup:1.13.1")
-  implementation("org.springframework.boot:spring-boot-configuration-processor")
-  implementation("org.springframework.boot:spring-boot-starter-activemq")
-  implementation("org.springframework.boot:spring-boot-starter-security")
-  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-configuration-processor:2.6.6")
+  implementation("org.springframework.boot:spring-boot-starter-activemq:2.6.6")
+  implementation("org.springframework.boot:spring-boot-starter-security:2.6.6")
+  implementation("org.springframework.boot:spring-boot-starter-web:2.6.6")
 
   testImplementation(testFixtures(project(":test-utils")))
 

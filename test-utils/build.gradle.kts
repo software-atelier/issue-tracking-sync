@@ -1,16 +1,16 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-  id("org.springframework.boot")
+  id("org.springframework.boot") version "2.6.6"
 }
 
 dependencies {
   testFixturesImplementation(project(":framework"))
 
   testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-  testFixturesImplementation("org.springframework.boot:spring-boot-starter-activemq")
-  testFixturesImplementation("org.springframework.boot:spring-boot-starter-security")
-  testFixturesImplementation("org.springframework.boot:spring-boot-starter-test") {
+  testFixturesImplementation("org.springframework.boot:spring-boot-starter-activemq:2.6.6")
+  testFixturesImplementation("org.springframework.boot:spring-boot-starter-security:2.6.6")
+  testFixturesImplementation("org.springframework.boot:spring-boot-starter-test:2.6.6") {
     exclude(module = "junit-vintage-engine")
   }
 }

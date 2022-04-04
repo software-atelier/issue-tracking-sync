@@ -5,7 +5,7 @@ plugins {
   id("io.gitlab.arturbosch.detekt") version "1.5.1"
   id("io.spring.dependency-management") version "1.0.11.RELEASE"
   id("org.jetbrains.kotlin.jvm") version "1.5.10"
-  id("org.springframework.boot") version "2.5.0"
+  id("org.springframework.boot") version "2.6.6"
   id("maven-publish")
 }
 
@@ -35,11 +35,11 @@ allprojects {
 
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.6.6") {
       exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.mockito:mockito-core:3.10.0")
-    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.security:spring-security-test:2.6.6")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
   }
