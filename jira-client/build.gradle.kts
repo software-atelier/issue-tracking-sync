@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-  id("org.springframework.boot") version "2.6.6"
+  id("org.springframework.boot")
 }
 
 repositories {
