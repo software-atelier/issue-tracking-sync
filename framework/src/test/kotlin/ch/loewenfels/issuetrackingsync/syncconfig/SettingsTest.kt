@@ -195,7 +195,7 @@ internal class SettingsTest : AbstractSpringTest() {
           val obj: Any = field.get(env)
           val map = obj as MutableMap<String, String>
           map.clear()
-          newenv?.run { map.putAll(newenv) }
+          newenv?.run { map?.putAll(newenv) }
         }
       }
     }
