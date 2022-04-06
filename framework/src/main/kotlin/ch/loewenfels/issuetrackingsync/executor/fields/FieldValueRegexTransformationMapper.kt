@@ -7,6 +7,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 open class FieldValueRegexTransformationMapper(fieldMappingDefinition: FieldMappingDefinition) :
   FieldMapper {
   val associations = fieldMappingDefinition.associations
+  val notificationSlackUserIds = fieldMappingDefinition.notificationUserIds
 
   override fun <T> getValue(
     proprietaryIssue: T,

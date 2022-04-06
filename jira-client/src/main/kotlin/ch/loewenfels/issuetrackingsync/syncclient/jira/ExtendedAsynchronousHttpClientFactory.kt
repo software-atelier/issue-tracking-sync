@@ -86,9 +86,12 @@ class ExtendedAsynchronousHttpClientFactory : AsynchronousHttpClientFactory() {
       return try {
         MavenUtils::class.java
           .getResourceAsStream("/META-INF/maven/$groupId/$artifactId/pom.properties")
-          .use { resourceAsStream ->
+          ?.let { resourceAsStream -> // TC-249
             props.load(resourceAsStream)
             props.getProperty("version", UNKNOWN_VERSION)
+          }?: kotlin.run {
+            logger.debug("File '/META-INF/maven/$groupId/$artifactId/pom.properties' not found" )
+            UNKNOWN_VERSION
           }
       } catch (e: Exception) {
         logger.debug("Could not find version for maven artifact {}:{}", groupId, artifactId)

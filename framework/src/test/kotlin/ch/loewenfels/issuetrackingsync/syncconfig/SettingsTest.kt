@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
+import java.util.*
+
 
 internal class SettingsTest : AbstractSpringTest() {
   @Autowired
@@ -128,11 +130,71 @@ internal class SettingsTest : AbstractSpringTest() {
     val jira = IssueTrackingApplication()
     jira.name = "JIRA"
     jira.username = "foobar"
-    val settings = Settings()
+    val settings = Settings(configUrl = "/", logsUrl = "/")
     settings.trackingApplications.add(jira)
     // act
     val serialized = objectMapper.writeValueAsString(settings)
     // assert
     assertThat(serialized, containsString("foobar"))
+  }
+
+  @Test
+  fun configUrl_systemEnvReplacement() {
+    // arrange
+    val hostName = System.getenv("HOST_NAME")
+    val hostPort = System.getenv("HOST_PORT")
+    setEnv(mapOf("HOST_NAME" to "server01", "HOST_PORT" to "8080"))
+    // act
+    val settings = Settings(configUrl = "/\${HOST_NAME}:\${HOST_PORT}/index.html", logsUrl = "/")
+    // assert
+    assertEquals("/server01:8080/index.html", settings.configLink)
+    // clean up
+    setEnv(mapOf("HOST_NAME" to hostName, "HOST_PORT" to hostPort))
+  }
+
+  @Test
+  fun logsUrl_systemEnvReplacement() {
+    // arrange
+    val hostName = System.getenv("HOST_NAME")
+    val hostPort = System.getenv("HOST_PORT")
+    setEnv(mapOf("HOST_NAME" to "server01", "HOST_PORT" to "8080"))
+    // act
+    val settings = Settings(configUrl = "/", logsUrl = "/\${HOST_NAME}:\${HOST_PORT}/index.html")
+    // assert
+    assertEquals("/server01:8080/index.html", settings.logsLink)
+    // clean up
+    setEnv(mapOf("HOST_NAME" to hostName, "HOST_PORT" to hostPort))
+  }
+
+  /*
+   * Credits to https://stackoverflow.com/a/7201825
+   */
+  @Throws(java.lang.Exception::class)
+  protected fun setEnv(newenv: Map<String, String>?) {
+    try {
+      val processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment")
+      val theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment")
+      theEnvironmentField.setAccessible(true)
+      val env = theEnvironmentField.get(null) as MutableMap<String, String>
+      env.putAll(newenv!!)
+      val theCaseInsensitiveEnvironmentField =
+        processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment")
+      theCaseInsensitiveEnvironmentField.setAccessible(true)
+      val cienv = theCaseInsensitiveEnvironmentField.get(null) as MutableMap<String, String>
+      cienv.putAll(newenv)
+    } catch (e: NoSuchFieldException) {
+      val classes = Collections::class.java.declaredClasses
+      val env = System.getenv()
+      for (cl in classes) {
+        if ("java.util.Collections\$UnmodifiableMap" == cl.name) {
+          val field = cl.getDeclaredField("m")
+          field.setAccessible(true)
+          val obj: Any = field.get(env)
+          val map = obj as MutableMap<String, String>
+          map.clear()
+          map.putAll(newenv!!)
+        }
+      }
+    }
   }
 }

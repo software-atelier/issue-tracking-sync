@@ -37,4 +37,11 @@ data class Issue(
   var proprietaryOldTargetInstance: Any? = null
 
   val notifyMessages: MutableList<String> = mutableListOf()
+
+  /**
+   * List of comments that can be populated during a mapping or action and will be saved at the end of a synchronisation.
+   *
+   * TC-345
+   */
+  val additionalComments: MutableList<Comment> = mutableListOf()
 }

@@ -13,8 +13,13 @@ data class Settings(
   var trackingApplications: MutableList<IssueTrackingApplication> = mutableListOf(),
   var actionDefinitions: MutableList<SyncActionDefinition> = mutableListOf(),
   var syncFlowDefinitions: MutableList<SyncFlowDefinition> = mutableListOf(),
-  var common: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
+  var common: MutableMap<String, MutableMap<String, String>> = mutableMapOf(),
+  private val configUrl: String,
+  private val logsUrl: String
 ) {
+  val configLink = replaceSystemEnvVariables(configUrl)
+  val logsLink = replaceSystemEnvVariables(logsUrl)
+
   companion object : Logging {
     fun loadFromFile(fileLocation: String): Settings {
       val settingsFile = File(fileLocation)
@@ -26,7 +31,7 @@ data class Settings(
       return readFromURI(settingsFile.toURI().toURL())
     }
 
-    private fun readFromURI(url: URL): Settings{
+    private fun readFromURI(url: URL): Settings {
       logger().info("Loading settings from {}", url.toString())
       val objectMapper = ObjectMapper(YAMLFactory())
       objectMapper.findAndRegisterModules()
@@ -35,6 +40,11 @@ data class Settings(
       return result
     }
 
+    private fun replaceSystemEnvVariables(string: String): String {
+      return System.getenv().keys.fold(string) { string, key ->
+        string.replace("\${$key}", System.getenv(key))
+      }
+    }
   }
 
   fun toTrackingApplication(name: TrackingApplicationName): IssueTrackingApplication? =

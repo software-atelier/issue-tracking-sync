@@ -6,6 +6,7 @@ import ch.loewenfels.issuetrackingsync.syncconfig.FieldMappingDefinition
 
 class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMappingDefinition) :
   DirectListMergeFieldMapper() {
+  private val skip = fieldMappingDefinition.associations["skip"]?.split(",") // TC-283
   private val onlyLast = fieldMappingDefinition.associations["onlyLast"]
   private val toUpperCase = fieldMappingDefinition.associations["toUpperCase"]
   private val toLowerCase = fieldMappingDefinition.associations["toLowerCase"]
@@ -20,6 +21,7 @@ class DirectListMergeFieldRegexTransformMapper(fieldMappingDefinition: FieldMapp
   ) {
     var newValues = mutableSetOf<Any>()
     addToSet(newValues, value)
+    newValues.removeIf { skip?.contains(it) ?: false } // TC-283
     toUpperCase?.let {
       newValues = newValues.map { newValue ->
         var result = newValue

@@ -13,5 +13,6 @@ open class FieldMappingDefinition(
   var mapperClassname: String = DirectFieldMapper::class.qualifiedName ?: "",
   var fieldSkipEvaluators: MutableList<FieldSkippingEvaluatorDefinition> = mutableListOf(),
   var callback: FieldMappingDefinition? = null,
-  associations: MutableMap<String, String> = mutableMapOf()
+  associations: MutableMap<String, String> = mutableMapOf(),
+  val notificationUserIds: MutableList<String> = mutableListOf() // TC-265
 ) : AssociationsFieldDefinition(associations)

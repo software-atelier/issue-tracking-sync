@@ -3,14 +3,12 @@ package ch.loewenfels.issuetrackingsync.controller
 import ch.loewenfels.issuetrackingsync.app.SyncApplicationProperties
 import ch.loewenfels.issuetrackingsync.scheduling.IssuePoller
 import ch.loewenfels.issuetrackingsync.syncconfig.Settings
-import org.apache.commons.io.IOUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.ui.set
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import java.io.File
-import java.io.FileInputStream
-import javax.servlet.http.HttpServletResponse
+import org.springframework.web.servlet.mvc.support.RedirectAttributes
+import org.springframework.web.servlet.view.RedirectView
 import kotlin.concurrent.thread
 
 @RestController
@@ -37,25 +35,12 @@ class DebugController(
   }
 
   @GetMapping("/config")
-  fun getSettingsFile(): Settings {
-    return settings
+  fun getSettingsFile(): RedirectView {
+    return RedirectView(settings.configLink) // TC-264
   }
 
-  @GetMapping("/log{date}")
-  fun getLogFile(response: HttpServletResponse, @PathVariable("date") date: String) {
-    val file: File = getFile(date)
-    response.setContentType("text/plain")
-    response.setHeader("Content-Disposition", "attachment; filename=\"${file.name}\"")
-    FileInputStream(file).use { IOUtils.copy(it, response.outputStream) }
-    response.outputStream.close()
-  }
-
-  private fun getFile(date: String): File {
-    val dateSuffix = "0.log"
-    return if (date.isBlank()) {
-      File(syncApplicationProperties.logfile)
-    } else {
-      File("${syncApplicationProperties.logfile}.$date.$dateSuffix")
-    }
+  @GetMapping("/log")
+  fun getLogFile(): RedirectView {
+    return RedirectView(settings.logsLink) // TC-264
   }
 }

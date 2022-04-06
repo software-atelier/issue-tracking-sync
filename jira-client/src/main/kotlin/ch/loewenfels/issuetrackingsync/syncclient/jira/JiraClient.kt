@@ -433,6 +433,10 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
     issue.fieldMappings.forEach {
       it.setTargetValue(issueBuilder, issue, this)
     }
+    issue.additionalComments.forEach { // TC-265
+      addComment(targetIssue, it)
+    }
+    issue.additionalComments.clear()
     val issueInput = issueBuilder.build()
     try {
       jiraRestClient.issueClient.updateIssue(targetIssue.key, issueInput).claim()
@@ -480,7 +484,8 @@ open class JiraClient(private val setup: IssueTrackingApplication) :
 
   override fun addComment(internalIssue: JiraIssue, comment: Comment) {
     val convertedValue = DefaultWysiwygConverter().convertXHtmlToWikiMarkup(comment.content)
-    val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(convertedValue)
+    val valueWithValidUserReference = convertedValue.replace("\\[", "[").replace("\\]", "]")
+    val jiraComment = com.atlassian.jira.rest.client.api.domain.Comment.valueOf(valueWithValidUserReference)
     jiraRestClient.issueClient.addComment(internalIssue.commentsUri, jiraComment).claim()
   }
 

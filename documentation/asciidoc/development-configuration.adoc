@@ -54,6 +54,18 @@ If nothing is defined, polling will start with `application start`.
 [source,yaml]
 include::../../framework/src/test/resources/settings.yml[tag=earliestSyncDate]
 
+==== `configUrl`
+
+Redirect URL to the current configuration, e.g. Gitlab. The URL can have placeholders, e.g. "/${HOST_NAME}:${HOST_PORT}/index.html". The placeholders will be replaced with a system environment variable of the same name.
+Due to Kotlin language restrictions the corresponding variable name on the Settings class is 'configLink'.
+Button "Show configuration" available on the admin page.
+
+==== `logsUrl`
+
+Redirect URL to the current application logs, e.g. Elastic. The URL can have placeholders, e.g. "/${HOST_NAME}:${HOST_PORT}/index.html". The placeholders will be replaced with a system environment variable of the same name.
+Due to Kotlin language restrictions the corresponding variable name on the Settings class is 'logsLink'.
+Button "Show logs" available on the admin page.
+
 ==== `trackingApplications`
 
 Define the basic issue tracking applications in use in the section `trackingApplications` of the settings.json
