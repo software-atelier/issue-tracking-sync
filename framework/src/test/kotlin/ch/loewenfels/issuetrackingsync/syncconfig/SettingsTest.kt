@@ -149,7 +149,10 @@ internal class SettingsTest : AbstractSpringTest() {
     // assert
     assertEquals("/server01:8080/index.html", settings.configLink)
     // clean up
-    setEnv(mapOf("HOST_NAME" to hostName, "HOST_PORT" to hostPort))
+    var oldEnvVars = mutableMapOf<String, String>()
+    hostName?.run { oldEnvVars.put("HOST_NAME", hostName) }
+    hostPort?.run { oldEnvVars.put("HOST_PORT", hostPort) }
+    setEnv(oldEnvVars)
   }
 
   @Test
