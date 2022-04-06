@@ -623,13 +623,31 @@ If nothing is defined, polling will start with <code>application start</code>.</
 </div>
 </div>
 <div class="sect3">
+<h4 id="_configurl"><code>configUrl</code></h4>
+<div class="paragraph">
+<p>Redirect URL to the current configuration, e.g. Gitlab. The URL can have placeholders, e.g. "/${HOST_NAME}:${HOST_PORT}/index.html". The placeholders will be replaced with a system environment variable of the same name.
+Due to Kotlin language restrictions the corresponding variable name on the Settings class is 'configLink'.
+Button "Show configuration" available on the admin page.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_logsurl"><code>logsUrl</code></h4>
+<div class="paragraph">
+<p>Redirect URL to the current application logs, e.g. Elastic. The URL can have placeholders, e.g. "/${HOST_NAME}:${HOST_PORT}/index.html". The placeholders will be replaced with a system environment variable of the same name.
+Due to Kotlin language restrictions the corresponding variable name on the Settings class is 'logsLink'.
+Button "Show logs" available on the admin page.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_trackingapplications"><code>trackingApplications</code></h4>
 <div class="paragraph">
 <p>Define the basic issue tracking applications in use in the section <code>trackingApplications</code> of the settings.json</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-yaml" data-lang="yaml">trackingApplications:
+<pre class="highlight"><code class="language-yaml" data-lang="yaml">configUrl: '/'
+logsUrl: '/'
+trackingApplications:
   - name: JIRA
     className: ch.loewenfels.issuetrackingsync.syncclient.jira.JiraClient
     username: foobar
@@ -1394,7 +1412,7 @@ If missing, and no target issue is found using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-04-04 16:43:55 UTC
+Last updated 2022-04-06 12:10:35 UTC
 </div>
 </div>
 </body>

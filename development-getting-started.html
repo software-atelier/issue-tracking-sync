@@ -525,13 +525,10 @@ If those implementations might be of value to others, add them to this project i
 <h3 id="_controllers">Controllers</h3>
 <div class="paragraph">
 <p>The <code>DebugController</code> offers resources to access debug-relevant information from the tool while it is running.
-Under <code>foobar.com/config</code> (while <code>foobar.com</code> is the issue-tracking-sync-tool) the <code>settings.json</code> can be accessed.
-To ensure privacy, the default implementation masks passwords with asterisks.
-Under <code>foobar.com/log</code> the log file of the tool can be downloaded.
-This resource provides also a date-parameter for accessing past log files.
-The date-parameter has the following pattern:
-<code>yyyy-MM-dd</code>.
-Hence, to access the log file from February 18&lt;sup&gt;th&lt;/sup&gt; 2020, the URL would be <code>foobar.com/log2020-02-18</code></p>
+See <a href="development-configuration.html#configUrl">configUrl</a> and <a href="development-configuration.html#logsUrl">logsUrl</a> for more information.</p>
+</div>
+<div class="paragraph">
+<p>Logs and config can be accessed from the Admin page by means of the 'Show logs' and 'Show configuration' buttons.</p>
 </div>
 </div>
 </div>
@@ -548,7 +545,7 @@ The latter can be defined using class FQNs in the settings.yml, and making sure 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-04-04 16:43:55 UTC
+Last updated 2022-04-06 12:10:35 UTC
 </div>
 </div>
 </body>
