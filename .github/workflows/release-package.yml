@@ -29,14 +29,14 @@ jobs:
       - name: Build with Gradle
         run: |
           VERSION=${REF##*/}
-          gradle -Pversion=$VERSION build
+          ./gradlew -Pversion=$VERSION build
         env:
           REF: ${{ github.ref }}
 
       - name: Publish to GitHub Packages
         run: |
           VERSION=${REF##*/}
-          gradle -Pversion=$VERSION publish
+          ./gradlew -Pversion=$VERSION publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}

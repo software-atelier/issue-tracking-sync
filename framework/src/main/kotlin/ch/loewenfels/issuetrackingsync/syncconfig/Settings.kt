@@ -14,8 +14,8 @@ data class Settings(
   var actionDefinitions: MutableList<SyncActionDefinition> = mutableListOf(),
   var syncFlowDefinitions: MutableList<SyncFlowDefinition> = mutableListOf(),
   var common: MutableMap<String, MutableMap<String, String>> = mutableMapOf(),
-  private val configUrl: String,
-  private val logsUrl: String
+  val configUrl: String,
+  val logsUrl: String
 ) {
   val configLink = replaceSystemEnvVariables(configUrl)
   val logsLink = replaceSystemEnvVariables(logsUrl)
