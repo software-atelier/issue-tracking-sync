@@ -24,7 +24,7 @@ class TestApp : Logging {
     yamlReader.findAndRegisterModules()
   }
 
-  @Test
+//  @Test
   fun execute_WhenNotExists_ThenCreate() {
     // arrange
     val expectedDir = Path.of("src/test/resources/FileIssues/expected").toFile()
